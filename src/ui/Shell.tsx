@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
-import { Disc3, Mic2, Settings as SettingsIcon } from "lucide-react";
+import { Disc3, Mic2, Music, Settings as SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Player } from "../audio/player";
 import type { Connection } from "../state/connection";
@@ -9,8 +9,16 @@ import { Settings } from "./Settings";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
 import { ArtistsView } from "./views/ArtistsView";
+import { ArtistView } from "./views/ArtistView";
+import { TracksView } from "./views/TracksView";
+import type { NavTarget } from "./TrackList";
 
-export type View = { name: "albums" } | { name: "artists" } | { name: "album"; albumId: string };
+export type View =
+  | { name: "albums" }
+  | { name: "artists" }
+  | { name: "tracks" }
+  | { name: "album"; albumId: string }
+  | { name: "artist"; artistId: string };
 
 export function Shell({
   connection,
@@ -25,6 +33,8 @@ export function Shell({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
+
+  const navigate = (t: NavTarget) => setView(t);
 
   // Preferences… (⌘,) from the native app menu.
   useEffect(() => {
@@ -68,8 +78,11 @@ export function Shell({
           <button type="button" className={navItem(view.name === "albums" || view.name === "album")} onClick={() => setView({ name: "albums" })}>
             <Disc3 size={15} /> Albums
           </button>
-          <button type="button" className={navItem(view.name === "artists")} onClick={() => setView({ name: "artists" })}>
+          <button type="button" className={navItem(view.name === "artists" || view.name === "artist")} onClick={() => setView({ name: "artists" })}>
             <Mic2 size={15} /> Artists
+          </button>
+          <button type="button" className={navItem(view.name === "tracks")} onClick={() => setView({ name: "tracks" })}>
+            <Music size={15} /> Tracks
           </button>
         </nav>
 
@@ -82,9 +95,13 @@ export function Shell({
               onManage={() => setSettingsOpen(true)}
             />
           )}
-          {view.name === "artists" && <ArtistsView client={client} />}
+          {view.name === "artists" && <ArtistsView client={client} onOpen={(artistId) => setView({ name: "artist", artistId })} />}
+          {view.name === "tracks" && <TracksView client={client} player={player} onNavigate={navigate} />}
           {view.name === "album" && (
-            <AlbumView client={client} player={player} albumId={view.albumId} onBack={() => setView({ name: "albums" })} />
+            <AlbumView client={client} player={player} albumId={view.albumId} onNavigate={navigate} onBack={() => setView({ name: "albums" })} />
+          )}
+          {view.name === "artist" && (
+            <ArtistView client={client} player={player} artistId={view.artistId} onNavigate={navigate} onBack={() => setView({ name: "artists" })} />
           )}
         </main>
         {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} />}
