@@ -1,0 +1,3329 @@
+/* =========================================================
+   musex design tokens + shared classes
+   Ported from approved mockups (signin.html, shell-layout.html,
+   album-detail.html) under the brainstorm content directory.
+   ========================================================= */
+
+:root {
+  --bg: #0d0e12;
+  --panel: #16181f;
+  --panel-2: #21242d;
+  --sidebar: #0a0b0e;
+  --text: #e7e9ee;
+  --muted: rgba(231, 233, 238, 0.5);
+  --line: rgba(255, 255, 255, 0.07);
+  --green: #54d2a0;
+  --purple: #7c5cff;
+  --red: #ff5f57;
+  --yellow: #febc2e;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  /* App chrome, not a document: no text selection (drag or Cmd+A) anywhere... */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ...except where the user actually types or selects text. */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* App chrome, not a web page: suppress Chromium's tab-focus rings on rows,
+   cards and buttons. Text inputs keep a visible focus treatment via their
+   border-color rules (e.g. the search box turns green). */
+:focus,
+:focus-visible {
+  outline: none;
+}
+
+/* ---- Scrollbars: theme-styled instead of the native macOS ones.
+   transparent border + background-clip fakes a margin around the thumb so it
+   floats off the edge; the track stays invisible until you actually scroll. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.13);
+  border: 3px solid transparent;
+  border-radius: 7px;
+  background-clip: padding-box;
+  min-height: 32px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.26);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--green);
+}
+
+/* ---- Brand / wordmark ---- */
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.brand span {
+  background: linear-gradient(90deg, var(--green), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Splash (session restore) ---- */
+
+.splash-logo {
+  font-size: 76px;
+  letter-spacing: 0.01em;
+  margin-bottom: 18px;
+  animation: splash-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes splash-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
+.splash-line {
+  opacity: 0.55;
+  font-size: 13.5px;
+  animation: splash-line-in 0.35s ease-out;
+}
+
+@keyframes splash-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 0.55;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Window chrome (titlebar) ---- */
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  /* macOS draggable region */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.titlebar-lights {
+  display: flex;
+  gap: 7px;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-lights i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: block;
+}
+
+/* ---- Top bar (drag region + persistent search) ---- */
+
+.topbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 52px;
+  flex-shrink: 0;
+  /* Clear the macOS traffic lights on the left; the whole bar drags the window. */
+  padding: 0 16px 0 86px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+/* Only macOS has the in-window traffic lights the left inset clears. */
+html:not([data-platform="darwin"]) .topbar {
+  padding-left: 16px;
+}
+
+.topbar-logo {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+/* Non-mac hamburger: reaches the app menu the frameless window can't show.
+   Opts out of the bar's drag region so it's clickable. */
+.topbar-menu-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+.topbar-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Absolutely centered so the box centers on the WINDOW, not on the space
+   left over after the traffic lights + logo (flex would sit it off-center). */
+.topbar-search {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  width: 360px;
+  max-width: 38%;
+  -webkit-app-region: no-drag;
+}
+
+.topbar-search-icon {
+  position: absolute;
+  left: 11px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.topbar-search-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px 0 34px;
+  border-radius: 17px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+
+.topbar-search-input:focus {
+  border-color: var(--green);
+}
+
+/* Back/forward sit immediately left of the centered search box. */
+.topbar-nav {
+  position: absolute;
+  right: calc(50% + min(19%, 180px) + 10px);
+  display: flex;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+.topbar-nav-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  cursor: pointer;
+}
+.topbar-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+.topbar-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Red pill shown when the BlitterServer is unreachable. Sits to the right of
+   the centered search box. Uses position:absolute so it doesn't disturb the
+   flex layout that centers the search box on the window. */
+.topbar-offline-pill {
+  position: absolute;
+  left: calc(50% + min(19%, 180px) + 18px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 95, 87, 0.15);
+  border: 1px solid var(--red);
+  color: var(--red);
+  white-space: nowrap;
+  -webkit-app-region: no-drag;
+}
+
+/* ---- App layout ---- */
+
+.app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- Sidebar ---- */
+
+.sidebar {
+  width: 215px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  /* One tall scroll container — long playlist lists just grow into it
+     instead of being squeezed into an inner scrollbar. */
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  padding: 2px 8px 16px;
+}
+
+.sidebar-logo span {
+  color: var(--green);
+}
+
+.nav-section {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.4;
+  padding: 14px 10px 6px;
+}
+
+/* Collapsible section header (button variant of .nav-section). */
+.nav-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: 10.5px;
+  text-align: left;
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.nav-section-toggle:hover {
+  opacity: 0.8;
+}
+
+.nav-item {
+  padding: 8px 10px;
+  border-radius: 7px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
+  transition: background 0.1s;
+  /* reset button defaults */
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-item.active {
+  background: var(--panel-2);
+  font-weight: 600;
+}
+
+.nav-item.dim {
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.nav-item .nav-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-item .nav-badge {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* .nav-ic is no longer used — nav icons are now lucide-react components */
+
+/* ---- Sort selector ---- */
+
+.sort-select {
+  appearance: none;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 28px 4px 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23e7e9ee' opacity='.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  outline: none;
+  transition: border-color 0.1s;
+}
+
+.sort-select:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.sort-select:focus {
+  border-color: var(--purple);
+}
+
+.lib-switch {
+  margin-top: auto;
+  flex-shrink: 0;
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 12px;
+  cursor: default;
+}
+
+.lib-switch-label {
+  opacity: 0.5;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+}
+
+/* ---- Content area ---- */
+
+.content-area {
+  flex: 1;
+  overflow: auto;
+}
+
+/* ---- Sign-in screen ---- */
+
+.signin-screen {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 28px;
+  background: var(--bg);
+  /* No top bar on these screens — make the whole surface draggable. */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.signin-btn,
+.signin-cancel {
+  -webkit-app-region: no-drag;
+}
+
+.signin-logo {
+  font-weight: 800;
+  font-size: 34px;
+  letter-spacing: 0.01em;
+  margin-bottom: 6px;
+}
+
+.signin-logo span {
+  background: linear-gradient(90deg, var(--green), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.signin-logo.small {
+  font-size: 26px;
+}
+
+.signin-tagline {
+  opacity: 0.55;
+  font-size: 13.5px;
+  max-width: 300px;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+.signin-tagline.compact {
+  margin-bottom: 14px;
+}
+
+.signin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--text);
+  color: var(--panel);
+  font-weight: 650;
+  font-size: 14px;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 26px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.signin-btn:hover {
+  opacity: 0.9;
+}
+
+.signin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.server-mark {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--green), var(--purple));
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.signin-foot {
+  margin-top: auto;
+  opacity: 0.32;
+  font-size: 11px;
+  padding-top: 24px;
+}
+
+/* Waiting state */
+
+.signin-code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 30px;
+  letter-spacing: 0.32em;
+  font-weight: 700;
+  background: var(--panel-2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 22px 14px 30px;
+  margin: 8px 0 18px;
+  color: var(--text);
+}
+
+.signin-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.signin-dots span {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.signin-dots span:nth-child(1) {
+  opacity: 0.4;
+}
+
+.signin-dots span:nth-child(2) {
+  opacity: 0.7;
+}
+
+.signin-dots span:nth-child(3) {
+  opacity: 1;
+}
+
+.signin-hint {
+  opacity: 0.55;
+  font-size: 12.5px;
+  max-width: 280px;
+  line-height: 1.5;
+  margin-top: 14px;
+}
+
+.signin-hint a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+.signin-hint a:hover {
+  text-decoration: underline;
+}
+
+.signin-cancel {
+  margin-top: 20px;
+  font-size: 12px;
+  opacity: 0.5;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+}
+
+.signin-cancel:hover {
+  opacity: 0.8;
+}
+
+.signin-error {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 14px;
+  max-width: 280px;
+}
+
+/* ---- Content placeholder ---- */
+
+.content-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  opacity: 0.35;
+  font-size: 15px;
+}
+
+.error-text {
+  color: var(--red);
+  opacity: 0.8;
+}
+
+/* ---- Browse section (shared by Artists / Artist-detail) ---- */
+
+.browse-section {
+  padding: 20px 24px;
+  height: 100%;
+  overflow: auto;
+}
+
+.browse-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.browse-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+/* Inline cluster of browse controls (availability filter + sort). */
+.browse-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Artist/browse header row: title + optional action button inline */
+.artist-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.browse-sub {
+  opacity: 0.5;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+/* Sub-section heading inside a browse section (e.g. Artists/Albums/Songs
+   under "Not in your library"). */
+.browse-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 14px 0 8px;
+}
+
+/* External (last.fm) track results — not playable, each navigates to its
+   artist page. Rendered as quiet rows rather than the virtualized track list. */
+.search-external-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.search-external-track {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+.search-external-track:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.search-external-track-title {
+  font-size: 13px;
+  color: var(--text);
+}
+.search-external-track-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* "On this device" header: title + size on the left, Play/Shuffle on the right. */
+.on-device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.on-device-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.on-device-heading .on-device-size {
+  margin-bottom: 0;
+}
+
+/* "View acquisition activity" link shown in the Acquiring filter mode. */
+.acquiring-activity-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.acquiring-activity-link:hover {
+  text-decoration: underline;
+}
+
+.browse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+/* ---- Grid card (album / artist) ---- */
+
+.grid-card {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.1s;
+  width: 100%;
+}
+
+.grid-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.grid-card-art {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--panel-2);
+}
+
+/* When AlbumArt renders an <img> instead of a <div>, keep sizing consistent */
+img.grid-card-art {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+}
+
+.artist-art {
+  border-radius: 50%;
+}
+
+.grid-card-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grid-card-sub {
+  font-size: 11.5px;
+  opacity: 0.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Breadcrumb ---- */
+
+.breadcrumb {
+  padding: 14px 24px 0;
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+.breadcrumb-current {
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+.breadcrumb-link {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.breadcrumb-link:hover {
+  opacity: 1;
+}
+
+/* ---- Tracks view ---- */
+
+.tracks-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tracks-view-header {
+  flex-shrink: 0;
+  padding: 20px 24px 0;
+}
+
+.tracks-view .track-list {
+  flex: 1;
+  overflow: auto;
+}
+
+/* ---- Album detail ---- */
+
+.album-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.album-header {
+  display: flex;
+  gap: 22px;
+  padding: 16px 24px 20px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.album-header-art {
+  width: 150px;
+  height: 150px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: var(--panel-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+img.album-header-art {
+  object-fit: cover;
+}
+
+.album-meta-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+}
+
+.album-meta-title {
+  margin: 6px 0 8px;
+  font-size: 28px;
+  line-height: 1.05;
+}
+
+.album-meta-by {
+  font-size: 13px;
+}
+
+.album-meta-muted {
+  opacity: 0.5;
+}
+
+.album-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* ---- Track list ---- */
+
+.track-list {
+  flex: 1;
+  overflow: auto;
+  padding: 0 12px;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto auto auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.track-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.track-row.playing {
+  background: rgba(84, 210, 160, 0.1);
+}
+
+.track-num {
+  opacity: 0.45;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+.track-row.playing .track-num {
+  opacity: 1;
+  color: var(--green);
+  font-size: 11px;
+}
+
+.track-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-row.playing .track-title {
+  color: var(--green);
+}
+
+.track-duration {
+  opacity: 0.45;
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+}
+
+/* Per-track local-availability indicator (downloaded / downloading). */
+.track-dl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+}
+
+.track-dl-icon--done {
+  color: var(--green);
+}
+
+.track-dl-icon--active {
+  color: var(--text);
+  opacity: 0.55;
+}
+
+/* Offline + not downloaded/cached: de-emphasised, can't play right now. */
+.track-row--unavailable {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.track-row--unavailable:hover {
+  background: none;
+}
+
+/* ---- Now Playing bar ---- */
+
+.now-playing-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  background: var(--panel);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+/* Left: art + meta */
+.np-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.np-art {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: var(--panel-2);
+}
+
+img.np-art {
+  object-fit: cover;
+}
+
+.np-meta {
+  overflow: hidden;
+}
+
+.np-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-sub {
+  font-size: 11px;
+  opacity: 0.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Centre: transport + seek */
+.np-centre {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.np-transport {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.np-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 15px;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.np-btn:hover {
+  opacity: 1;
+}
+
+.np-btn.active {
+  color: var(--green);
+  opacity: 1;
+}
+
+.np-playpause {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--panel);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.np-playpause:hover {
+  opacity: 0.85;
+}
+
+.np-btn:disabled,
+.np-playpause:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+
+.np-seek-bar[aria-disabled="true"] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Seek row */
+.np-seek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.np-time {
+  font-size: 10px;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.np-seek-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+  cursor: pointer;
+}
+
+.np-seek-bar:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.np-seek-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: var(--green);
+  pointer-events: none;
+}
+
+/* Right: queue + volume */
+.np-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 160px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.np-vol-btn {
+  /* override base np-btn sizing for volume icon — keep it non-interactive looking */
+  cursor: default;
+  pointer-events: none;
+}
+
+.np-volume {
+  width: 80px;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+/* ---- Settings view ---- */
+
+.settings-page {
+  padding: 24px 28px;
+  max-width: 720px;
+}
+
+.settings-head {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.settings-subhead {
+  opacity: 0.5;
+  font-size: 12px;
+  margin-bottom: 24px;
+}
+
+.settings-section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 2px 18px;
+  margin-bottom: 18px;
+}
+
+.settings-section-title {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  padding: 14px 0 4px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.settings-section-title + .settings-row {
+  border-top: none;
+}
+
+.settings-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-row-label {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.settings-row-desc {
+  font-size: 11.5px;
+  opacity: 0.5;
+  max-width: 440px;
+  line-height: 1.45;
+}
+
+/* Toggle switch: a real <button role="switch"> with a real knob <span>.
+   No hidden input / pseudo-element, so it can't silently fail to paint. */
+.toggle {
+  display: inline-block;
+  position: relative;
+  width: 46px;
+  height: 26px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.toggle--on {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s;
+}
+
+.toggle--on .toggle-knob {
+  transform: translateX(20px);
+}
+
+.settings-input {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 10px;
+  font: inherit;
+  width: 84px;
+  text-align: right;
+}
+
+.settings-input:disabled {
+  opacity: 0.45;
+}
+
+.settings-suffix {
+  opacity: 0.5;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.settings-btn {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.settings-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.settings-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.settings-btn.danger:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* TrackRow: optional two-line main (title + subtitle) for search results */
+.track-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.track-rowsub {
+  font-size: 11px;
+  opacity: 0.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Search view ---- */
+.search-page {
+  padding: 20px 24px;
+  height: 100%;
+  overflow: auto;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 10px 16px;
+  margin-bottom: 22px;
+  max-width: 480px;
+}
+
+.search-icon {
+  opacity: 0.5;
+  font-size: 14px;
+}
+
+.search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.search-input::placeholder {
+  color: rgba(231, 233, 238, 0.4);
+}
+
+/* Stacked result groups flow within the single scrolling .search-page; they
+   size to content rather than each taking full height (the default
+   .browse-section is a sole-view container). */
+.search-page .browse-section {
+  height: auto;
+  overflow: visible;
+  padding: 0 0 22px;
+}
+
+/* ---- Virtual track list (VirtualTrackList component) ---- */
+
+/* The spacer div that holds the full virtual height. Rows are absolutely
+   positioned within it via translateY, set by the virtualizer. */
+.vtl-inner {
+  position: relative;
+  width: 100%;
+}
+
+/* Each virtually-positioned row wrapper. */
+.vtl-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+/* In SearchView the Songs section gives VirtualTrackList a bounded height so
+   it can scroll independently within the scrolling .search-page. */
+.search-page .track-list {
+  max-height: 480px;
+  flex: none;
+}
+
+/* ---- Track row menu button ---- */
+
+.track-menu-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 6px;
+}
+
+.track-row:hover .track-menu-btn {
+  opacity: 0.7;
+}
+
+.track-menu-btn:hover {
+  opacity: 1;
+}
+
+/* ---- Context menu ---- */
+
+.ctx-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 200px;
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.ctx-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ctx-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ctx-item:disabled {
+  opacity: 0.4;
+  cursor: default;
+  background: none;
+}
+
+.ctx-arrow {
+  display: flex;
+  align-items: center;
+}
+
+.ctx-accent {
+  color: var(--green);
+}
+
+.ctx-sep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 8px;
+}
+
+.ctx-arrow {
+  opacity: 0.5;
+}
+
+/* Icon + label items: flex-start so icon and text stay together on the left. */
+.ctx-item--icon {
+  justify-content: flex-start;
+}
+
+/* Inline dropdown for album/artist more-menu */
+.more-dropdown {
+  position: fixed;
+  z-index: 50;
+  min-width: 180px;
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.ctx-submenu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 190px;
+  max-height: 280px;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* Open the submenu to the left when there's no room on the right. */
+.ctx-submenu--left {
+  left: auto;
+  right: 100%;
+}
+
+/* ---- Sidebar playlist rail ---- */
+
+/* ---- Modal ---- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  width: 320px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.modal-title {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.modal-input {
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font: inherit;
+}
+
+.modal-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.modal-create {
+  background: var(--green);
+  color: #06281d;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.modal-create:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ctx-danger {
+  color: var(--red);
+}
+
+/* ---- Queue drawer ---- */
+
+/* Queue content inside the side-panel host (position/animation live there). */
+.queue-drawer {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.queue-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.queue-drawer-title {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.queue-drawer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-clear-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s;
+}
+
+.queue-clear-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text);
+}
+
+.queue-close-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.1s;
+}
+
+.queue-close-btn:hover {
+  color: var(--text);
+}
+
+.queue-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 8px;
+}
+
+.queue-empty {
+  padding: 32px 16px;
+  text-align: center;
+  opacity: 0.4;
+  font-size: 13px;
+}
+
+.queue-empty--sub {
+  padding: 16px;
+  font-size: 12px;
+}
+
+.queue-section {
+  margin-bottom: 4px;
+}
+
+.queue-section-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.4;
+  padding: 10px 14px 6px;
+}
+
+/* Now-playing highlight row (non-interactive) */
+.queue-now-playing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  background: rgba(84, 210, 160, 0.07);
+  border-left: 2px solid var(--green);
+}
+
+/* Upcoming draggable rows */
+.queue-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 6px;
+  margin: 0 6px;
+  transition: background 0.1s;
+  position: relative;
+}
+
+.queue-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.queue-row.drag-over {
+  background: rgba(124, 92, 255, 0.15);
+  box-shadow: inset 0 2px 0 0 var(--purple);
+}
+
+.queue-row-handle {
+  display: flex;
+  align-items: center;
+  opacity: 0.3;
+  cursor: grab;
+  padding: 2px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.queue-row:hover .queue-row-handle {
+  opacity: 0.7;
+}
+
+.queue-row-handle:active {
+  cursor: grabbing;
+}
+
+/* Clickable body inside the row */
+.queue-row-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px 2px;
+  outline: none;
+}
+
+.queue-row-body:focus-visible {
+  box-shadow: 0 0 0 2px var(--purple);
+}
+
+.queue-row-art {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--panel-2);
+}
+
+img.queue-row-art {
+  object-fit: cover;
+}
+
+.queue-row-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.queue-row-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-row-title--playing {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.queue-row-sub {
+  font-size: 11px;
+  opacity: 0.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-row-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.queue-row:hover .queue-row-remove {
+  opacity: 0.6;
+}
+
+.queue-row-remove:hover {
+  opacity: 1 !important;
+  color: var(--text);
+}
+
+.queue-overflow {
+  padding: 8px 14px;
+  font-size: 11.5px;
+  opacity: 0.4;
+  text-align: center;
+}
+
+/* ---- Track detail panel (right side) ---- */
+
+/* ---- Side panel host (track detail / queue share it) ---- */
+
+.side-panel {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--panel);
+  transition: width 0.24s ease;
+}
+
+.side-panel--resizing {
+  transition: none;
+}
+
+/* Inner keeps its full width during open/close so the content never reflows —
+   pinned right + host width animating = the panel slides under the content. */
+.side-panel-inner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  border-left: 1px solid var(--line);
+  transform: translateX(8%);
+  opacity: 0.4;
+  transition:
+    transform 0.24s ease,
+    opacity 0.24s ease;
+}
+
+.side-panel--open .side-panel-inner {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.side-panel--resizing .side-panel-inner {
+  transition: none;
+}
+
+.side-panel-resize {
+  position: absolute;
+  left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 3;
+}
+
+.side-panel-resize:hover,
+.side-panel--resizing .side-panel-resize {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.side-panel-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  animation: side-panel-content-in 0.2s ease-out;
+}
+
+/* Re-runs when one panel replaces another (the content div is keyed). */
+@keyframes side-panel-content-in {
+  from {
+    transform: translateX(22px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.detail-panel {
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  opacity: 0.5;
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail-head-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+}
+
+.detail-close {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  display: flex;
+  padding: 2px;
+}
+
+.detail-close:hover {
+  opacity: 1;
+}
+
+.detail-art {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  background: var(--panel-2);
+  object-fit: cover;
+}
+
+.detail-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 4px;
+}
+
+.detail-link {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.detail-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.detail-link.dim {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.detail-link:disabled {
+  cursor: default;
+}
+
+.detail-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.detail-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.detail-meta-row span:first-child {
+  opacity: 0.5;
+}
+
+/* selected (highlighted) track row */
+.track-row.selected {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.track-eq {
+  color: var(--green);
+}
+
+/* ---- Grid card hover play ---- */
+
+.grid-card-artwrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.grid-card-artwrap .grid-card-art {
+  margin-bottom: 0;
+}
+
+.grid-card-play {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.12s, transform 0.12s;
+  box-shadow: 0 6px 18px rgba(84, 210, 160, 0.35);
+}
+
+.grid-card:hover .grid-card-play,
+.grid-card-play:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.grid-card-play:hover {
+  filter: brightness(1.08);
+}
+
+/* Secondary corner action (e.g. Remove) shown alongside the Play overlay on a
+   playable card. Top-left so it clears the bottom-right Play button. */
+.grid-card-action {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--text);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.grid-card:hover .grid-card-action,
+.grid-card-action:focus-visible {
+  opacity: 1;
+}
+
+.grid-card-action:hover {
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--green);
+}
+
+/* ⋯ entity menu: a positioned wrapper at the top-left corner; the inner
+ * action button is static within it, and the dropdown anchors below it. */
+.grid-card-menu {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+.grid-card-menu .grid-card-action {
+  position: static;
+}
+.grid-card-dropdown {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  z-index: 30;
+}
+/* Follow pill as the hover action for unowned entity cards (bottom-right). */
+.grid-card-follow {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.grid-card:hover .grid-card-follow,
+.grid-card-follow:focus-within {
+  opacity: 1;
+}
+
+/* Small chip over the artwork corner (Discover "external" items) */
+.grid-card-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+/* ---- Plugin detail sections (track detail panel) ---- */
+
+.detail-plugin-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+  margin-bottom: 1px;
+}
+
+/* ---- Artist info panel ---- */
+
+.artist-info-image {
+  width: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.artist-info-bio {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+  white-space: pre-line;
+}
+
+.artist-info-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---- Home view ---- */
+
+.home-greeting {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 4px 0 18px;
+}
+
+.home-row {
+  margin-bottom: 26px;
+}
+
+/* Home section labels need air between the title and the tile grid. */
+.home-row .browse-title {
+  margin-bottom: 14px;
+}
+
+/* ---- Tracks view header actions (play/shuffle + sort) ---- */
+
+.tracks-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* ---- Quiet inline link (artist/album names in subtitles) ---- */
+
+.link-quiet {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.link-quiet:hover:not(:disabled) {
+  text-decoration: underline;
+  color: var(--text);
+}
+
+.link-quiet:disabled {
+  cursor: default;
+}
+
+/* ---- Plugins (Settings) ---- */
+
+.plugin-version {
+  font-weight: 400;
+  font-size: 11px;
+  opacity: 0.5;
+  margin-left: 2px;
+}
+
+.plugin-chip {
+  display: inline-block;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  opacity: 0.85;
+  margin-left: 8px;
+  vertical-align: 1px;
+}
+
+.plugin-chip--active {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.plugin-chip--error,
+.plugin-chip--incompatible {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.plugin-error {
+  color: var(--red);
+  opacity: 0.9;
+}
+
+.plugin-setting-row {
+  padding-left: 14px;
+}
+
+.settings-input.settings-input--text {
+  width: 220px;
+  text-align: left;
+}
+
+.settings-input.settings-input--select {
+  width: 160px;
+  text-align: left;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.plugin-action-result {
+  font-size: 11.5px;
+  opacity: 0.7;
+  margin-right: 10px;
+}
+
+.plugin-action-result--error {
+  color: var(--red);
+  opacity: 1;
+}
+
+/* ---- Toasts (plugin notifications) ---- */
+
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 84px; /* above the 68px now-playing bar */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 120;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  max-width: 340px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.toast--error {
+  border-color: var(--red);
+}
+
+.toast-source {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+  margin-bottom: 2px;
+}
+
+.toast-msg {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.toast-x {
+  background: none;
+  border: none;
+  color: var(--text);
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+}
+
+.toast-x:hover {
+  opacity: 1;
+}
+
+/* ---- Star ratings ---- */
+
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.star-rating .star {
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0 1px;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  opacity: 0.35; /* empty stars: dim outline */
+}
+
+.star-rating button.star {
+  cursor: pointer;
+}
+
+.star-rating .star.filled {
+  color: var(--yellow);
+  opacity: 1;
+}
+
+/* Track rows: stars sit right of the title block at a fixed line height so the
+   row never jumps; hidden until row hover unless the track is rated. */
+.track-stars {
+  height: 16px;
+}
+
+.track-row .star-rating {
+  visibility: hidden;
+}
+
+.track-row:hover .star-rating,
+.track-row .star-rating.rated {
+  visibility: visible;
+}
+
+/* Now-playing bar: stars under the title/sub block */
+.np-stars {
+  margin-top: 2px;
+}
+
+/* Track detail panel: stars under the artist/album links (panel is a flex
+   column whose gap provides the spacing; keep the hit area tight). */
+.detail-stars {
+  align-self: flex-start;
+}
+
+/* Radio mode chip + stop control in the queue drawer header */
+.radio-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  padding: 2px 8px;
+}
+
+.radio-stop-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.1s, color 0.1s;
+}
+
+.radio-stop-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text);
+}
+
+/* ---- Track panel crumb ---- */
+
+.detail-crumb {
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.detail-crumb .breadcrumb-link:disabled {
+  cursor: default;
+  text-decoration: none;
+  opacity: 0.7;
+}
+
+/* ---- Missing-artwork placeholder (AlbumArt fallback) ---- */
+
+.art-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(231, 233, 238, 0.45);
+}
+
+/* ---- Settings: keyboard shortcuts ---- */
+
+.settings-kbd-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 14px 0 2px;
+}
+
+.settings-kbd-row {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.settings-kbd {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+/* ---- Shortcuts modal ---- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  /* punches a hole in the topbar's drag region while the modal is open */
+  -webkit-app-region: no-drag;
+}
+
+.shortcuts-modal {
+  width: 460px;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+.shortcuts-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.shortcuts-modal-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.shortcuts-modal-body {
+  overflow-y: auto;
+  padding: 6px 16px 16px;
+}
+
+.shortcuts-modal-group {
+  margin-top: 10px;
+}
+
+.shortcuts-modal .settings-kbd-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 12.5px;
+}
+
+/* About window (musex menu → About musex) */
+.about-modal {
+  width: 580px;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+.about-modal-body {
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+
+.about-brand {
+  font-size: 30px;
+}
+
+.about-meta {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-top: 4px;
+}
+
+.about-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--green);
+  cursor: pointer;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
+
+.about-section-title {
+  font-weight: 700;
+  font-size: 13px;
+  margin: 20px 0 4px;
+}
+
+.about-blurb {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin-bottom: 10px;
+}
+
+.about-dep {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+}
+
+.about-dep-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.about-dep-name {
+  font-weight: 600;
+}
+
+.about-dep-version {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.about-dep-license {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+.about-dep-home {
+  display: inline-flex;
+  align-self: center;
+  color: var(--muted);
+}
+
+.about-dep-home:hover {
+  color: var(--text);
+}
+
+.about-dep-desc {
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.about-dep-text {
+  margin-top: 6px;
+}
+
+.about-dep-text summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.about-dep-text pre {
+  white-space: pre-wrap;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--panel-2);
+  border-radius: 6px;
+  padding: 10px;
+  margin: 6px 0 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* ---- Taste expansion (Settings section + Downloads feed) ---- */
+
+.settings-range {
+  width: 160px;
+  accent-color: var(--green);
+}
+
+.expansion-budget,
+.expansion-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.expansion-budget-value {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 52px;
+  text-align: right;
+}
+
+.expansion-slider-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.expansion-deepening {
+  color: var(--purple);
+  font-size: 11.5px;
+}
+
+.expansion-reject {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.expansion-reject:hover {
+  color: var(--red);
+}
+
+.expansion-list {
+  margin-bottom: 26px;
+}
+
+.watched-title {
+  margin-top: 26px;
+}
+
+.watched-icon {
+  vertical-align: -2px;
+  color: var(--green);
+  margin-right: 4px;
+}
+
+/* ---- Settings modal (musex menu → Settings…, ⌘,) ---- */
+
+.settings-modal {
+  width: min(760px, 92vw);
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+.settings-modal-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Categorized settings: internal sidebar + pane (same modal). */
+.settings-layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+}
+.settings-nav {
+  width: 170px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+.settings-nav .settings-nav-sub {
+  padding-left: 26px;
+  font-size: 12.5px;
+}
+.settings-pane {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* Inside the modal the page chrome slims down (the modal header is the title). */
+.settings-modal .settings-page {
+  padding: 6px 20px 20px;
+  max-width: none;
+}
+
+/* ---- Log viewer (Help → Show Logs) ---- */
+
+.logs-modal {
+  width: min(920px, 92vw);
+  height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+.logs-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logs-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.logs-copy-btn:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.logs-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px 12px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.55;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.logs-empty {
+  opacity: 0.5;
+  padding: 10px 4px;
+}
+
+.logs-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 1px 0;
+}
+
+.logs-time {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.logs-source {
+  flex-shrink: 0;
+  font-size: 10px;
+  border-radius: 4px;
+  padding: 0 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logs-source--main {
+  color: var(--purple);
+  border: 1px solid color-mix(in srgb, var(--purple) 45%, transparent);
+}
+
+.logs-source--renderer {
+  color: var(--green);
+  border: 1px solid color-mix(in srgb, var(--green) 45%, transparent);
+}
+
+.logs-level {
+  flex-shrink: 0;
+  width: 42px;
+  color: var(--muted);
+}
+
+.logs-row--warn .logs-level,
+.logs-row--warn .logs-text {
+  color: var(--yellow);
+}
+
+.logs-row--error .logs-level,
+.logs-row--error .logs-text {
+  color: var(--red);
+}
+
+.logs-row--debug .logs-text {
+  color: var(--muted);
+}
+
+.logs-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* ---- Acquisition (External Artist + Downloads views) ---- */
+
+/* Badge state variants: color-only, shared by the grid-card corner badge and
+   the Downloads-row .dl-chip. */
+.grid-card-badge--owned {
+  background: var(--green);
+  border-color: transparent;
+  color: var(--bg);
+}
+
+.grid-card-badge--downloaded {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.grid-card-badge--downloading {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+.grid-card-badge--requested {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: var(--purple);
+  color: #b9a8ff;
+}
+
+.grid-card-badge--monitored {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.grid-card-badge--unavailable {
+  background: rgba(0, 0, 0, 0.65);
+  border-color: rgba(255, 95, 87, 0.45);
+  color: rgba(255, 95, 87, 0.75);
+}
+
+/* Dimmed card (unavailable acquisition albums) */
+.grid-card--dim {
+  opacity: 0.45;
+}
+
+/* Downloads view rows */
+.dl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 640px;
+}
+
+.dl-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dl-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.dl-row-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dl-row-artist {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.dl-row-detail {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* Same look as the np-seek bar, non-interactive */
+.dl-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.dl-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: var(--green);
+}
+
+/* Neutral pill for states with no acquisition-badge equivalent
+ * (abandoned/rejected). Matches the muted .state-badge chrome. */
+.dl-chip {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--muted);
+}
+
+/* ---- Genres ---- */
+
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+/* Grid-card-like vertical layout: collage on top, name + count below. */
+.genre-card {
+  background: var(--panel-2);
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 10px 10px 14px;
+  transition:
+    background 0.1s,
+    transform 0.1s;
+}
+
+.genre-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.genre-card-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.genre-card-count {
+  margin-top: 4px;
+  font-size: 11.5px;
+  opacity: 0.5;
+}
+
+/* ---- Mixes ---- */
+
+/* Mix cards reuse the genre-card family; the description wraps. */
+.mix-card-desc {
+  margin-top: 4px;
+  font-size: 11.5px;
+  opacity: 0.6;
+  line-height: 1.45;
+  /* Exactly two lines on every card so tiles in a row align vertically. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(2 * 1.45 * 11.5px);
+}
+
+/* Smart-playlist cards (Home → Smart Mixes): gradient icon tile in place of
+   the album collage, one hue per playlist. */
+.smart-card-art {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.smart-card--for-you .smart-card-art {
+  background: linear-gradient(135deg, var(--purple), #3b2d80);
+}
+
+.smart-card--top-rated .smart-card-art {
+  background: linear-gradient(135deg, var(--yellow), #8a5a14);
+}
+
+.smart-card--heavy-rotation .smart-card-art {
+  background: linear-gradient(135deg, var(--red), #7a2420);
+}
+
+.smart-card--rediscover .smart-card-art {
+  background: linear-gradient(135deg, var(--green), #1f6e52);
+}
+
+/* Smart cards with collage art keep a small kind-glyph chip for identity.
+   The kind gradient must not bleed under/around the collage, and the inner
+   collage's browse margin is unwanted inside the square wrapper. */
+/* Two-class selector: must out-rank the per-kind `.smart-card--* .smart-card-art`
+   gradient rules (same specificity, later in the file wins). */
+.smart-card .smart-card-art--collage {
+  position: relative;
+  padding: 0;
+  background: none;
+  overflow: hidden;
+  display: block;
+}
+.smart-card-art--collage .genre-card-collage {
+  margin-bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+.smart-card-glyph {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text);
+}
+
+/* Artist header: .album-actions sits inline in the flex row, so the
+   margin-top (designed for the album header's stacked meta column) would
+   push the buttons below the centered title/stars baseline. */
+.artist-header .album-actions {
+  margin-top: 0;
+}
+
+/* ---- Album-art collages (genre + mix cards, view headers) ---- */
+
+.card-collage {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  background: var(--panel-2);
+  width: 100%;
+}
+
+.card-collage.cols-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.card-collage.rows-2 {
+  grid-template-rows: 1fr 1fr;
+}
+
+.card-collage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 0;
+  min-width: 0;
+}
+
+.genre-card-collage {
+  margin-bottom: 10px;
+}
+
+/* Small collage beside the GenreView/MixView breadcrumb title. */
+.header-with-collage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.header-collage {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+/* ---- Shared discovery action bar (one icon-button size everywhere) ---- */
+:root { --icon-btn: 40px; }
+.action-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.action-play {
+  width: 46px; height: 46px; border-radius: 50%; border: none;
+  background: var(--green); color: #0d0e12; display: grid; place-items: center;
+  cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  transition: transform .12s ease, opacity .12s ease;
+}
+.action-play:hover { transform: scale(1.05); }
+.action-icon {
+  width: var(--icon-btn); height: var(--icon-btn); border-radius: 50%;
+  background: transparent; border: 1px solid var(--line); color: var(--text);
+  display: grid; place-items: center; cursor: pointer; transition: all .12s ease;
+}
+.action-icon:hover { border-color: var(--green); color: var(--green); }
+.action-pill {
+  height: 34px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--line);
+  background: transparent; color: var(--text); display: inline-flex; align-items: center;
+  gap: 7px; font-size: 13px; cursor: pointer; transition: all .12s ease;
+}
+.action-pill:hover { border-color: var(--green); }
+.action-pill--on { border-color: var(--green); color: var(--green); background: rgba(84,210,160,.12); }
+.action-pill:disabled, .action-icon:disabled { opacity: .5; cursor: default; }
+.monitor-status { margin-top: 11px; font-size: 12px; color: var(--green); display: flex; align-items: center; gap: 6px; }
+
+/* ---- Unified acquisition state badge (replaces grid-card-badge--x / expansion-chip--x) ---- */
+.state-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.state-badge--owned { background: var(--green); color: #0d0e12; }
+.state-badge--downloaded { background: rgba(0,0,0,.5); border: 1px solid var(--green); color: var(--green); }
+.state-badge--downloading { background: rgba(0,0,0,.5); border: 1px solid var(--yellow); color: var(--yellow); }
+.state-badge--requested { background: rgba(0,0,0,.5); border: 1px solid var(--purple); color: #b9a8ff; }
+.state-badge--available { background: rgba(84,210,160,.14); border: 1px solid var(--green); color: var(--green); }
+.state-badge--unavailable { background: rgba(0,0,0,.5); border: 1px solid rgba(255,95,87,.6); color: #ff8a84; }
+/* StateBadge dropped into the grid-card badge corner: keep only positioning,
+ * the inner .state-badge carries its own pill chrome. */
+.grid-card-badge--state {
+  padding: 0;
+  background: none;
+  border: none;
+  pointer-events: none;
+}
+/* small bell corner-marker on monitored artist cards */
+.card-monitored { position: absolute; top: 7px; right: 7px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.6); border: 1px solid var(--green); color: var(--green); display: grid; place-items: center; }
+
+/* ---- SP0 unified entity-state badge (rendered from core ENTITY_STATE) ---- */
+/* Color comes from the state's `colorToken` (a real `colors` key); chrome
+ * mirrors .state-badge. Non-default states only — owned/in-library shows none. */
+.entity-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  background: rgba(0,0,0,.5); border: 1px solid var(--line); color: var(--text);
+}
+.entity-badge--green { border-color: var(--green); color: var(--green); }
+.entity-badge--yellow { border-color: var(--yellow); color: var(--yellow); }
+.entity-badge--purple { border-color: var(--purple); color: #b9a8ff; }
+.entity-badge--red { border-color: var(--red); color: #ff8a84; }
+.entity-badge--muted { border-color: var(--line); color: var(--muted); }
+.entity-badge--text { border-color: var(--text); color: var(--text); }
+
+/* ---- Artist About (last.fm bio under the header, above the discography) ---- */
+
+.artist-about {
+  margin-bottom: 22px;
+}
+
+.artist-about .browse-title {
+  margin-bottom: 8px;
+}
+
+/* Clamped to a few lines so a long bio doesn't push the album grid down;
+   `--expanded` lifts the clamp. The toggle below is gated on real overflow. */
+.artist-bio {
+  margin: 0;
+  max-width: 760px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.artist-bio--expanded {
+  display: block;
+  overflow: visible;
+}
+
+.artist-bio-toggle {
+  margin-top: 4px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--green);
+  cursor: pointer;
+}
+
+.artist-bio-toggle:hover {
+  text-decoration: underline;
+}
+
+/* ---- BlitterAmp additions on top of the ported musex tokens ---- */
+
+.signin-input {
+  width: min(420px, 80vw);
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+  margin: 10px 0 14px;
+}
+
+.signin-profiles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  min-width: 260px;
+}
+
+.grid-card-artwrap--round,
+.grid-card-artwrap--round img,
+.grid-card-artwrap--round .art-placeholder {
+  border-radius: 50%;
+}
