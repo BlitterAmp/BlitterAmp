@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Player } from "../audio/player";
 import type { Connection } from "../state/connection";
 import { NowPlayingBar } from "./NowPlayingBar";
+import { QueueDrawer } from "./QueueDrawer";
 import { Settings } from "./Settings";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
@@ -22,6 +23,7 @@ export function Shell({
 }) {
   const [view, setView] = useState<View>({ name: "albums" });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
 
   // Preferences… (⌘,) from the native app menu.
@@ -85,9 +87,10 @@ export function Shell({
             <AlbumView client={client} player={player} albumId={view.albumId} onBack={() => setView({ name: "albums" })} />
           )}
         </main>
+        {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} />}
       </div>
 
-      <NowPlayingBar client={client} player={player} />
+      <NowPlayingBar client={client} player={player} queueOpen={queueOpen} onToggleQueue={() => setQueueOpen((o) => !o)} />
 
       {settingsOpen && (
         <Settings
