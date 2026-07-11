@@ -25,54 +25,53 @@ export function NowPlayingBar({ client, player }: { client: Client; player: Play
   const progress = state.durationSec > 0 ? (state.positionSec / state.durationSec) * 100 : 0;
 
   return (
-    <div className="now-playing-bar">
-      <div className="np-left">
+    <footer className="grid h-20 shrink-0 grid-cols-3 items-center gap-4 border-t border-base-300 bg-base-100 px-4">
+      <div className="flex min-w-0 items-center gap-3">
         {t ? (
           <>
-            <div className="np-art">
-              <AlbumArt client={client} artId={t.artId} size={80} alt={t.albumTitle} />
+            <div className="size-12 overflow-hidden rounded-md">
+              <AlbumArt client={client} artId={t.artId} size={96} alt={t.albumTitle} />
             </div>
-            <div className="np-meta">
-              <div className="np-title">{t.title}</div>
-              <div className="np-sub">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold">{t.title}</div>
+              <div className="truncate text-xs opacity-60">
                 {t.artistName} — {t.albumTitle}
               </div>
             </div>
           </>
         ) : (
-          <div className="np-meta">
-            <div className="np-sub">{state.error || "Nothing playing"}</div>
-          </div>
+          <div className="text-xs opacity-60">{state.error || "Nothing playing"}</div>
         )}
       </div>
-      <div className="np-centre">
-        <div className="np-transport">
-          <button type="button" className="np-btn" onClick={() => void player.previous()} aria-label="Previous">
+
+      <div className="flex flex-col items-center gap-1.5">
+        <div className="flex items-center gap-2">
+          <button type="button" className="btn btn-ghost btn-sm btn-circle" onClick={() => void player.previous()} aria-label="Previous">
             <SkipBack size={16} />
           </button>
-          <button type="button" className="np-btn np-playpause" onClick={() => player.toggle()} aria-label="Play/Pause">
+          <button type="button" className="btn btn-primary btn-sm btn-circle" onClick={() => player.toggle()} aria-label="Play/Pause">
             {state.playing ? <Pause size={18} /> : <Play size={18} />}
           </button>
-          <button type="button" className="np-btn" onClick={() => void player.next()} aria-label="Next">
+          <button type="button" className="btn btn-ghost btn-sm btn-circle" onClick={() => void player.next()} aria-label="Next">
             <SkipForward size={16} />
           </button>
         </div>
-        <div className="np-seek">
-          <span className="np-time">{fmt(state.positionSec)}</span>
+        <div className="flex w-full max-w-md items-center gap-2 text-[11px] tabular-nums opacity-70">
+          <span>{fmt(state.positionSec)}</span>
           <div
-            className="np-seek-bar"
+            className="h-1 flex-1 cursor-pointer overflow-hidden rounded-full bg-base-300"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
-              const frac = (e.clientX - rect.left) / rect.width;
-              player.seek(frac * state.durationSec);
+              player.seek(((e.clientX - rect.left) / rect.width) * state.durationSec);
             }}
           >
-            <div className="np-seek-fill" style={{ width: `${progress}%` }} />
+            <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
           </div>
-          <span className="np-time">{fmt(state.durationSec)}</span>
+          <span>{fmt(state.durationSec)}</span>
         </div>
       </div>
-      <div className="np-right" />
-    </div>
+
+      <div />
+    </footer>
   );
 }

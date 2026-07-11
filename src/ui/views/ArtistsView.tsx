@@ -23,28 +23,32 @@ export function ArtistsView({ client }: { client: Client }) {
   }, [client]);
 
   return (
-    <div className="browse-section">
-      <div className="browse-header">
-        <div className="browse-title">Artists</div>
-        <div className="browse-sub">{artists.length} loaded</div>
+    <section>
+      <div className="mb-4 flex items-baseline justify-between">
+        <h1 className="text-2xl font-semibold">Artists</h1>
+        <span className="text-sm opacity-60">{artists.length} loaded</span>
       </div>
-      {error && <div className="signin-error">{error}</div>}
-      <div className="browse-grid">
+      {error && <div className="alert alert-error mb-4">{error}</div>}
+
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-5">
         {artists.map((a) => (
-          <div key={a.artistId} className="grid-card">
-            <div className="grid-card-artwrap grid-card-artwrap--round">
+          <div key={a.artistId} className="text-center">
+            <div className="mx-auto aspect-square w-full overflow-hidden rounded-full shadow-sm">
               <AlbumArt client={client} artId={a.artId} alt={a.name} />
             </div>
-            <div className="grid-card-title">{a.name}</div>
-            <div className="grid-card-sub">{a.albumCount ?? 0} albums</div>
+            <div className="mt-2 truncate text-sm font-medium">{a.name}</div>
+            <div className="truncate text-xs opacity-60">{a.albumCount ?? 0} albums</div>
           </div>
         ))}
       </div>
+
       {cursor && (
-        <button type="button" className="signin-btn" onClick={() => void loadMore(cursor)}>
-          Load more
-        </button>
+        <div className="mt-6 flex justify-center">
+          <button type="button" className="btn btn-sm" onClick={() => void loadMore(cursor)}>
+            Load more
+          </button>
+        </div>
       )}
-    </div>
+    </section>
   );
 }

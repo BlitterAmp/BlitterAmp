@@ -33,46 +33,44 @@ export function AlbumView({
   const first = tracks[0];
 
   return (
-    <div className="album-detail">
-      <button type="button" className="breadcrumb-link nav-item" onClick={onBack}>
-        <ArrowLeft size={13} /> Albums
+    <section>
+      <button type="button" className="btn btn-ghost btn-sm mb-4 gap-1" onClick={onBack}>
+        <ArrowLeft size={14} /> Albums
       </button>
-      {error && <div className="signin-error">{error}</div>}
+      {error && <div className="alert alert-error mb-4">{error}</div>}
+
       {first && (
-        <div className="album-header">
-          <div className="album-header-art">
+        <div className="mb-6 flex gap-6">
+          <div className="size-48 shrink-0 overflow-hidden rounded-box shadow-lg">
             <AlbumArt client={client} artId={first.artId} size={600} alt={first.albumTitle} />
           </div>
-          <div>
-            <div className="album-meta-label">Album</div>
-            <h1 className="album-meta-title">{first.albumTitle}</h1>
-            <div className="album-meta-by">{first.artistName}</div>
-            <div className="album-actions">
-              <button type="button" className="action-play" onClick={() => void player.playQueue(tracks)}>
-                <Play size={16} /> Play
-              </button>
-            </div>
+          <div className="flex flex-col justify-end">
+            <div className="text-xs uppercase tracking-wider opacity-50">Album</div>
+            <h1 className="text-3xl font-bold">{first.albumTitle}</h1>
+            <div className="mt-1 opacity-70">{first.artistName}</div>
+            <button type="button" className="btn btn-primary mt-4 w-fit gap-2" onClick={() => void player.playQueue(tracks)}>
+              <Play size={16} /> Play
+            </button>
           </div>
         </div>
       )}
-      <div className="track-list">
-        {tracks.map((t, i) => (
-          <button
-            type="button"
-            key={t.trackId}
-            className="track-row"
-            onDoubleClick={() => void player.playQueue(tracks, i)}
-            onClick={() => void player.playQueue(tracks, i)}
-          >
-            <span className="track-num">{t.index ?? i + 1}</span>
-            <span className="track-main">
-              <span className="track-title">{t.title}</span>
-              {!player.canPlay(t) && <span className="track-rowsub"> ({t.media.container} — needs the mpv engine)</span>}
-            </span>
-            <span className="track-duration">{fmt(t.durationMs)}</span>
-          </button>
-        ))}
-      </div>
-    </div>
+
+      <table className="table table-sm">
+        <tbody>
+          {tracks.map((t, i) => (
+            <tr key={t.trackId} className="hover cursor-pointer" onClick={() => void player.playQueue(tracks, i)}>
+              <td className="w-10 text-right tabular-nums opacity-50">{t.index ?? i + 1}</td>
+              <td>
+                {t.title}
+                {!player.canPlay(t) && (
+                  <span className="ml-2 text-xs opacity-50">({t.media.container} — needs the mpv engine)</span>
+                )}
+              </td>
+              <td className="w-16 text-right tabular-nums opacity-60">{fmt(t.durationMs)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }

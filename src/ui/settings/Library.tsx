@@ -10,25 +10,18 @@ interface FsSource {
   lastScanError?: string | null;
 }
 
-interface LibrarySummary {
-  counts: { artists?: number; albums?: number; tracks?: number };
-}
-
-export function Library({ admin, baseUrl }: { admin: AdminClient; baseUrl: string }) {
+export function Library({ admin }: { admin: AdminClient; baseUrl: string }) {
   const [source, setSource] = useState<FsSource | null>(null);
-  const [summary, setSummary] = useState<LibrarySummary | null>(null);
   const [error, setError] = useState("");
 
   async function refresh() {
     try {
       setSource(await admin.get<FsSource>("/admin/api/source/filesystem"));
-      setSummary(await admin.get<LibrarySummary>("/admin/api/state").then(() => null).catch(() => null));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
   }
 
-  // Poll while a scan runs so the counts settle.
   useEffect(() => {
     void refresh();
     const t = setInterval(() => {
@@ -60,42 +53,41 @@ export function Library({ admin, baseUrl }: { admin: AdminClient; baseUrl: strin
     }
   }
 
-  // The library counts come straight from /v1 on the player client; here we
-  // just surface the source + scan health, which is the admin's concern.
-  void summary;
-  void baseUrl;
-
   return (
-    <div className="settings-page">
-      <div className="settings-head">Library</div>
-      {error && <div className="modal-error">{error}</div>}
-      <div className="settings-section">
-        <div className="settings-row">
-          <div className="settings-row-text">
-            <div className="settings-row-label">Music folder</div>
-            <div className="settings-row-desc">
+    <div>
+      <h3 className="mb-4 text-xl font-semibold">Library</h3>
+      {error && <div className="alert alert-error mb-4">{error}</div>}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between rounded-box bg-base-200 p-4">
+          <div className="min-w-0">
+            <div className="font-medium">Music folder</div>
+            <div className="truncate text-sm opacity-70">
               {source?.configured ? source.path : "No folder chosen yet — pick where your music lives."}
             </div>
           </div>
-          <button type="button" className="settings-btn" onClick={() => void choose()}>
+          <button type="button" className="btn btn-sm" onClick={() => void choose()}>
             {source?.configured ? "Change…" : "Choose…"}
           </button>
         </div>
         {source?.configured && (
-          <div className="settings-row">
-            <div className="settings-row-text">
-              <div className="settings-row-label">Scan</div>
-              <div className="settings-row-desc">
-                {source.scanning
-                  ? "Scanning your library…"
-                  : source.lastScanError
-                    ? `Last scan failed: ${source.lastScanError}`
-                    : source.lastScanAt
-                      ? `Last scanned ${new Date(source.lastScanAt).toLocaleString()}`
-                      : "Not scanned yet."}
+          <div className="flex items-center justify-between rounded-box bg-base-200 p-4">
+            <div>
+              <div className="font-medium">Scan</div>
+              <div className="text-sm opacity-70">
+                {source.scanning ? (
+                  <span className="flex items-center gap-2">
+                    <span className="loading loading-spinner loading-xs" /> Scanning your library…
+                  </span>
+                ) : source.lastScanError ? (
+                  <span className="text-error">Last scan failed: {source.lastScanError}</span>
+                ) : source.lastScanAt ? (
+                  `Last scanned ${new Date(source.lastScanAt).toLocaleString()}`
+                ) : (
+                  "Not scanned yet."
+                )}
               </div>
             </div>
-            <button type="button" className="settings-btn" disabled={source.scanning} onClick={() => void rescan()}>
+            <button type="button" className="btn btn-sm" disabled={source.scanning} onClick={() => void rescan()}>
               Rescan
             </button>
           </div>

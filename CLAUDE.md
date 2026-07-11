@@ -15,15 +15,19 @@ operational docs. Do not add design docs here.
 
 - **Tauri v2** (chosen over Electron: musex only used Chromium for UI — playback was an mpv sidecar,
   and Tauri sidecars fit both mpv and the future embedded BlitterServer engine; ~10 MB vs ~150 MB).
-- **React 19 + TypeScript + Vite** in the webview (matches the musex UI being ported and the
-  React Native mobile app; the BlitterServer *admin console* is Svelte and stays that way — they share
-  only the contract).
+- **React 19 + TypeScript + Vite** in the webview (the React Native mobile app is also React; the
+  BlitterServer *admin console* is Svelte and stays that way — they share the contract and the DaisyUI
+  design language).
+- **Tailwind v4 + DaisyUI** for base components (btn/modal/menu/input/card/table/alert/badge), with a
+  brand-matched dark theme (`blitteramp`) in `src/app.css` derived from the musex palette
+  (green `#54d2a0` = primary, purple `#7c5cff` = secondary/accent). Use DaisyUI + Tailwind utilities;
+  add custom CSS only for app chrome the framework can't express (frameless titlebar padding, brand
+  gradient wordmark, scrollbars).
 - The Rust host stays THIN: window/plugin/sidecar lifecycle only, PLUS the bundled-engine manager
   (`src-tauri/src/engine.rs`) — it spawns a BlitterServer sidecar, auto-provisions it (all admin-cookie
   work is Rust-side because the webview can't read Set-Cookie), and hands the app a bearer profile token.
   App logic lives in React; music logic lives in BlitterServer.
-- Design system: `src/theme.css` — ported musex tokens/classes (dark shell, green/purple brand).
-  Reuse its class vocabulary before inventing new styles.
+
 
 ## Non-negotiables
 

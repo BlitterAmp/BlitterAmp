@@ -1,0 +1,94 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* Brand-matched dark theme (ported from the musex palette) applied by default,
+   so DaisyUI base components (btn/modal/menu/input/card/table…) come styled and
+   we extend from there. */
+@plugin "daisyui/theme" {
+  name: "blitteramp";
+  default: true;
+  color-scheme: dark;
+
+  --color-base-100: #16181f; /* panels/cards */
+  --color-base-200: #0d0e12; /* app background */
+  --color-base-300: #21242d; /* raised/hover */
+  --color-base-content: #e7e9ee;
+
+  --color-primary: #54d2a0; /* the "go" green */
+  --color-primary-content: #0d0e12;
+  --color-secondary: #7c5cff; /* brand purple */
+  --color-secondary-content: #ffffff;
+  --color-accent: #7c5cff;
+  --color-accent-content: #ffffff;
+
+  --color-neutral: #21242d;
+  --color-neutral-content: #e7e9ee;
+
+  --color-info: #54d2a0;
+  --color-success: #54d2a0;
+  --color-warning: #febc2e;
+  --color-error: #ff5f57;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+}
+
+/* ---- App chrome the component framework doesn't cover ---- */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  /* App chrome, not a document: no text selection except in inputs. */
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Brand wordmark: green→purple gradient on "Amp". */
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.brand span {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frameless macOS window: clear the traffic lights on the left of the top bar. */
+.titlebar-pad {
+  padding-left: 78px;
+}
+html:not([data-platform="darwin"]) .titlebar-pad {
+  padding-left: 1rem;
+}
+
+/* Theme-styled scrollbars instead of native. */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.13);
+  border: 3px solid transparent;
+  border-radius: 7px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.26);
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -2,10 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { ApiError, Client, type Profile } from "../../api/client";
 import { DEFAULT_LOCAL_URL, type SavedSession } from "../../state/session";
 
-// Deliberate connect-to-remote wizard, launched from Settings. Unlike the old
-// launch gate there's no auto-probe — the user is explicitly reaching for a
-// server they run elsewhere. On success it hands back a SavedSession for the
-// connection layer to adopt.
 type Step =
   | { name: "server" }
   | { name: "pairing"; client: Client; pairingId: string; code: string }
@@ -53,13 +49,7 @@ export function ConnectRemote({
     setError("");
     try {
       const minted = await client.createProfileToken(profile.profileId, pin);
-      onConnected({
-        serverUrl: client.baseUrl,
-        deviceToken,
-        profileToken: minted.token,
-        profile: minted.profile,
-        managed: false,
-      });
+      onConnected({ serverUrl: client.baseUrl, deviceToken, profileToken: minted.token, profile: minted.profile, managed: false });
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
         if (pin === undefined) setStep({ name: "pin", client, deviceToken, profiles, profile });
@@ -70,80 +60,77 @@ export function ConnectRemote({
     }
   }
 
-  return (
-    <div className="settings-section">
-      {step.name === "server" && (
-        <form onSubmit={connect}>
-          <p className="settings-row-desc">
-            Connect to a BlitterServer you run elsewhere. You'll approve this device in that server's web admin.
-          </p>
-          <input
-            className="settings-input"
-            value={serverUrl}
-            onChange={(e) => setServerUrl(e.target.value)}
-            placeholder="https://music.example.net"
-            spellCheck={false}
-            autoFocus
-          />
-          {error && <div className="modal-error">{error}</div>}
-          <div className="modal-actions">
-            <button type="button" className="settings-btn" onClick={onCancel}>
-              Cancel
-            </button>
-            <button type="submit" className="settings-btn modal-create" disabled={busy || !serverUrl}>
-              {busy ? "Connecting…" : "Connect"}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {step.name === "pairing" && (
-        <PairingWait
-          step={step}
-          error={error}
-          onError={setError}
-          onCancel={() => setStep({ name: "server" })}
-          onPaired={async (deviceToken) => {
-            const deviceClient = step.client.withToken(deviceToken);
-            const profiles = await deviceClient.listProfiles();
-            setStep({ name: "profiles", client: deviceClient, deviceToken, profiles });
-          }}
+  if (step.name === "server") {
+    return (
+      <form onSubmit={connect} className="space-y-3">
+        <p className="text-sm opacity-70">
+          Connect to a BlitterServer you run elsewhere. You'll approve this device in that server's web admin.
+        </p>
+        <input
+          className="input input-bordered w-full"
+          value={serverUrl}
+          onChange={(e) => setServerUrl(e.target.value)}
+          placeholder="https://music.example.net"
+          spellCheck={false}
+          autoFocus
         />
-      )}
-
-      {step.name === "profiles" && (
-        <div>
-          <p className="settings-row-desc">Who's listening?</p>
-          {step.profiles.map((p) => (
-            <button
-              key={p.profileId}
-              type="button"
-              className="settings-btn"
-              style={{ display: "block", width: "100%", marginBottom: 8 }}
-              onClick={() => void pickProfile(step.client, step.deviceToken, step.profiles, p)}
-            >
-              {p.name}
-              {p.hasPin ? " 🔒" : ""}
-            </button>
-          ))}
-          {step.profiles.length === 0 && (
-            <p className="settings-row-desc">
-              No profiles on that server yet — create one in its web admin at {step.client.baseUrl}/admin/
-            </p>
-          )}
-          {error && <div className="modal-error">{error}</div>}
+        {error && <div className="alert alert-error">{error}</div>}
+        <div className="flex justify-end gap-2">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={busy || !serverUrl}>
+            {busy ? "Connecting…" : "Connect"}
+          </button>
         </div>
-      )}
+      </form>
+    );
+  }
 
-      {step.name === "pin" && (
-        <PinPrompt
-          profile={step.profile}
-          error={error}
-          onSubmit={(pin) => void pickProfile(step.client, step.deviceToken, step.profiles, step.profile, pin)}
-          onBack={() => setStep({ name: "profiles", client: step.client, deviceToken: step.deviceToken, profiles: step.profiles })}
-        />
-      )}
-    </div>
+  if (step.name === "pairing") {
+    return (
+      <PairingWait
+        step={step}
+        error={error}
+        onError={setError}
+        onCancel={() => setStep({ name: "server" })}
+        onPaired={async (deviceToken) => {
+          const deviceClient = step.client.withToken(deviceToken);
+          const profiles = await deviceClient.listProfiles();
+          setStep({ name: "profiles", client: deviceClient, deviceToken, profiles });
+        }}
+      />
+    );
+  }
+
+  if (step.name === "profiles") {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm opacity-70">Who's listening?</p>
+        {step.profiles.map((p) => (
+          <button
+            key={p.profileId}
+            type="button"
+            className="btn btn-block justify-start"
+            onClick={() => void pickProfile(step.client, step.deviceToken, step.profiles, p)}
+          >
+            {p.name}
+            {p.hasPin ? " 🔒" : ""}
+          </button>
+        ))}
+        {step.profiles.length === 0 && (
+          <p className="text-sm opacity-70">No profiles on that server yet — create one in its web admin.</p>
+        )}
+        {error && <div className="alert alert-error">{error}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <PinPrompt
+      profile={step.profile}
+      error={error}
+      onSubmit={(pin) => void pickProfile(step.client, step.deviceToken, step.profiles, step.profile, pin)}
+      onBack={() => setStep({ name: "profiles", client: step.client, deviceToken: step.deviceToken, profiles: step.profiles })}
+    />
   );
 }
 
@@ -177,21 +164,20 @@ function PairingWait({
           onCancel();
         }
       } catch {
-        /* transient; keep polling */
+        /* transient */
       }
     }, 2000);
     return () => clearInterval(timer);
   }, [step, onPaired, onError, onCancel]);
 
   return (
-    <div>
-      <p className="settings-row-desc">Approve this device in the server's web admin → Pairing, matching this code:</p>
-      <div className="signin-code">{step.code}</div>
-      {error && <div className="modal-error">{error}</div>}
-      <div className="modal-actions">
-        <button type="button" className="settings-btn" onClick={onCancel}>
-          Cancel
-        </button>
+    <div className="space-y-3 text-center">
+      <p className="text-sm opacity-70">Approve this device in the server's web admin → Pairing, matching this code:</p>
+      <div className="font-mono text-3xl font-bold tracking-[0.3em]">{step.code}</div>
+      <span className="loading loading-dots loading-md" />
+      {error && <div className="alert alert-error">{error}</div>}
+      <div>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onCancel}>Cancel</button>
       </div>
     </div>
   );
@@ -211,28 +197,18 @@ function PinPrompt({
   const [pin, setPin] = useState("");
   return (
     <form
+      className="space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(pin);
       }}
     >
-      <p className="settings-row-desc">PIN for {profile.name}</p>
-      <input
-        className="settings-input"
-        type="password"
-        inputMode="numeric"
-        value={pin}
-        onChange={(e) => setPin(e.target.value)}
-        autoFocus
-      />
-      {error && <div className="modal-error">{error}</div>}
-      <div className="modal-actions">
-        <button type="button" className="settings-btn" onClick={onBack}>
-          Back
-        </button>
-        <button type="submit" className="settings-btn modal-create" disabled={pin.length < 4}>
-          Unlock
-        </button>
+      <p className="text-sm opacity-70">PIN for {profile.name}</p>
+      <input className="input input-bordered w-full" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} autoFocus />
+      {error && <div className="alert alert-error">{error}</div>}
+      <div className="flex justify-end gap-2">
+        <button type="button" className="btn btn-ghost btn-sm" onClick={onBack}>Back</button>
+        <button type="submit" className="btn btn-primary btn-sm" disabled={pin.length < 4}>Unlock</button>
       </div>
     </form>
   );
