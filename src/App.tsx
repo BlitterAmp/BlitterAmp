@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Client } from "./api/client";
 import { Player } from "./audio/player";
-import { loadSession, restore } from "./state/session";
+import { lastServerUrl, loadSession, restore, type Restored } from "./state/session";
 import { Shell } from "./ui/Shell";
 import { SignIn } from "./ui/SignIn";
 
 type Phase =
   | { name: "splash" }
-  | { name: "signin" }
+  | { name: "signin"; initialUrl: string; device?: Extract<Restored, { kind: "device" }> }
   | { name: "app"; client: Client; profileName: string };
 
 export default function App() {
@@ -16,15 +16,20 @@ export default function App() {
   useEffect(() => {
     void (async () => {
       const restored = await restore();
-      if (restored) {
+      if (restored.kind === "profile") {
         setPhase({
           name: "app",
           client: restored.client,
           profileName: restored.session.profile?.name ?? "",
         });
-      } else {
-        setPhase({ name: "signin" });
+        return;
       }
+      const initialUrl = await lastServerUrl();
+      setPhase({
+        name: "signin",
+        initialUrl,
+        device: restored.kind === "device" ? restored : undefined,
+      });
     })();
   }, []);
 
@@ -44,6 +49,12 @@ export default function App() {
   if (phase.name === "signin") {
     return (
       <SignIn
+        initialUrl={phase.initialUrl}
+        initialDevice={
+          phase.device
+            ? { client: phase.device.client, deviceToken: phase.device.session.deviceToken }
+            : undefined
+        }
         onDone={async (newClient) => {
           const session = await loadSession();
           setPhase({ name: "app", client: newClient, profileName: session?.profile?.name ?? "" });
@@ -57,7 +68,7 @@ export default function App() {
       client={phase.client}
       player={player as Player}
       profileName={phase.profileName}
-      onSignOut={() => setPhase({ name: "signin" })}
+      onSignOut={() => setPhase({ name: "signin", initialUrl: phase.client.baseUrl })}
     />
   );
 }
