@@ -3,13 +3,14 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { adoptRemote, type Connection, useLocal } from "../state/connection";
 import type { SavedSession } from "../state/session";
+import { Appearance } from "./settings/Appearance";
 import { ConnectRemote } from "./settings/ConnectRemote";
 import { Devices } from "./settings/Devices";
 import { Integrations } from "./settings/Integrations";
 import { Library } from "./settings/Library";
 import { Profiles } from "./settings/Profiles";
 
-type Section = "connection" | "library" | "profiles" | "devices" | "integrations";
+type Section = "connection" | "library" | "profiles" | "devices" | "integrations" | "appearance";
 
 export function Settings({
   connection,
@@ -24,6 +25,8 @@ export function Settings({
   const [section, setSection] = useState<Section>("connection");
   const admin = connection.admin;
 
+  // Appearance is a UI preference, available regardless of connection; the
+  // management panes only make sense for the local engine we administer.
   const nav: [Section, string][] = local
     ? [
         ["connection", "Connection"],
@@ -31,8 +34,12 @@ export function Settings({
         ["profiles", "Profiles"],
         ["devices", "Devices"],
         ["integrations", "Integrations"],
+        ["appearance", "Appearance"],
       ]
-    : [["connection", "Connection"]];
+    : [
+        ["connection", "Connection"],
+        ["appearance", "Appearance"],
+      ];
 
   return (
     <div className="modal modal-open" onClick={onClose}>
@@ -62,6 +69,7 @@ export function Settings({
             {section === "profiles" && admin && <Profiles admin={admin} />}
             {section === "devices" && admin && <Devices admin={admin} />}
             {section === "integrations" && admin && <Integrations admin={admin} />}
+            {section === "appearance" && <Appearance />}
           </div>
         </div>
       </div>

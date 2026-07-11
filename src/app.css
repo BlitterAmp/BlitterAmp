@@ -1,5 +1,7 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+}
 
 /* Brand-matched dark theme (ported from the musex palette) applied by default,
    so DaisyUI base components (btn/modal/menu/input/card/table…) come styled and
