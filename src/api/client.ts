@@ -13,6 +13,8 @@ export type Profile = Schemas["Profile"];
 export type ArtistDetail = Schemas["ArtistDetail"];
 export type LoveState = Schemas["LoveState"];
 export type LoveRecord = Schemas["LoveRecord"];
+export type PlaylistTrack = Schemas["PlaylistTrack"];
+export type Visibility = "private" | "shared" | "collaborative";
 export type LibrarySummary = Schemas["Library"];
 
 export class ApiError extends Error {
@@ -146,6 +148,41 @@ export class Client {
   /** Rates an item 0–10 (or null to clear). */
   setRating(itemType: "track" | "artist", itemId: string, rating10: number | null) {
     return this.put<null>("/v1/ratings", { itemType, itemId, rating10 });
+  }
+
+  // ---- playlists ----
+
+  listPlaylists() {
+    return this.get<Playlist[]>("/v1/playlists");
+  }
+
+  createPlaylist(body: { title: string; visibility?: Visibility; trackIds?: string[] }) {
+    return this.post<Playlist>("/v1/playlists", body);
+  }
+
+  getPlaylist(playlistId: string) {
+    return this.get<Playlist>(`/v1/playlists/${playlistId}`);
+  }
+
+  updatePlaylist(playlistId: string, body: { title?: string; visibility?: Visibility }) {
+    return this.request<Playlist>("PATCH", `/v1/playlists/${playlistId}`, body);
+  }
+
+  deletePlaylist(playlistId: string) {
+    return this.request<null>("DELETE", `/v1/playlists/${playlistId}`);
+  }
+
+  playlistTracks(playlistId: string, cursor?: string) {
+    const q = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return this.get<Page<PlaylistTrack>>(`/v1/playlists/${playlistId}/tracks${q}`);
+  }
+
+  appendPlaylistTracks(playlistId: string, trackIds: string[]) {
+    return this.post<null>(`/v1/playlists/${playlistId}/tracks`, { trackIds });
+  }
+
+  removePlaylistTrack(playlistId: string, itemId: string) {
+    return this.request<null>("DELETE", `/v1/playlists/${playlistId}/tracks/${itemId}`);
   }
 
   streamGrant(trackId: string) {
