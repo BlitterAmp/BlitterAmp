@@ -1,10 +1,11 @@
 mod engine;
+mod menu;
 
 use engine::EngineState;
 
-// BlitterAmp's Rust host: window/plugin lifecycle plus the bundled
-// BlitterServer engine manager (engine.rs). Player logic lives in the
-// webview; music logic lives in BlitterServer.
+// BlitterAmp's Rust host: window/plugin lifecycle, the native app menu, and
+// the bundled BlitterServer engine manager (engine.rs). Player logic lives in
+// the webview; music logic lives in BlitterServer.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -17,8 +18,14 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             engine::engine_start,
             engine::engine_stop,
-            engine::engine_set_source
+            engine::engine_set_source,
+            engine::engine_admin
         ])
+        .setup(|app| {
+            menu::build(app.handle())?;
+            Ok(())
+        })
+        .on_menu_event(|app, event| menu::on_event(app, event.id().as_ref()))
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::Destroyed = event {
                 use tauri::Manager;
