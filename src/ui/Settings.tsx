@@ -1,4 +1,5 @@
 import { open } from "@tauri-apps/plugin-dialog";
+import { audioDir, join } from "@tauri-apps/api/path";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { adoptRemote, type Connection, useLocal } from "../state/connection";
@@ -152,6 +153,12 @@ function ConnectionPane({
 
 /** Shared native folder picker. */
 export async function pickFolder(): Promise<string | null> {
-  const path = await open({ directory: true, multiple: false, title: "Choose your music folder" });
+  let defaultPath: string | undefined;
+  try {
+    defaultPath = await join(await audioDir(), "BlitterAmp");
+  } catch {
+    /* fall back to the dialog default */
+  }
+  const path = await open({ directory: true, multiple: false, title: "Choose your music folder", defaultPath });
   return typeof path === "string" ? path : null;
 }

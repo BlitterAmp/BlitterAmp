@@ -19,7 +19,8 @@ pub fn run() {
             engine::engine_start,
             engine::engine_stop,
             engine::engine_set_source,
-            engine::engine_admin
+            engine::engine_admin,
+            frontend_log
         ])
         .setup(|app| {
             menu::build(app.handle())?;
@@ -35,4 +36,11 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+// Forwards webview console/errors to stderr for troubleshooting a running
+// build (the webview devtools aren't reachable from a packaged app).
+#[tauri::command]
+fn frontend_log(message: String) {
+    eprintln!("[webview] {message}");
 }

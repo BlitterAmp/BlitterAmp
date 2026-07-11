@@ -164,7 +164,8 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
         .map_err(|e| e.to_string())?;
 
     // Fresh data dir: set the admin password (ours to keep).
-    if ping.setup_complete != Some(true) {
+    let fresh = ping.setup_complete != Some(true);
+    if fresh {
         file.admin_password = random_password();
         post(http, base, "/admin/api/setup", &serde_json::json!({ "password": file.admin_password }))
             .await?;
@@ -196,6 +197,24 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
     post(http, base, "/admin/api/session", &serde_json::json!({ "password": file.admin_password }))
         .await?;
     put(http, base, "/admin/api/settings/server", &serde_json::json!({ "canonicalUrl": base })).await?;
+
+    // On first provision, default the library to ~/Music/BlitterAmp when it
+    // exists, so a fresh install lands in a populated library with no folder
+    // picking. The user can change it later in Settings.
+    if fresh {
+        if let Ok(music) = app.path().audio_dir() {
+            let default_lib = music.join("BlitterAmp");
+            if default_lib.is_dir() {
+                let _ = put(
+                    http,
+                    base,
+                    "/admin/api/source/filesystem",
+                    &serde_json::json!({ "path": default_lib.to_string_lossy() }),
+                )
+                .await;
+            }
+        }
+    }
 
     // Reuse the "Me" profile if provisioning ran before, else create it.
     let profiles: serde_json::Value =
