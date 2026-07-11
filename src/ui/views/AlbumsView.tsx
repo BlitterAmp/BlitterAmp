@@ -90,7 +90,7 @@ export function AlbumsView({
         <div className="content-placeholder">
           {scanning ? (
             <>
-              <span className="loading" /> Scanning your music…
+              <span className="ba-spinner" /> Scanning your music…
             </>
           ) : managed ? (
             <>
