@@ -46,6 +46,16 @@ export function TrackList({
     }
   }
 
+  async function startRadio(t: Track) {
+    closeMenus();
+    try {
+      const radio = await client.radioNext({ seedTrackIds: [t.trackId], count: 30 });
+      if (radio.length) await player.playQueue(radio);
+    } catch {
+      /* ignore */
+    }
+  }
+
   async function addToNewPlaylist(t: Track) {
     closeMenus();
     const title = window.prompt("New playlist name");
@@ -115,6 +125,7 @@ export function TrackList({
                   <li><button type="button" onClick={() => { closeMenus(); void player.playQueue(tracks, i); }}>Play</button></li>
                   <li><button type="button" onClick={() => { closeMenus(); player.playNext([t]); }}>Play next</button></li>
                   <li><button type="button" onClick={() => { closeMenus(); player.addToQueue([t]); }}>Add to queue</button></li>
+                  <li><button type="button" onClick={() => void startRadio(t)}>Start radio</button></li>
                   <li><button type="button" onClick={() => { closeMenus(); onNavigate({ name: "album", albumId: t.albumId }); }}>Go to album</button></li>
                   <li><button type="button" onClick={() => { closeMenus(); onNavigate({ name: "artist", artistId: t.artistId }); }}>Go to artist</button></li>
                   <li>
