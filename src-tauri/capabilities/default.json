@@ -7,6 +7,7 @@
   ],
   "permissions": [
     "core:default",
+    "core:path:default",
     "core:event:default",
     "opener:default",
     "store:default",
@@ -25,10 +26,22 @@
       "identifier": "http:default",
       "allow": [
         {
-          "url": "http://**"
+          "url": "http://127.0.0.1:*"
         },
         {
-          "url": "https://**"
+          "url": "http://localhost:*"
+        },
+        {
+          "url": "http://*:*"
+        },
+        {
+          "url": "https://*:*"
+        },
+        {
+          "url": "http://*"
+        },
+        {
+          "url": "https://*"
         }
       ]
     }
