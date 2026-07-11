@@ -1,23 +1,21 @@
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Play, Shuffle } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Client, Track } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { AlbumArt } from "../AlbumArt";
-
-function fmt(ms: number): string {
-  const sec = Math.round(ms / 1000);
-  return `${Math.floor(sec / 60)}:${(sec % 60).toString().padStart(2, "0")}`;
-}
+import { TrackList, type NavTarget } from "../TrackList";
 
 export function AlbumView({
   client,
   player,
   albumId,
+  onNavigate,
   onBack,
 }: {
   client: Client;
   player: Player;
   albumId: string;
+  onNavigate: (t: NavTarget) => void;
   onBack: () => void;
 }) {
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -35,7 +33,7 @@ export function AlbumView({
   return (
     <section>
       <button type="button" className="btn btn-ghost btn-sm mb-4 gap-1" onClick={onBack}>
-        <ArrowLeft size={14} /> Albums
+        <ArrowLeft size={14} /> Back
       </button>
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
@@ -47,30 +45,33 @@ export function AlbumView({
           <div className="flex flex-col justify-end">
             <div className="text-xs uppercase tracking-wider opacity-50">Album</div>
             <h1 className="text-3xl font-bold">{first.albumTitle}</h1>
-            <div className="mt-1 opacity-70">{first.artistName}</div>
-            <button type="button" className="btn btn-primary mt-4 w-fit gap-2" onClick={() => void player.playQueue(tracks)}>
-              <Play size={16} /> Play
+            <button
+              type="button"
+              className="mt-1 w-fit text-left opacity-70 hover:text-primary hover:underline"
+              onClick={() => onNavigate({ name: "artist", artistId: first.artistId })}
+            >
+              {first.artistName}
             </button>
+            <div className="mt-4 flex items-center gap-2">
+              <button type="button" className="btn btn-primary gap-2" onClick={() => void player.playQueue(tracks)}>
+                <Play size={16} /> Play
+              </button>
+              <button
+                type="button"
+                className="btn gap-2"
+                onClick={() => {
+                  player.toggleShuffle();
+                  void player.playQueue(tracks);
+                }}
+              >
+                <Shuffle size={15} /> Shuffle
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      <table className="table table-sm">
-        <tbody>
-          {tracks.map((t, i) => (
-            <tr key={t.trackId} className="hover cursor-pointer" onClick={() => void player.playQueue(tracks, i)}>
-              <td className="w-10 text-right tabular-nums opacity-50">{t.index ?? i + 1}</td>
-              <td>
-                {t.title}
-                {!player.canPlay(t) && (
-                  <span className="ml-2 text-xs opacity-50">({t.media.container} — needs the mpv engine)</span>
-                )}
-              </td>
-              <td className="w-16 text-right tabular-nums opacity-60">{fmt(t.durationMs)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TrackList client={client} player={player} tracks={tracks} onNavigate={onNavigate} />
     </section>
   );
 }

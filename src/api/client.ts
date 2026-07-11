@@ -10,6 +10,9 @@ export type Album = Schemas["Album"];
 export type Track = Schemas["Track"];
 export type Playlist = Schemas["Playlist"];
 export type Profile = Schemas["Profile"];
+export type ArtistDetail = Schemas["ArtistDetail"];
+export type LoveState = Schemas["LoveState"];
+export type LoveRecord = Schemas["LoveRecord"];
 export type LibrarySummary = Schemas["Library"];
 
 export class ApiError extends Error {
@@ -66,6 +69,9 @@ export class Client {
   post<T>(path: string, body?: unknown): Promise<T> {
     return this.request<T>("POST", path, body);
   }
+  put<T>(path: string, body?: unknown): Promise<T> {
+    return this.request<T>("PUT", path, body);
+  }
 
   // ---- typed conveniences used across the app ----
 
@@ -113,6 +119,33 @@ export class Client {
   artists(cursor?: string) {
     const q = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
     return this.get<Page<Artist>>(`/v1/artists${q}`);
+  }
+
+  artist(artistId: string) {
+    return this.get<ArtistDetail>(`/v1/artists/${artistId}`);
+  }
+
+  artistAlbums(artistId: string) {
+    return this.get<Album[]>(`/v1/artists/${artistId}/albums`);
+  }
+
+  artistTracks(artistId: string) {
+    return this.get<Track[]>(`/v1/artists/${artistId}/tracks`);
+  }
+
+  tracks(cursor?: string) {
+    const q = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    return this.get<Page<Track>>(`/v1/tracks${q}`);
+  }
+
+  /** Sets the calling profile's love state for a canonical ref (art_/alb_/trk_). */
+  setLove(ref: string, state: LoveState) {
+    return this.put<LoveRecord>(`/v1/loves/${ref}`, { state });
+  }
+
+  /** Rates an item 0–10 (or null to clear). */
+  setRating(itemType: "track" | "artist", itemId: string, rating10: number | null) {
+    return this.put<null>("/v1/ratings", { itemType, itemId, rating10 });
   }
 
   streamGrant(trackId: string) {
