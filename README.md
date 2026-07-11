@@ -1,7 +1,7 @@
 # BlitterAmp Desktop
 
 The desktop player for your [BlitterServer](https://github.com/BlitterAmp/BlitterServer) — your music,
-on your server, in a native app. Tauri + React; the successor to musex's Electron player.
+on your server, in a native app. Tauri + React + DaisyUI; the successor to musex's Electron player.
 
 **Status: early arcs.** On first launch BlitterAmp starts its own bundled BlitterServer engine — no
 setup, no server to run — so you just pick your music folder and play. If you already run a BlitterServer,

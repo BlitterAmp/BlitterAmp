@@ -34,22 +34,11 @@ export function Profiles({ admin }: { admin: AdminClient }) {
     }
   }
 
-  async function rename(p: Profile) {
-    const next = window.prompt("New name", p.name);
-    if (!next || next === p.name) return;
-    try {
-      await admin.patch(`/admin/api/profiles/${p.profileId}`, { name: next });
-      await refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  async function setProfilePin(p: Profile) {
-    const next = window.prompt(`New 4–8 digit PIN for ${p.name} (empty to clear)`);
+  async function patch(p: Profile, prompt: string, key: "name" | "pin", clearable = false) {
+    const next = window.prompt(prompt, key === "name" ? p.name : "");
     if (next === null) return;
     try {
-      await admin.patch(`/admin/api/profiles/${p.profileId}`, { pin: next === "" ? null : next });
+      await admin.patch(`/admin/api/profiles/${p.profileId}`, { [key]: clearable && next === "" ? null : next });
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -67,50 +56,43 @@ export function Profiles({ admin }: { admin: AdminClient }) {
   }
 
   return (
-    <div className="settings-page">
-      <div className="settings-head">Profiles</div>
-      {error && <div className="modal-error">{error}</div>}
-      <div className="settings-section">
+    <div>
+      <h3 className="mb-4 text-xl font-semibold">Profiles</h3>
+      {error && <div className="alert alert-error mb-4">{error}</div>}
+
+      <ul className="mb-4 divide-y divide-base-300 overflow-hidden rounded-box bg-base-200">
         {profiles.map((p) => (
-          <div className="settings-row" key={p.profileId}>
-            <div className="settings-row-text">
-              <div className="settings-row-label">{p.name}</div>
-              <div className="settings-row-desc">{p.hasPin ? "PIN set" : "No PIN"}</div>
+          <li key={p.profileId} className="flex items-center justify-between p-3">
+            <div>
+              <div className="font-medium">{p.name}</div>
+              <div className="text-sm opacity-60">{p.hasPin ? "PIN set" : "No PIN"}</div>
             </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button type="button" className="settings-btn" onClick={() => void rename(p)}>
+            <div className="flex gap-1">
+              <button type="button" className="btn btn-ghost btn-xs" onClick={() => void patch(p, "New name", "name")}>
                 Rename
               </button>
-              <button type="button" className="settings-btn" onClick={() => void setProfilePin(p)}>
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs"
+                onClick={() => void patch(p, `New 4–8 digit PIN for ${p.name} (empty to clear)`, "pin", true)}
+              >
                 PIN
               </button>
-              <button type="button" className="settings-btn danger" onClick={() => void remove(p)}>
+              <button type="button" className="btn btn-ghost btn-xs text-error" onClick={() => void remove(p)}>
                 Delete
               </button>
             </div>
-          </div>
+          </li>
         ))}
-        {profiles.length === 0 && <div className="settings-row-desc" style={{ padding: "14px 0" }}>No profiles yet.</div>}
-      </div>
-      <form className="settings-section" onSubmit={add}>
-        <div className="settings-row">
-          <div className="settings-row-text">
-            <div className="settings-row-label">Add a profile</div>
-          </div>
-        </div>
-        <div className="settings-row" style={{ gap: 8 }}>
-          <input className="settings-input" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-          <input
-            className="settings-input"
-            placeholder="PIN (optional)"
-            inputMode="numeric"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-          />
-          <button type="submit" className="settings-btn modal-create" disabled={!name}>
-            Add
-          </button>
-        </div>
+        {profiles.length === 0 && <li className="p-3 text-sm opacity-60">No profiles yet.</li>}
+      </ul>
+
+      <form className="flex items-end gap-2" onSubmit={add}>
+        <input className="input input-sm input-bordered flex-1" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="input input-sm input-bordered w-32" placeholder="PIN (optional)" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} />
+        <button type="submit" className="btn btn-sm btn-primary" disabled={!name}>
+          Add
+        </button>
       </form>
     </div>
   );

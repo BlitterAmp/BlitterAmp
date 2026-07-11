@@ -1,8 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { X } from "lucide-react";
 import { useState } from "react";
-import type { Connection } from "../state/connection";
-import { adoptRemote, useLocal } from "../state/connection";
+import { adoptRemote, type Connection, useLocal } from "../state/connection";
 import type { SavedSession } from "../state/session";
 import { ConnectRemote } from "./settings/ConnectRemote";
 import { Devices } from "./settings/Devices";
@@ -36,37 +35,33 @@ export function Settings({
     : [["connection", "Connection"]];
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="shortcuts-modal-head">
-          <div className="shortcuts-modal-title">Settings</div>
-          <button type="button" className="detail-close" onClick={onClose} aria-label="Close">
+    <div className="modal modal-open" onClick={onClose}>
+      <div
+        className="modal-box flex h-[80vh] max-w-3xl flex-col p-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-base-300 px-5 py-3">
+          <h2 className="text-lg font-semibold">Settings</h2>
+          <button type="button" className="btn btn-ghost btn-sm btn-square" onClick={onClose} aria-label="Close">
             <X size={16} />
           </button>
         </div>
-        <div className="settings-modal-body">
-          <div className="settings-layout">
-            <nav className="settings-nav">
-              {nav.map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={section === id ? "active" : ""}
-                  onClick={() => setSection(id)}
-                >
+        <div className="flex min-h-0 flex-1">
+          <ul className="menu w-44 shrink-0 gap-0.5 border-r border-base-300 p-2">
+            {nav.map(([id, label]) => (
+              <li key={id}>
+                <button type="button" className={section === id ? "menu-active" : ""} onClick={() => setSection(id)}>
                   {label}
                 </button>
-              ))}
-            </nav>
-            <div className="settings-pane">
-              {section === "connection" && (
-                <Connection connection={connection} onConnectionChange={onConnectionChange} />
-              )}
-              {section === "library" && admin && <Library admin={admin} baseUrl={connection.client.baseUrl} />}
-              {section === "profiles" && admin && <Profiles admin={admin} />}
-              {section === "devices" && admin && <Devices admin={admin} />}
-              {section === "integrations" && admin && <Integrations admin={admin} />}
-            </div>
+              </li>
+            ))}
+          </ul>
+          <div className="min-w-0 flex-1 overflow-y-auto p-6">
+            {section === "connection" && <ConnectionPane connection={connection} onConnectionChange={onConnectionChange} />}
+            {section === "library" && admin && <Library admin={admin} baseUrl={connection.client.baseUrl} />}
+            {section === "profiles" && admin && <Profiles admin={admin} />}
+            {section === "devices" && admin && <Devices admin={admin} />}
+            {section === "integrations" && admin && <Integrations admin={admin} />}
           </div>
         </div>
       </div>
@@ -74,7 +69,7 @@ export function Settings({
   );
 }
 
-function Connection({
+function ConnectionPane({
   connection,
   onConnectionChange,
 }: {
@@ -100,62 +95,54 @@ function Connection({
 
   if (connecting) {
     return (
-      <div className="settings-page">
-        <div className="settings-head">Connect to a remote server</div>
+      <div>
+        <h3 className="mb-4 text-xl font-semibold">Connect to a remote server</h3>
         <ConnectRemote onConnected={adopt} onCancel={() => setConnecting(false)} />
       </div>
     );
   }
 
   return (
-    <div className="settings-page">
-      <div className="settings-head">Connection</div>
-      <div className="settings-section">
-        {connection.kind === "local" ? (
-          <>
-            <div className="settings-row">
-              <div className="settings-row-text">
-                <div className="settings-row-label">This computer's library</div>
-                <div className="settings-row-desc">
-                  BlitterAmp runs its own music server — no setup, nothing to manage elsewhere.
-                </div>
-              </div>
+    <div>
+      <h3 className="mb-4 text-xl font-semibold">Connection</h3>
+      {connection.kind === "local" ? (
+        <div className="space-y-4">
+          <div className="rounded-box bg-base-200 p-4">
+            <div className="font-medium">This computer's library</div>
+            <div className="text-sm opacity-70">BlitterAmp runs its own music server — no setup, nothing to manage elsewhere.</div>
+          </div>
+          <div className="flex items-center justify-between rounded-box bg-base-200 p-4">
+            <div>
+              <div className="font-medium">Use a remote BlitterServer</div>
+              <div className="text-sm opacity-70">Play from a server you run on your network or elsewhere.</div>
             </div>
-            <div className="settings-row">
-              <div className="settings-row-text">
-                <div className="settings-row-label">Use a remote BlitterServer</div>
-                <div className="settings-row-desc">Play from a server you run on your network or elsewhere.</div>
-              </div>
-              <button type="button" className="settings-btn" onClick={() => setConnecting(true)}>
-                Connect…
-              </button>
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => setConnecting(true)}>
+              Connect…
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="rounded-box bg-base-200 p-4">
+            <div className="font-medium">Connected to a remote server</div>
+            <div className="text-sm opacity-70">{connection.remoteUrl} — manage it in its own web admin.</div>
+          </div>
+          <div className="flex items-center justify-between rounded-box bg-base-200 p-4">
+            <div>
+              <div className="font-medium">Use this computer's library</div>
+              <div className="text-sm opacity-70">Disconnect and play from the built-in local server.</div>
             </div>
-          </>
-        ) : (
-          <>
-            <div className="settings-row">
-              <div className="settings-row-text">
-                <div className="settings-row-label">Connected to a remote server</div>
-                <div className="settings-row-desc">{connection.remoteUrl} — manage it in its own web admin.</div>
-              </div>
-            </div>
-            <div className="settings-row">
-              <div className="settings-row-text">
-                <div className="settings-row-label">Use this computer's library</div>
-                <div className="settings-row-desc">Disconnect and play from the built-in local server.</div>
-              </div>
-              <button type="button" className="settings-btn danger" disabled={busy} onClick={() => void goLocal()}>
-                {busy ? "Switching…" : "Use local"}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+            <button type="button" className="btn btn-sm btn-error btn-outline" disabled={busy} onClick={() => void goLocal()}>
+              {busy ? "Switching…" : "Use local"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Re-export the folder picker so Library can reuse it without another import path.
+/** Shared native folder picker. */
 export async function pickFolder(): Promise<string | null> {
   const path = await open({ directory: true, multiple: false, title: "Choose your music folder" });
   return typeof path === "string" ? path : null;

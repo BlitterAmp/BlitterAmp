@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { Music } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Client } from "../api/client";
 
 /** Cover art via the authed client (plain <img src> can't send the bearer). */
@@ -22,9 +22,7 @@ export function AlbumArt({
     if (artId) {
       client
         .loadArt(artId, size)
-        .then((url) => {
-          if (live) setSrc(url);
-        })
+        .then((url) => live && setSrc(url))
         .catch(() => {});
     }
     return () => {
@@ -34,10 +32,10 @@ export function AlbumArt({
 
   if (!src) {
     return (
-      <div className="art-placeholder">
+      <div className="flex size-full items-center justify-center bg-base-300 text-base-content/30">
         <Music size={Math.min(40, size / 3)} />
       </div>
     );
   }
-  return <img src={src} alt={alt} loading="lazy" draggable={false} />;
+  return <img src={src} alt={alt} loading="lazy" draggable={false} className="size-full object-cover" />;
 }

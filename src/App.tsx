@@ -14,8 +14,7 @@ export default function App() {
   async function boot() {
     setPhase({ name: "splash" });
     try {
-      const connection = await resolveConnection();
-      setPhase({ name: "app", connection });
+      setPhase({ name: "app", connection: await resolveConnection() });
     } catch (err) {
       setPhase({ name: "error", message: err instanceof Error ? err.message : String(err) });
     }
@@ -31,8 +30,8 @@ export default function App() {
 
   if (phase.name === "splash") {
     return (
-      <div className="signin-screen" data-tauri-drag-region>
-        <div className="splash-logo brand">
+      <div className="flex h-screen items-center justify-center bg-base-200" data-tauri-drag-region>
+        <div className="brand animate-pulse text-6xl">
           Blitter<span>Amp</span>
         </div>
       </div>
@@ -41,13 +40,17 @@ export default function App() {
 
   if (phase.name === "error") {
     return (
-      <div className="signin-screen" data-tauri-drag-region>
-        <div className="signin-logo brand">
+      <div className="flex h-screen flex-col items-center justify-center gap-4 bg-base-200 p-8" data-tauri-drag-region>
+        <div className="brand text-4xl">
           Blitter<span>Amp</span>
         </div>
-        <div className="signin-error">Couldn't start the built-in music server:</div>
-        <div className="signin-hint">{phase.message}</div>
-        <button type="button" className="signin-btn" onClick={() => void boot()}>
+        <div className="alert alert-error max-w-md">
+          <div>
+            <div className="font-semibold">Couldn't start the built-in music server</div>
+            <div className="text-sm opacity-80">{phase.message}</div>
+          </div>
+        </div>
+        <button type="button" className="btn btn-primary" onClick={() => void boot()}>
           Try again
         </button>
       </div>
