@@ -1,7 +1,11 @@
+mod audio;
 mod engine;
+mod lru;
 mod menu;
 
+use audio::AudioEngine;
 use engine::EngineState;
+use tauri::Manager;
 
 // BlitterAmp's Rust host: window/plugin lifecycle, the native app menu, and
 // the bundled BlitterServer engine manager (engine.rs). Player logic lives in
@@ -20,10 +24,20 @@ pub fn run() {
             engine::engine_stop,
             engine::engine_set_source,
             engine::engine_admin,
+            audio::audio_configure,
+            audio::audio_play_track,
+            audio::audio_stage_next,
+            audio::audio_preload,
+            audio::audio_pause,
+            audio::audio_resume,
+            audio::audio_seek,
+            audio::audio_set_volume,
+            audio::audio_stop,
             frontend_log
         ])
         .setup(|app| {
             menu::build(app.handle())?;
+            app.manage(AudioEngine::new(app.handle()));
             Ok(())
         })
         .on_menu_event(|app, event| menu::on_event(app, event.id().as_ref()))

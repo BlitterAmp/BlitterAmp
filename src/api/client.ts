@@ -46,6 +46,11 @@ export class Client {
     return new Client(this.baseUrl, token);
   }
 
+  /** The bearer token, for handing to the Rust audio backend. */
+  get authToken(): string | undefined {
+    return this.token;
+  }
+
   url(path: string): string {
     return this.baseUrl.replace(/\/$/, "") + path;
   }

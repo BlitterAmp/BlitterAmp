@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Player } from "./audio/player";
+import { TauriAudioBackend } from "./audio/tauriBackend";
 import { type Connection, resolveConnection } from "./state/connection";
 import { Shell } from "./ui/Shell";
 
@@ -26,7 +27,10 @@ export default function App() {
   }, []);
 
   const connection = phase.name === "app" ? phase.connection : null;
-  const player = useMemo(() => (connection ? new Player(connection.client) : null), [connection?.client]);
+  const player = useMemo(
+    () => (connection ? new Player(connection.client, new TauriAudioBackend()) : null),
+    [connection?.client],
+  );
 
 
   if (phase.name === "splash") {
