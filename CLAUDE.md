@@ -29,8 +29,15 @@ operational docs. Do not add design docs here.
 
 - **Contract-first client.** `src/api/schema.d.ts` is generated (`pnpm gen:api`) from BlitterServer's
   `api/openapi.yaml`. Never hand-write response shapes; regenerate when the contract changes.
-- **Auth model:** device token via PIN pairing (URL → code → admin approves) → profile tokens per
-  household member. Raw tokens persist via the Tauri store plugin (`session.json`).
+- **Always connected, no sign-in gate.** The app defaults to its bundled local engine (like a native
+  music app) and only connects to a remote BlitterServer if the user opts in via Settings. Signing out
+  of a remote returns to local — it never lands on a login screen. `src/state/connection.ts` resolves
+  the connection on launch (`local` | `remote`); a remote uses PIN-pairing (URL → code → approve in that
+  server's web admin → profile), persisted in `session.json`.
+- **Management is local-only.** The desktop app is the ADMIN of its bundled engine (Rust holds the
+  password), so native Settings can manage source/profiles/devices/integrations via the `engine_admin`
+  Rust proxy (`src/admin/adminClient.ts`). A paired *remote* server is administered in its own web
+  console — the desktop app is just a player there.
 - **Playback honesty:** the webview `<audio>` engine (stream grants) cannot play ogg/opus on WKWebView.
   The UI must say so, not fail silently. The mpv sidecar engine (ports musex's) is the planned fix.
 - API calls go through `@tauri-apps/plugin-http` (webview CORS can't reach arbitrary self-hosted
@@ -50,7 +57,8 @@ operational docs. Do not add design docs here.
 - `src/api/` — generated schema + `client.ts` (typed fetch wrapper, ApiError, art cache).
 - `src/state/session.ts` — server URL + tokens, persisted; restore-on-launch.
 - `src/audio/player.ts` — webview audio engine (queue, grants, container gating).
-- `src/ui/` — SignIn (pair flow), Shell (sidebar/topbar/now-playing), `views/`.
+- `src/ui/` — Shell (frameless topbar/sidebar/now-playing), `Settings.tsx` + `settings/` (Connection,
+  Library, Profiles, Devices, Integrations panes; `ConnectRemote` is the pair-to-remote wizard), `views/`.
 - `src-tauri/` — Rust host: plugins (store, http, opener, shell, dialog), capabilities, and the
   bundled-engine manager (`engine.rs`).
 - `src-tauri/binaries/blitterserver-<triple>` — the engine sidecar, built (not committed) via

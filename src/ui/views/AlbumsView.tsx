@@ -9,10 +9,12 @@ export function AlbumsView({
   client,
   managed,
   onOpen,
+  onManage,
 }: {
   client: Client;
   managed: boolean;
   onOpen: (albumId: string) => void;
+  onManage: () => void;
 }) {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
@@ -95,6 +97,9 @@ export function AlbumsView({
               <p>Your library is empty. Point BlitterAmp at your music folder to get started.</p>
               <button type="button" className="signin-btn" onClick={() => void chooseFolder()}>
                 <FolderOpen size={16} /> Choose music folder
+              </button>
+              <button type="button" className="signin-btn" onClick={onManage} style={{ marginTop: 8 }}>
+                Open settings
               </button>
             </>
           ) : (

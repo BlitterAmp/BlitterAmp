@@ -255,18 +255,61 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
 /// stored admin password (source config is admin-cookie-gated).
 #[tauri::command]
 pub async fn engine_set_source(app: AppHandle, base_url: String, path: String) -> Result<(), String> {
+    engine_admin(app, base_url, "PUT".into(), "/admin/api/source/filesystem".into(), Some(serde_json::json!({ "path": path }))).await?;
+    Ok(())
+}
+
+/// Forwards an admin API call to the managed engine, authenticated with the
+/// stored admin password. This is how native Settings manages the local
+/// library — the desktop app IS the admin of its bundled engine (a remote
+/// server the user pairs to is managed in that server's own web console).
+/// Returns the parsed JSON body, or Null for 204/empty responses.
+#[tauri::command]
+pub async fn engine_admin(
+    app: AppHandle,
+    base_url: String,
+    method: String,
+    path: String,
+    body: Option<serde_json::Value>,
+) -> Result<serde_json::Value, String> {
     let file = read_state(&app);
     if file.admin_password.is_empty() {
-        return Err("no managed engine to configure".into());
+        return Err("no managed engine to administer".into());
     }
     let http = reqwest::Client::builder()
         .cookie_store(true)
         .build()
         .map_err(|e| e.to_string())?;
-    post(&http, &base_url, "/admin/api/session", &serde_json::json!({ "password": file.admin_password }))
-        .await?;
-    put(&http, &base_url, "/admin/api/source/filesystem", &serde_json::json!({ "path": path })).await?;
-    Ok(())
+    post(&http, &base_url, "/admin/api/session", &serde_json::json!({ "password": file.admin_password })).await?;
+
+    let url = format!("{base_url}{path}");
+    let mut req = match method.as_str() {
+        "GET" => http.get(url),
+        "POST" => http.post(url),
+        "PUT" => http.put(url),
+        "PATCH" => http.patch(url),
+        "DELETE" => http.delete(url),
+        other => return Err(format!("unsupported method {other}")),
+    };
+    if let Some(b) = body {
+        req = req.json(&b);
+    }
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    let status = resp.status();
+    let text = resp.text().await.unwrap_or_default();
+    if !status.is_success() {
+        // Surface the server's problem code when present.
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(&text) {
+            if let Some(code) = v.get("code").and_then(|c| c.as_str()) {
+                return Err(format!("{path}: {status} ({code})"));
+            }
+        }
+        return Err(format!("{path}: {status}"));
+    }
+    if text.is_empty() {
+        return Ok(serde_json::Value::Null);
+    }
+    serde_json::from_str(&text).map_err(|e| e.to_string())
 }
 
 // ---- small HTTP helpers: any non-2xx is an error ----

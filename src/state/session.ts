@@ -1,7 +1,7 @@
-// Connection/session state: which BlitterServer, which device token, which
-// profile. Persisted via the Tauri store plugin under the app's data dir.
+// Persisted connection state. In the always-connected model this holds ONLY a
+// remote session the user opted into via Settings; its absence means "use the
+// bundled local engine" (the default). Persisted via the Tauri store plugin.
 import { load, type Store } from "@tauri-apps/plugin-store";
-import { ApiError, Client } from "../api/client";
 import type { Profile } from "../api/client";
 
 export interface SavedSession {
@@ -9,18 +9,15 @@ export interface SavedSession {
   deviceToken: string;
   profileToken?: string;
   profile?: Profile;
-  /** True when the app manages a bundled BlitterServer engine — tokens live
-   * in Rust and the port changes per launch, so restore goes through
-   * startEngine() rather than the saved URL. */
+  /** false marks an explicit remote session (vs. the default local engine). */
   managed?: boolean;
 }
 
 const STORE_FILE = "session.json";
 const KEY = "session";
-const LAST_URL_KEY = "lastServerUrl";
 
-/** The URL probed automatically on first run: a BlitterServer on the same
- * machine (the bundled-engine story, and the common dev setup). */
+/** The port a user-run BlitterServer conventionally listens on (offered as
+ * the default when connecting to a remote). */
 export const DEFAULT_LOCAL_URL = "http://127.0.0.1:8484";
 
 let store: Store | null = null;
@@ -35,12 +32,11 @@ export async function loadSession(): Promise<SavedSession | null> {
   return ((await s.get<SavedSession>(KEY)) as SavedSession | undefined) ?? null;
 }
 
-/** Persists immediately — the device token is delivered by the server exactly
- * once, so it must never be lost to an autosave debounce and a fast quit. */
+/** Persists immediately (device tokens are delivered by the server exactly
+ * once, so they must never be lost to an autosave debounce). */
 export async function saveSession(session: SavedSession): Promise<void> {
   const s = await backing();
   await s.set(KEY, session);
-  await s.set(LAST_URL_KEY, session.serverUrl);
   await s.save();
 }
 
@@ -48,77 +44,4 @@ export async function clearSession(): Promise<void> {
   const s = await backing();
   await s.delete(KEY);
   await s.save();
-}
-
-export async function saveManagedMarker(profileName: string): Promise<void> {
-  const s = await backing();
-  await s.set(KEY, { serverUrl: "managed", deviceToken: "", managed: true, profile: { profileId: "", name: profileName, hasPin: false } });
-  await s.save();
-}
-
-/** Probes a URL for a set-up BlitterServer without committing to it. */
-export async function probeRemote(url: string): Promise<boolean> {
-  try {
-    const ping = await new Client(url).ping();
-    return ping.name === "BlitterServer" && ping.setupComplete === true;
-  } catch {
-    return false;
-  }
-}
-
-export async function lastServerUrl(): Promise<string> {
-  const s = await backing();
-  return ((await s.get<string>(LAST_URL_KEY)) as string | undefined) ?? DEFAULT_LOCAL_URL;
-}
-
-export async function saveLastServerUrl(url: string): Promise<void> {
-  const s = await backing();
-  await s.set(LAST_URL_KEY, url);
-  await s.save();
-}
-
-export type Restored =
-  | { kind: "profile"; client: Client; session: SavedSession }
-  | { kind: "device"; client: Client; session: SavedSession }
-  | { kind: "none" };
-
-/** Rebuilds the session saved on disk.
- *
- * - profile token valid → straight into the app
- * - profile token rejected but device token present → profile picker
- * - transient network failure → retried; only auth rejections clear state
- */
-export async function restore(retries = 3, delayMs = 700): Promise<Restored> {
-  const session = await loadSession();
-  if (!session?.serverUrl || !session.deviceToken) return { kind: "none" };
-
-  if (session.profileToken) {
-    const client = new Client(session.serverUrl, session.profileToken);
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        await client.get("/v1/me");
-        return { kind: "profile", client, session };
-      } catch (err) {
-        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-          break; // token revoked/dead — fall through to the device token
-        }
-        // Network hiccup (server still starting, sleep/wake) — retry.
-        await new Promise((r) => setTimeout(r, delayMs));
-      }
-    }
-  }
-
-  // Profile token unusable; the device token may still let us pick a profile.
-  const deviceClient = new Client(session.serverUrl, session.deviceToken);
-  try {
-    await deviceClient.get("/v1/me");
-    return { kind: "device", client: deviceClient, session };
-  } catch (err) {
-    if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-      await clearSession(); // device revoked server-side — start over
-      return { kind: "none" };
-    }
-    // Server unreachable: keep the session for next time, sign-in for now.
-    return { kind: "none" };
-  }
 }
