@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
-import { Disc3, ListMusic, Mic2, Music, Plus, Settings as SettingsIcon } from "lucide-react";
+import { Disc3, Home, ListMusic, Mic2, Music, Plus, Search, Settings as SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Player } from "../audio/player";
 import type { Connection } from "../state/connection";
@@ -7,6 +7,9 @@ import { NowPlayingBar } from "./NowPlayingBar";
 import { QueueDrawer } from "./QueueDrawer";
 import { PlaylistsProvider, usePlaylists } from "../state/playlists";
 import { PlaylistView } from "./views/PlaylistView";
+import { HomeView } from "./views/HomeView";
+import { SearchView } from "./views/SearchView";
+import { MixView } from "./views/MixView";
 import { Settings } from "./Settings";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
@@ -21,7 +24,10 @@ export type View =
   | { name: "tracks" }
   | { name: "album"; albumId: string }
   | { name: "artist"; artistId: string }
-  | { name: "playlist"; playlistId: string };
+  | { name: "playlist"; playlistId: string }
+  | { name: "home" }
+  | { name: "search" }
+  | { name: "mix"; mixId: string; title: string };
 
 export function Shell(props: { connection: Connection; player: Player; onConnectionChange: (c: Connection) => void }) {
   return (
@@ -41,7 +47,8 @@ function ShellInner({
   onConnectionChange: (c: Connection) => void;
 }) {
   const { playlists, create } = usePlaylists();
-  const [view, setView] = useState<View>({ name: "albums" });
+  const [view, setView] = useState<View>({ name: "home" });
+  const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
@@ -68,11 +75,18 @@ function ShellInner({
           Blitter<span>Amp</span>
         </div>
         <div className="flex-1" />
-        <input
-          className="input input-sm input-bordered w-64 max-w-[40vw]"
-          placeholder="Search (coming soon)"
-          disabled
-        />
+        <label className="input input-sm input-bordered flex w-72 max-w-[40vw] items-center gap-2">
+          <Search size={14} className="opacity-50" />
+          <input
+            className="grow"
+            placeholder="Search your library"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setView({ name: "search" });
+            }}
+          />
+        </label>
         <button
           type="button"
           className="btn btn-ghost btn-sm btn-square"
@@ -86,7 +100,10 @@ function ShellInner({
 
       <div className="flex min-h-0 flex-1">
         <nav className="flex w-48 shrink-0 flex-col gap-1 border-r border-base-300 bg-base-100 p-3">
-          <div className="px-3 pb-1 text-[10.5px] font-semibold uppercase tracking-wider opacity-50">Library</div>
+          <button type="button" className={navItem(view.name === "home" || view.name === "mix")} onClick={() => setView({ name: "home" })}>
+            <Home size={15} /> Home
+          </button>
+          <div className="mt-2 px-3 pb-1 text-[10.5px] font-semibold uppercase tracking-wider opacity-50">Library</div>
           <button type="button" className={navItem(view.name === "albums" || view.name === "album")} onClick={() => setView({ name: "albums" })}>
             <Disc3 size={15} /> Albums
           </button>
@@ -153,6 +170,19 @@ function ShellInner({
               onBack={() => setView({ name: "albums" })}
               onDeleted={() => setView({ name: "albums" })}
             />
+          )}
+          {view.name === "home" && (
+            <HomeView
+              client={client}
+              player={player}
+              onNavigate={navigate}
+              onOpenMix={(mixId, title) => setView({ name: "mix", mixId, title })}
+              onOpenPlaylist={(playlistId) => setView({ name: "playlist", playlistId })}
+            />
+          )}
+          {view.name === "search" && <SearchView client={client} player={player} query={search} onNavigate={navigate} />}
+          {view.name === "mix" && (
+            <MixView client={client} player={player} mixId={view.mixId} title={view.title} onNavigate={navigate} onBack={() => setView({ name: "home" })} />
           )}
         </main>
         {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} />}

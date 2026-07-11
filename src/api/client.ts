@@ -15,6 +15,9 @@ export type LoveState = Schemas["LoveState"];
 export type LoveRecord = Schemas["LoveRecord"];
 export type PlaylistTrack = Schemas["PlaylistTrack"];
 export type Visibility = "private" | "shared" | "collaborative";
+export type SearchResults = Schemas["SearchResults"];
+export type HomeRails = Schemas["HomeRails"];
+export type Mix = Schemas["Mix"];
 export type LibrarySummary = Schemas["Library"];
 
 export class ApiError extends Error {
@@ -183,6 +186,29 @@ export class Client {
 
   removePlaylistTrack(playlistId: string, itemId: string) {
     return this.request<null>("DELETE", `/v1/playlists/${playlistId}/tracks/${itemId}`);
+  }
+
+  // ---- discovery ----
+
+  search(q: string, types?: string) {
+    const t = types ? `&types=${encodeURIComponent(types)}` : "";
+    return this.get<SearchResults>(`/v1/search?q=${encodeURIComponent(q)}${t}`);
+  }
+
+  home() {
+    return this.get<HomeRails>("/v1/home");
+  }
+
+  mixes() {
+    return this.get<Mix[]>("/v1/mixes");
+  }
+
+  mixTracks(mixId: string) {
+    return this.get<Track[]>(`/v1/mixes/${encodeURIComponent(mixId)}/tracks`);
+  }
+
+  radioNext(body: { seedTrackIds?: string[]; seedArtistIds?: string[]; excludeTrackIds?: string[]; count?: number }) {
+    return this.post<Track[]>("/v1/radio/next", body);
   }
 
   streamGrant(trackId: string) {
