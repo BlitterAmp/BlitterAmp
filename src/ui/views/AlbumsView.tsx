@@ -2,6 +2,7 @@ import { FolderOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Album, Client } from "../../api/client";
 import { AlbumArt } from "../AlbumArt";
+import { useLibraryVersion } from "../../state/useLibrarySync";
 import { pickFolder } from "../Settings";
 import { setEngineSource } from "../../state/engine";
 
@@ -19,6 +20,7 @@ export function AlbumsView({
   const [albums, setAlbums] = useState<Album[]>([]);
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState("");
+  const libVersion = useLibraryVersion(client);
   const [scanning, setScanning] = useState(false);
 
   async function loadMore(from?: string) {
@@ -57,7 +59,7 @@ export function AlbumsView({
   useEffect(() => {
     void loadMore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client]);
+  }, [client, libVersion]);
 
   return (
     <section>

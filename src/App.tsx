@@ -28,6 +28,7 @@ export default function App() {
   const connection = phase.name === "app" ? phase.connection : null;
   const player = useMemo(() => (connection ? new Player(connection.client) : null), [connection?.client]);
 
+
   if (phase.name === "splash") {
     return (
       <div className="flex h-screen items-center justify-center bg-base-200" data-tauri-drag-region>
