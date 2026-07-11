@@ -17,11 +17,13 @@ export function Shell({
   client,
   player,
   profileName,
+  managed,
   onSignOut,
 }: {
   client: Client;
   player: Player;
   profileName: string;
+  managed: boolean;
   onSignOut: () => void;
 }) {
   const [view, setView] = useState<View>({ name: "albums" });
@@ -69,7 +71,11 @@ export function Shell({
         </nav>
         <main className="content-area">
           {view.name === "albums" && (
-            <AlbumsView client={client} onOpen={(albumId) => setView({ name: "album", albumId })} />
+            <AlbumsView
+              client={client}
+              managed={managed}
+              onOpen={(albumId) => setView({ name: "album", albumId })}
+            />
           )}
           {view.name === "artists" && <ArtistsView client={client} />}
           {view.name === "album" && (

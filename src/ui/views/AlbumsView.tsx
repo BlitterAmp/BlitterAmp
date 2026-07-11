@@ -1,11 +1,23 @@
+import { open } from "@tauri-apps/plugin-dialog";
+import { FolderOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Album, Client } from "../../api/client";
+import { setEngineSource } from "../../state/engine";
 import { AlbumArt } from "../AlbumArt";
 
-export function AlbumsView({ client, onOpen }: { client: Client; onOpen: (albumId: string) => void }) {
+export function AlbumsView({
+  client,
+  managed,
+  onOpen,
+}: {
+  client: Client;
+  managed: boolean;
+  onOpen: (albumId: string) => void;
+}) {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState("");
+  const [scanning, setScanning] = useState(false);
 
   async function loadMore(from?: string) {
     try {
@@ -14,6 +26,30 @@ export function AlbumsView({ client, onOpen }: { client: Client; onOpen: (albumI
       setCursor(page.nextCursor ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load albums.");
+    }
+  }
+
+  async function chooseFolder() {
+    const path = await open({ directory: true, multiple: false, title: "Choose your music folder" });
+    if (typeof path !== "string") return;
+    setError("");
+    setScanning(true);
+    try {
+      await setEngineSource(client.baseUrl, path);
+      // Poll the library until the scan surfaces albums (or a while passes).
+      for (let i = 0; i < 40; i++) {
+        await new Promise((r) => setTimeout(r, 750));
+        const page = await client.albums();
+        if (page.items.length > 0) {
+          setAlbums(page.items);
+          setCursor(page.nextCursor ?? null);
+          break;
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not set the music folder.");
+    } finally {
+      setScanning(false);
     }
   }
 
@@ -50,7 +86,20 @@ export function AlbumsView({ client, onOpen }: { client: Client; onOpen: (albumI
       )}
       {albums.length === 0 && !error && (
         <div className="content-placeholder">
-          No albums yet — point your BlitterServer at a music directory in its web admin.
+          {scanning ? (
+            <>
+              <span className="loading" /> Scanning your music…
+            </>
+          ) : managed ? (
+            <>
+              <p>Your library is empty. Point BlitterAmp at your music folder to get started.</p>
+              <button type="button" className="signin-btn" onClick={() => void chooseFolder()}>
+                <FolderOpen size={16} /> Choose music folder
+              </button>
+            </>
+          ) : (
+            <p>No albums yet — point your BlitterServer at a music directory in its web admin.</p>
+          )}
         </div>
       )}
     </div>
