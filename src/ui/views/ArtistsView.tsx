@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import type { Artist, Client } from "../../api/client";
 import { AlbumArt } from "../AlbumArt";
+import { useLibraryVersion } from "../../state/useLibrarySync";
 
 export function ArtistsView({ client }: { client: Client }) {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState("");
+  const libVersion = useLibraryVersion(client);
 
   async function loadMore(from?: string) {
     try {
@@ -20,7 +22,7 @@ export function ArtistsView({ client }: { client: Client }) {
   useEffect(() => {
     void loadMore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client]);
+  }, [client, libVersion]);
 
   return (
     <section>
