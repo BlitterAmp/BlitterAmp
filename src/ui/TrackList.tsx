@@ -2,6 +2,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Client, LoveState, Track } from "../api/client";
 import type { Player } from "../audio/player";
+import { usePlaylists } from "../state/playlists";
 import { LoveButton } from "./LoveButton";
 import { StarRating } from "./StarRating";
 
@@ -24,13 +25,38 @@ export function TrackList({
   tracks,
   onNavigate,
   showAlbum = false,
+  onRemove,
 }: {
   client: Client;
   player: Player;
   tracks: Track[];
   onNavigate: (t: NavTarget) => void;
   showAlbum?: boolean;
+  /** When set, adds a "Remove from this playlist" menu item. */
+  onRemove?: (track: Track) => void;
 }) {
+  const { playlists, create, append } = usePlaylists();
+
+  async function addToPlaylist(t: Track, playlistId: string) {
+    closeMenus();
+    try {
+      await append(playlistId, [t.trackId]);
+    } catch {
+      /* ignore — best effort */
+    }
+  }
+
+  async function addToNewPlaylist(t: Track) {
+    closeMenus();
+    const title = window.prompt("New playlist name");
+    if (!title) return;
+    try {
+      const pl = await create(title);
+      await append(pl.playlistId, [t.trackId]);
+    } catch {
+      /* ignore */
+    }
+  }
   // Local love/rating overlay so toggles reflect instantly (seeded from the
   // server's per-profile decoration).
   const [loves, setLoves] = useState<Record<string, LoveState | undefined>>({});
@@ -92,10 +118,28 @@ export function TrackList({
                   <li><button type="button" onClick={() => { closeMenus(); onNavigate({ name: "album", albumId: t.albumId }); }}>Go to album</button></li>
                   <li><button type="button" onClick={() => { closeMenus(); onNavigate({ name: "artist", artistId: t.artistId }); }}>Go to artist</button></li>
                   <li>
+                    <details>
+                      <summary>Add to playlist</summary>
+                      <ul className="max-h-60 overflow-y-auto">
+                        <li><button type="button" onClick={() => void addToNewPlaylist(t)}>New playlist…</button></li>
+                        {playlists.filter((p) => p.origin === "blitterserver").map((p) => (
+                          <li key={p.playlistId}><button type="button" onClick={() => void addToPlaylist(t, p.playlistId)}>{p.title}</button></li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                  <li>
                     <button type="button" onClick={() => { closeMenus(); void love(t, loves[t.trackId] === "not_for_me" ? "neutral" : "not_for_me"); }}>
                       {loves[t.trackId] === "not_for_me" ? "Un-exclude" : "Not for me"}
                     </button>
                   </li>
+                  {onRemove && (
+                    <li>
+                      <button type="button" className="text-error" onClick={() => { closeMenus(); onRemove(t); }}>
+                        Remove from playlist
+                      </button>
+                    </li>
+                  )}
                 </ul>
               </div>
             </td>

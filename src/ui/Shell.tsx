@@ -1,10 +1,12 @@
 import { listen } from "@tauri-apps/api/event";
-import { Disc3, Mic2, Music, Settings as SettingsIcon } from "lucide-react";
+import { Disc3, ListMusic, Mic2, Music, Plus, Settings as SettingsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Player } from "../audio/player";
 import type { Connection } from "../state/connection";
 import { NowPlayingBar } from "./NowPlayingBar";
 import { QueueDrawer } from "./QueueDrawer";
+import { PlaylistsProvider, usePlaylists } from "../state/playlists";
+import { PlaylistView } from "./views/PlaylistView";
 import { Settings } from "./Settings";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
@@ -18,9 +20,18 @@ export type View =
   | { name: "artists" }
   | { name: "tracks" }
   | { name: "album"; albumId: string }
-  | { name: "artist"; artistId: string };
+  | { name: "artist"; artistId: string }
+  | { name: "playlist"; playlistId: string };
 
-export function Shell({
+export function Shell(props: { connection: Connection; player: Player; onConnectionChange: (c: Connection) => void }) {
+  return (
+    <PlaylistsProvider client={props.connection.client}>
+      <ShellInner {...props} />
+    </PlaylistsProvider>
+  );
+}
+
+function ShellInner({
   connection,
   player,
   onConnectionChange,
@@ -29,6 +40,7 @@ export function Shell({
   player: Player;
   onConnectionChange: (c: Connection) => void;
 }) {
+  const { playlists, create } = usePlaylists();
   const [view, setView] = useState<View>({ name: "albums" });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
@@ -84,6 +96,35 @@ export function Shell({
           <button type="button" className={navItem(view.name === "tracks")} onClick={() => setView({ name: "tracks" })}>
             <Music size={15} /> Tracks
           </button>
+
+          <div className="mt-4 flex items-center justify-between px-3 pb-1">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider opacity-50">Playlists</span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs btn-square"
+              aria-label="New playlist"
+              onClick={async () => {
+                const title = window.prompt("New playlist name");
+                if (!title) return;
+                const pl = await create(title);
+                setView({ name: "playlist", playlistId: pl.playlistId });
+              }}
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {playlists.map((p) => (
+              <button
+                key={p.playlistId}
+                type="button"
+                className={navItem(view.name === "playlist" && view.playlistId === p.playlistId)}
+                onClick={() => setView({ name: "playlist", playlistId: p.playlistId })}
+              >
+                <ListMusic size={15} /> <span className="truncate">{p.title}</span>
+              </button>
+            ))}
+          </div>
         </nav>
 
         <main className="min-w-0 flex-1 overflow-y-auto p-6">
@@ -102,6 +143,16 @@ export function Shell({
           )}
           {view.name === "artist" && (
             <ArtistView client={client} player={player} artistId={view.artistId} onNavigate={navigate} onBack={() => setView({ name: "artists" })} />
+          )}
+          {view.name === "playlist" && (
+            <PlaylistView
+              client={client}
+              player={player}
+              playlistId={view.playlistId}
+              onNavigate={navigate}
+              onBack={() => setView({ name: "albums" })}
+              onDeleted={() => setView({ name: "albums" })}
+            />
           )}
         </main>
         {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} />}
