@@ -10,12 +10,15 @@
     "tauri": "tauri",
     "test": "vitest run",
     "gen:api": "openapi-typescript ../blitterserver/api/openapi.yaml --output src/api/schema.d.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "engine:build": "bash scripts/build-engine.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-http": "^2.5.9",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-shell": "^2.3.5",
     "@tauri-apps/plugin-store": "^2.4.3",
     "lucide-react": "^1.24.0",
     "react": "^19.1.0",

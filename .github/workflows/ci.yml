@@ -19,9 +19,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { path: blitteramp }
+      # The engine sidecar is built from the sibling BlitterServer repo.
+      - uses: actions/checkout@v4
+        with: { repository: BlitterAmp/BlitterServer, path: blitterserver }
       - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-go@v5
+        with: { go-version-file: blitterserver/go.mod }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - uses: Swatinem/rust-cache@v2
-        with: { workspaces: src-tauri }
+        with: { workspaces: blitteramp/src-tauri }
       - name: tauri linux deps
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - run: cargo check --manifest-path src-tauri/Cargo.toml
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf ffmpeg
+      - name: build engine sidecar
+        run: cd blitteramp && BLITTERSERVER_DIR=$GITHUB_WORKSPACE/blitterserver bash scripts/build-engine.sh
+      - run: cargo check --manifest-path blitteramp/src-tauri/Cargo.toml

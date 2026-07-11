@@ -9,6 +9,10 @@ export interface SavedSession {
   deviceToken: string;
   profileToken?: string;
   profile?: Profile;
+  /** True when the app manages a bundled BlitterServer engine — tokens live
+   * in Rust and the port changes per launch, so restore goes through
+   * startEngine() rather than the saved URL. */
+  managed?: boolean;
 }
 
 const STORE_FILE = "session.json";
@@ -44,6 +48,22 @@ export async function clearSession(): Promise<void> {
   const s = await backing();
   await s.delete(KEY);
   await s.save();
+}
+
+export async function saveManagedMarker(profileName: string): Promise<void> {
+  const s = await backing();
+  await s.set(KEY, { serverUrl: "managed", deviceToken: "", managed: true, profile: { profileId: "", name: profileName, hasPin: false } });
+  await s.save();
+}
+
+/** Probes a URL for a set-up BlitterServer without committing to it. */
+export async function probeRemote(url: string): Promise<boolean> {
+  try {
+    const ping = await new Client(url).ping();
+    return ping.name === "BlitterServer" && ping.setupComplete === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function lastServerUrl(): Promise<string> {

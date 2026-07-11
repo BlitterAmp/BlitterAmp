@@ -10,6 +10,7 @@
 *.sln
 *.suo
 *.sw?
+/src-tauri/binaries/blitterserver-*
 # Editor directories and files
 # Logs
 dist

@@ -12,14 +12,16 @@ export function SignIn({
   onDone,
   initialUrl,
   initialDevice,
+  initialError,
 }: {
   onDone: (client: Client) => void;
   initialUrl?: string;
   initialDevice?: { client: Client; deviceToken: string };
+  initialError?: string;
 }) {
   const [step, setStep] = useState<Step>({ name: "server" });
   const [serverUrl, setServerUrl] = useState(initialUrl ?? DEFAULT_LOCAL_URL);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError ?? "");
   const [busy, setBusy] = useState(false);
   const [probing, setProbing] = useState(!initialDevice);
   const autoRan = useRef(false);

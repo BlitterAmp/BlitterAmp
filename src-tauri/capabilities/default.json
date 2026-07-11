@@ -7,6 +7,11 @@
     "core:default",
     "opener:default",
     "store:default",
+    "dialog:default",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [{ "name": "blitterserver", "sidecar": true, "args": true }]
+    },
     {
       "identifier": "http:default",
       "allow": [{ "url": "http://**" }, { "url": "https://**" }]

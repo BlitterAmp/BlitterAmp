@@ -94,3 +94,22 @@ describe("session restore", () => {
     expect(memory.get("session")).toBeDefined();
   });
 });
+
+describe("managed marker", () => {
+  beforeEach(() => {
+    memory.clear();
+    saveCount = 0;
+    vi.unstubAllGlobals();
+  });
+
+  it("round-trips a managed session that restore skips (engine handles it)", async () => {
+    const { saveManagedMarker, loadSession } = await import("./session");
+    await saveManagedMarker("Me");
+    const saved = await loadSession();
+    expect(saved?.managed).toBe(true);
+    expect(saved?.profile?.name).toBe("Me");
+    // restore() must not try to validate a managed session over HTTP.
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("should not be called"); }));
+    expect((await restore(1, 0)).kind).toBe("none");
+  });
+});
