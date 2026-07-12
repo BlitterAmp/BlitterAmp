@@ -87,7 +87,10 @@ fn random_password() -> String {
 /// Idempotent: on later launches it restarts the process and reuses (or
 /// re-mints) the profile token.
 #[tauri::command]
-pub async fn engine_start(app: AppHandle, state: State<'_, EngineState>) -> Result<EngineInfo, String> {
+pub async fn engine_start(
+    app: AppHandle,
+    state: State<'_, EngineState>,
+) -> Result<EngineInfo, String> {
     // A previously spawned child (e.g. after a soft reload) is replaced.
     if let Some(child) = state.0.lock().unwrap().take() {
         let _ = child.kill();
@@ -101,10 +104,18 @@ pub async fn engine_start(app: AppHandle, state: State<'_, EngineState>) -> Resu
         .shell()
         .sidecar("blitterserver")
         .map_err(|e| format!("sidecar: {e}"))?
-        .args(["--listen", &format!("127.0.0.1:{port}"), "--data-dir", &dir.to_string_lossy()])
+        .args([
+            "--listen",
+            &format!("127.0.0.1:{port}"),
+            "--data-dir",
+            &dir.to_string_lossy(),
+        ])
         .spawn()
         .map_err(|e| format!("spawn engine: {e}"))?;
-    eprintln!("[engine] started on 127.0.0.1:{port} (data dir: {})", dir.display());
+    eprintln!(
+        "[engine] started on 127.0.0.1:{port} (data dir: {})",
+        dir.display()
+    );
     *state.0.lock().unwrap() = Some(child);
 
     let http = reqwest::Client::builder()
@@ -113,12 +124,10 @@ pub async fn engine_start(app: AppHandle, state: State<'_, EngineState>) -> Resu
         .map_err(|e| e.to_string())?;
 
     wait_ready(&http, &base).await?;
-    let info = provision(&app, &http, &base)
-        .await
-        .map_err(|e| {
-            eprintln!("[engine] provisioning failed: {e}");
-            e
-        })?;
+    let info = provision(&app, &http, &base).await.map_err(|e| {
+        eprintln!("[engine] provisioning failed: {e}");
+        e
+    })?;
     Ok(info)
 }
 
@@ -151,7 +160,11 @@ async fn wait_ready(http: &reqwest::Client, base: &str) -> Result<(), String> {
     Err("engine did not become ready".into())
 }
 
-async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Result<EngineInfo, String> {
+async fn provision(
+    app: &AppHandle,
+    http: &reqwest::Client,
+    base: &str,
+) -> Result<EngineInfo, String> {
     let mut file = read_state(app);
 
     let ping: Ping = http
@@ -167,8 +180,13 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
     let fresh = ping.setup_complete != Some(true);
     if fresh {
         file.admin_password = random_password();
-        post(http, base, "/admin/api/setup", &serde_json::json!({ "password": file.admin_password }))
-            .await?;
+        post(
+            http,
+            base,
+            "/admin/api/setup",
+            &serde_json::json!({ "password": file.admin_password }),
+        )
+        .await?;
         file.profile_token.clear(); // must re-mint against the new instance
     }
     if file.admin_password.is_empty() {
@@ -194,9 +212,20 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
     }
 
     // Log in and mint a fresh profile token via the proven pairing recipe.
-    post(http, base, "/admin/api/session", &serde_json::json!({ "password": file.admin_password }))
-        .await?;
-    put(http, base, "/admin/api/settings/server", &serde_json::json!({ "canonicalUrl": base })).await?;
+    post(
+        http,
+        base,
+        "/admin/api/session",
+        &serde_json::json!({ "password": file.admin_password }),
+    )
+    .await?;
+    put(
+        http,
+        base,
+        "/admin/api/settings/server",
+        &serde_json::json!({ "canonicalUrl": base }),
+    )
+    .await?;
 
     // On first provision, default the library to ~/Music/BlitterAmp when it
     // exists, so a fresh install lands in a populated library with no folder
@@ -217,24 +246,32 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
     }
 
     // Reuse the "Me" profile if provisioning ran before, else create it.
-    let profiles: serde_json::Value =
-        get_json(http, base, "/admin/api/profiles").await?;
+    let profiles: serde_json::Value = get_json(http, base, "/admin/api/profiles").await?;
     let (profile_id, profile_name) = match profiles.as_array().and_then(|a| a.first()) {
         Some(p) => (
             p["profileId"].as_str().unwrap_or_default().to_string(),
             p["name"].as_str().unwrap_or("Me").to_string(),
         ),
         None => {
-            let created: serde_json::Value =
-                post_json(http, base, "/admin/api/profiles", &serde_json::json!({ "name": "Me" })).await?;
+            let created: serde_json::Value = post_json(
+                http,
+                base,
+                "/admin/api/profiles",
+                &serde_json::json!({ "name": "Me" }),
+            )
+            .await?;
             (
-                created["profileId"].as_str().unwrap_or_default().to_string(),
+                created["profileId"]
+                    .as_str()
+                    .unwrap_or_default()
+                    .to_string(),
                 "Me".to_string(),
             )
         }
     };
 
-    let code: serde_json::Value = post_json(http, base, "/admin/api/pair-codes", &serde_json::json!({})).await?;
+    let code: serde_json::Value =
+        post_json(http, base, "/admin/api/pair-codes", &serde_json::json!({})).await?;
     let code = code["code"].as_str().ok_or("no pair code")?;
 
     let claim: serde_json::Value = post_json(
@@ -257,7 +294,10 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
         return Err(format!("mint profile token: {}", minted.status()));
     }
     let minted: serde_json::Value = minted.json().await.map_err(|e| e.to_string())?;
-    let profile_token = minted["token"].as_str().ok_or("no profile token")?.to_string();
+    let profile_token = minted["token"]
+        .as_str()
+        .ok_or("no profile token")?
+        .to_string();
 
     file.profile_token = profile_token.clone();
     file.profile_name = profile_name.clone();
@@ -273,8 +313,19 @@ async fn provision(app: &AppHandle, http: &reqwest::Client, base: &str) -> Resul
 /// Points the engine at a music directory and kicks off a scan. Uses the
 /// stored admin password (source config is admin-cookie-gated).
 #[tauri::command]
-pub async fn engine_set_source(app: AppHandle, base_url: String, path: String) -> Result<(), String> {
-    engine_admin(app, base_url, "PUT".into(), "/admin/api/source/filesystem".into(), Some(serde_json::json!({ "path": path }))).await?;
+pub async fn engine_set_source(
+    app: AppHandle,
+    base_url: String,
+    path: String,
+) -> Result<(), String> {
+    engine_admin(
+        app,
+        base_url,
+        "PUT".into(),
+        "/admin/api/source/filesystem".into(),
+        Some(serde_json::json!({ "path": path })),
+    )
+    .await?;
     Ok(())
 }
 
@@ -299,7 +350,13 @@ pub async fn engine_admin(
         .cookie_store(true)
         .build()
         .map_err(|e| e.to_string())?;
-    post(&http, &base_url, "/admin/api/session", &serde_json::json!({ "password": file.admin_password })).await?;
+    post(
+        &http,
+        &base_url,
+        "/admin/api/session",
+        &serde_json::json!({ "password": file.admin_password }),
+    )
+    .await?;
 
     let url = format!("{base_url}{path}");
     let mut req = match method.as_str() {
@@ -333,26 +390,64 @@ pub async fn engine_admin(
 
 // ---- small HTTP helpers: any non-2xx is an error ----
 
-async fn post(http: &reqwest::Client, base: &str, path: &str, body: &serde_json::Value) -> Result<(), String> {
-    let resp = http.post(format!("{base}{path}")).json(body).send().await.map_err(|e| e.to_string())?;
+async fn post(
+    http: &reqwest::Client,
+    base: &str,
+    path: &str,
+    body: &serde_json::Value,
+) -> Result<(), String> {
+    let resp = http
+        .post(format!("{base}{path}"))
+        .json(body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     status_ok(path, resp.status())
 }
 
-async fn put(http: &reqwest::Client, base: &str, path: &str, body: &serde_json::Value) -> Result<(), String> {
-    let resp = http.put(format!("{base}{path}")).json(body).send().await.map_err(|e| e.to_string())?;
+async fn put(
+    http: &reqwest::Client,
+    base: &str,
+    path: &str,
+    body: &serde_json::Value,
+) -> Result<(), String> {
+    let resp = http
+        .put(format!("{base}{path}"))
+        .json(body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     status_ok(path, resp.status())
 }
 
-async fn post_json(http: &reqwest::Client, base: &str, path: &str, body: &serde_json::Value) -> Result<serde_json::Value, String> {
-    let resp = http.post(format!("{base}{path}")).json(body).send().await.map_err(|e| e.to_string())?;
+async fn post_json(
+    http: &reqwest::Client,
+    base: &str,
+    path: &str,
+    body: &serde_json::Value,
+) -> Result<serde_json::Value, String> {
+    let resp = http
+        .post(format!("{base}{path}"))
+        .json(body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let status = resp.status();
     let value: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
     status_ok(path, status)?;
     Ok(value)
 }
 
-async fn get_json(http: &reqwest::Client, base: &str, path: &str) -> Result<serde_json::Value, String> {
-    let resp = http.get(format!("{base}{path}")).send().await.map_err(|e| e.to_string())?;
+async fn get_json(
+    http: &reqwest::Client,
+    base: &str,
+    path: &str,
+) -> Result<serde_json::Value, String> {
+    let resp = http
+        .get(format!("{base}{path}"))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
     let status = resp.status();
     let value: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
     status_ok(path, status)?;

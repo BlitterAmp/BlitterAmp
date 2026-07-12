@@ -1,9 +1,10 @@
-// Webview <audio> playback engine, fed by short-lived stream grants (the
-// audio element can't send the bearer header). WKWebView plays flac/mp3/m4a;
-// ogg/opus waits for the mpv engine arc — the UI surfaces that honestly. The
-// player is a small reactive store: subscribe() for state, and it reports
-// playback events to the server so taste/recently-played/presence work.
+// Reactive playback store. Owns queue + transport semantics; decode/output and
+// gapless/preload live in the Rust host behind AudioBackend (backend.ts). The
+// UI subscribes to PlayerState; the store reports playback events to the server
+// so taste/recently-played/presence work. Rust drives two things back to us:
+// position ticks, and self-advances when a staged next track begins gaplessly.
 import { Client, type Track } from "../api/client";
+import type { AdvancedEvent, AudioBackend, AudioErrorEvent, PositionEvent } from "./backend";
 
 export type Repeat = "off" | "all" | "one";
 
@@ -22,14 +23,31 @@ export type PlayerState = {
 
 type Listener = (s: PlayerState) => void;
 
-const WEBVIEW_PLAYABLE = new Set(["flac", "mp3", "m4a", "mp4", "aac"]);
+/** How many upcoming tracks Rust keeps downloaded to the temp cache. */
+export const PRELOAD_COUNT = 3;
+
+// Containers rodio (symphonia-all) decodes. Opus is intentionally absent —
+// symphonia doesn't ship an Opus codec — so those tracks are skipped honestly.
+const RODIO_PLAYABLE = new Set([
+  "flac",
+  "mp3",
+  "m4a",
+  "mp4",
+  "aac",
+  "alac",
+  "ogg",
+  "oga",
+  "vorbis",
+  "wav",
+  "aiff",
+  "aif",
+]);
 
 function uuid(): string {
   return crypto.randomUUID();
 }
 
 export class Player {
-  private audio = new Audio();
   private listeners = new Set<Listener>();
   private state: PlayerState = {
     track: null,
@@ -47,22 +65,14 @@ export class Player {
   private ordered: Track[] = [];
   private lastReportedProgress = 0;
 
-  constructor(private client: Client) {
-    this.audio.addEventListener("timeupdate", () => {
-      this.patch({ positionSec: this.audio.currentTime, durationSec: this.audio.duration || 0 });
-      // Periodic progress reports (every ~20s) feed scrobble/now-playing gates.
-      if (this.state.track && this.audio.currentTime - this.lastReportedProgress > 20) {
-        this.lastReportedProgress = this.audio.currentTime;
-        this.report("progress", this.state.track, this.audio.currentTime);
-      }
-    });
-    this.audio.addEventListener("play", () => this.patch({ playing: true }));
-    this.audio.addEventListener("pause", () => this.patch({ playing: false }));
-    this.audio.addEventListener("ended", () => {
-      if (this.state.track) this.report("ended", this.state.track, this.state.durationSec);
-      void this.advance(false);
-    });
-    this.audio.addEventListener("error", () => this.patch({ playing: false, error: "Playback failed for this track." }));
+  constructor(
+    private client: Client,
+    private backend: AudioBackend,
+  ) {
+    this.backend.configure(client.baseUrl, client.authToken ?? "");
+    this.backend.onPosition((e) => this.onPosition(e));
+    this.backend.onAdvanced((e) => this.onAdvanced(e));
+    this.backend.onError((e) => this.onError(e));
   }
 
   subscribe(fn: Listener): () => void {
@@ -87,7 +97,21 @@ export class Player {
   }
 
   canPlay(track: Track): boolean {
-    return WEBVIEW_PLAYABLE.has(track.media.container);
+    return RODIO_PLAYABLE.has(track.media.container);
+  }
+
+  private firstPlayableFrom(queue: Track[], from: number): number {
+    for (let i = Math.max(0, from); i < queue.length; i++) if (this.canPlay(queue[i])) return i;
+    return -1;
+  }
+
+  private nextPlayableAfter(index: number): number {
+    return this.firstPlayableFrom(this.state.queue, index + 1);
+  }
+
+  private prevPlayableBefore(index: number): number {
+    for (let i = index - 1; i >= 0; i--) if (this.canPlay(this.state.queue[i])) return i;
+    return -1;
   }
 
   private shuffled(tracks: Track[], keepFirst?: Track): Track[] {
@@ -107,8 +131,14 @@ export class Player {
       queue = this.shuffled(tracks, tracks[startIndex]);
       index = 0;
     }
-    this.setQueue(queue, index - 1);
-    await this.advance(false);
+    const first = this.firstPlayableFrom(queue, index);
+    if (first < 0) {
+      this.setQueue(queue, -1);
+      this.stop();
+      return;
+    }
+    this.setQueue(queue, first);
+    this.start(queue[first]);
   }
 
   playNext(tracks: Track[]): void {
@@ -116,14 +146,16 @@ export class Player {
     q.splice(this.state.queueIndex + 1, 0, ...tracks);
     this.ordered = q;
     this.setQueue(q, this.state.queueIndex);
-    if (!this.state.track) void this.advance(false);
+    if (!this.state.track) void this.playQueue(tracks);
+    else this.stageUpcoming(); // a new track may now be next in line
   }
 
   addToQueue(tracks: Track[]): void {
     const q = [...this.state.queue, ...tracks];
     this.ordered = q;
     this.setQueue(q, this.state.queueIndex);
-    if (!this.state.track) void this.advance(false);
+    if (!this.state.track) void this.playQueue(tracks);
+    else this.stageUpcoming();
   }
 
   removeFromQueue(index: number): void {
@@ -133,98 +165,165 @@ export class Player {
     const newIndex = index < this.state.queueIndex ? this.state.queueIndex - 1 : this.state.queueIndex;
     this.ordered = q;
     this.setQueue(q, newIndex);
+    this.stageUpcoming(); // removed track may have been the staged next
   }
 
   clearUpNext(): void {
     const q = this.state.queue.slice(0, this.state.queueIndex + 1);
     this.ordered = q;
     this.setQueue(q, this.state.queueIndex);
+    this.stageUpcoming();
   }
 
   async jumpTo(index: number): Promise<void> {
     if (index < 0 || index >= this.state.queue.length) return;
     if (this.state.track) this.report("skipped", this.state.track, this.state.positionSec);
     this.setQueue(this.state.queue, index);
-    await this.start(this.state.queue[index]);
-  }
-
-  /** Advances to the next playable track. `skipped` marks the current track a
-   * skip (user pressed next) rather than a natural end. */
-  private async advance(skipped: boolean): Promise<void> {
-    if (this.state.repeat === "one" && this.state.track && !skipped) {
-      await this.start(this.state.track);
-      return;
-    }
-    let index = this.state.queueIndex;
-    while (index + 1 < this.state.queue.length) {
-      index += 1;
-      if (this.canPlay(this.state.queue[index])) {
-        this.setQueue(this.state.queue, index);
-        await this.start(this.state.queue[index]);
-        return;
-      }
-    }
-    if (this.state.repeat === "all" && this.state.queue.some((t) => this.canPlay(t))) {
-      this.setQueue(this.state.queue, -1);
-      await this.advance(false);
-      return;
-    }
-    this.audio.pause();
-    this.patch({ track: null, playing: false, positionSec: 0, durationSec: 0, queueIndex: -1 });
+    this.start(this.state.queue[index]);
   }
 
   async next(): Promise<void> {
     if (this.state.track) this.report("skipped", this.state.track, this.state.positionSec);
-    await this.advance(true);
+    const next = this.nextPlayableAfter(this.state.queueIndex);
+    if (next < 0) return this.onQueueEnd();
+    this.setQueue(this.state.queue, next);
+    this.start(this.state.queue[next]);
   }
 
   async previous(): Promise<void> {
-    if (this.audio.currentTime > 3 || this.state.queueIndex <= 0) {
-      this.audio.currentTime = 0;
+    if (this.state.positionSec > 3 || this.state.queueIndex <= 0) {
+      this.seek(0);
       return;
     }
-    let index = this.state.queueIndex - 1;
-    while (index >= 0 && !this.canPlay(this.state.queue[index])) index -= 1;
-    if (index < 0) {
-      this.audio.currentTime = 0;
+    const prev = this.prevPlayableBefore(this.state.queueIndex);
+    if (prev < 0) {
+      this.seek(0);
       return;
     }
-    this.setQueue(this.state.queue, index);
-    await this.start(this.state.queue[index]);
+    this.setQueue(this.state.queue, prev);
+    this.start(this.state.queue[prev]);
   }
 
-  private async start(track: Track): Promise<void> {
-    try {
-      const grant = await this.client.streamGrant(track.trackId);
-      this.audio.src = grant.url;
-      this.audio.volume = this.state.volume;
-      this.lastReportedProgress = 0;
-      this.patch({ track, error: "", positionSec: 0, durationSec: track.durationMs / 1000 });
-      await this.audio.play();
-      this.report("started", track, 0);
-    } catch (err) {
-      this.patch({ track, playing: false, error: err instanceof Error ? err.message : "Playback failed." });
+  /** Hard-cut playback to a track (user action): clear, load, play from 0. */
+  private start(track: Track): void {
+    this.lastReportedProgress = 0;
+    this.patch({ track, playing: true, error: "", positionSec: 0, durationSec: track.durationMs / 1000 });
+    this.backend.playTrack(track.trackId).catch((err) => {
+      // Tauri's invoke rejects with the command's Err string, not an Error, so
+      // read it directly rather than dropping the real reason.
+      const message =
+        typeof err === "string" ? err : err instanceof Error ? err.message : "Playback failed.";
+      this.onError({ trackId: track.trackId, message });
+    });
+    this.report("started", track, 0);
+    this.stageUpcoming();
+  }
+
+  /** Tell Rust which track to play gaplessly after the current one, and warm
+   * the download cache for the next few. Depends on repeat mode. */
+  private stageUpcoming(): void {
+    if (!this.state.track) {
+      this.backend.stageNext(null);
+      return;
+    }
+    if (this.state.repeat === "one") {
+      this.backend.stageNext(this.state.track.trackId);
+      this.backend.preload([this.state.track.trackId]);
+      return;
+    }
+    const next = this.nextPlayableAfter(this.state.queueIndex);
+    this.backend.stageNext(next < 0 ? null : this.state.queue[next].trackId);
+    // Warm the next few playable tracks so gapless transitions never stall.
+    const upcoming: string[] = [];
+    let i = this.state.queueIndex;
+    while (upcoming.length < PRELOAD_COUNT && (i = this.nextPlayableAfter(i)) >= 0) {
+      upcoming.push(this.state.queue[i].trackId);
+    }
+    this.backend.preload(upcoming);
+  }
+
+  /** Rust advanced on its own: a staged next began gaplessly, or the queue
+   * drained (currentTrackId null). */
+  private onAdvanced(e: AdvancedEvent): void {
+    if (this.state.track) this.report("ended", this.state.track, this.state.durationSec);
+    if (e.currentTrackId === null) {
+      // The staged next wasn't ready in time (or there was none). Recover by
+      // playing the next-in-line ourselves rather than assuming the queue ended.
+      const next = this.nextPlayableAfter(this.state.queueIndex);
+      if (next < 0) return this.onQueueEnd();
+      this.setQueue(this.state.queue, next);
+      this.start(this.state.queue[next]);
+      return;
+    }
+    const index = this.state.repeat === "one" ? this.state.queueIndex : this.nextPlayableAfter(this.state.queueIndex);
+    const track = index >= 0 ? this.state.queue[index] : this.state.track;
+    if (!track) {
+      this.onQueueEnd();
+      return;
+    }
+    this.lastReportedProgress = 0;
+    this.setQueue(this.state.queue, index >= 0 ? index : this.state.queueIndex);
+    this.patch({ track, playing: true, positionSec: 0, durationSec: track.durationMs / 1000 });
+    this.report("started", track, 0);
+    this.stageUpcoming();
+  }
+
+  /** Reached the end of the queue with nothing staged. */
+  private onQueueEnd(): void {
+    if (this.state.repeat === "all") {
+      const first = this.firstPlayableFrom(this.state.queue, 0);
+      if (first >= 0) {
+        this.setQueue(this.state.queue, first);
+        this.start(this.state.queue[first]);
+        return;
+      }
+    }
+    this.stop();
+  }
+
+  private stop(): void {
+    this.backend.stop();
+    this.patch({ track: null, playing: false, positionSec: 0, durationSec: 0, queueIndex: -1 });
+  }
+
+  private onError(e: AudioErrorEvent): void {
+    this.patch({ error: e.message || "Playback failed for this track." });
+    const next = this.nextPlayableAfter(this.state.queueIndex);
+    if (next < 0) return this.onQueueEnd();
+    this.setQueue(this.state.queue, next);
+    this.start(this.state.queue[next]);
+  }
+
+  private onPosition(e: PositionEvent): void {
+    this.patch({ positionSec: e.positionSec, durationSec: e.durationSec || this.state.durationSec });
+    // Periodic progress reports (~every 20s) feed scrobble/now-playing gates.
+    if (this.state.track && e.positionSec - this.lastReportedProgress > 20) {
+      this.lastReportedProgress = e.positionSec;
+      this.report("progress", this.state.track, e.positionSec);
     }
   }
 
   toggle(): void {
     if (!this.state.track) return;
-    if (this.audio.paused) {
-      void this.audio.play();
-      this.report("resumed", this.state.track, this.state.positionSec);
-    } else {
-      this.audio.pause();
+    if (this.state.playing) {
+      this.backend.pause();
+      this.patch({ playing: false });
       this.report("paused", this.state.track, this.state.positionSec);
+    } else {
+      this.backend.resume();
+      this.patch({ playing: true });
+      this.report("resumed", this.state.track, this.state.positionSec);
     }
   }
 
   seek(sec: number): void {
-    this.audio.currentTime = sec;
+    this.backend.seek(sec);
+    this.patch({ positionSec: sec });
   }
 
   setVolume(v: number): void {
     const volume = Math.max(0, Math.min(1, v));
-    this.audio.volume = volume;
+    this.backend.setVolume(volume);
     this.patch({ volume });
   }
 
@@ -242,10 +341,12 @@ export class Player {
     }
     this.patch({ shuffle });
     this.setQueue(queue, index);
+    this.stageUpcoming(); // the next-in-line changed
   }
 
   setRepeat(repeat: Repeat): void {
     this.patch({ repeat });
+    this.stageUpcoming(); // staging depends on repeat mode
   }
 
   cycleRepeat(): void {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Player } from "./audio/player";
+import { TauriAudioBackend } from "./audio/tauriBackend";
 import { type Connection, resolveConnection } from "./state/connection";
 import { Shell } from "./ui/Shell";
 
@@ -8,13 +9,28 @@ type Phase =
   | { name: "app"; connection: Connection }
   | { name: "error"; message: string };
 
+// Deduped bootstrap. React StrictMode double-mounts in dev, so the boot effect
+// runs twice; without this both calls would fire engine_start, spawning two
+// sidecars that fight over the same SQLite data dir. Sharing the in-flight
+// promise starts the engine exactly once; cleared on failure so Retry works.
+let bootInflight: Promise<Connection> | null = null;
+function bootConnection(): Promise<Connection> {
+  if (!bootInflight) {
+    bootInflight = resolveConnection();
+    bootInflight.catch(() => {
+      bootInflight = null;
+    });
+  }
+  return bootInflight;
+}
+
 export default function App() {
   const [phase, setPhase] = useState<Phase>({ name: "splash" });
 
   async function boot() {
     setPhase({ name: "splash" });
     try {
-      setPhase({ name: "app", connection: await resolveConnection() });
+      setPhase({ name: "app", connection: await bootConnection() });
     } catch (err) {
       setPhase({ name: "error", message: err instanceof Error ? err.message : String(err) });
     }
@@ -26,7 +42,10 @@ export default function App() {
   }, []);
 
   const connection = phase.name === "app" ? phase.connection : null;
-  const player = useMemo(() => (connection ? new Player(connection.client) : null), [connection?.client]);
+  const player = useMemo(
+    () => (connection ? new Player(connection.client, new TauriAudioBackend()) : null),
+    [connection?.client],
+  );
 
 
   if (phase.name === "splash") {
