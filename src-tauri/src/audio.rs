@@ -32,6 +32,13 @@ const GAPLESS_WINDOW: Duration = Duration::from_secs(8);
 /// Downloaded track files kept on disk before LRU eviction.
 const CACHE_CAPACITY: usize = 16;
 const POLL: Duration = Duration::from_millis(200);
+/// A hard cut (skip/jump) fades the outgoing track's volume to zero over this
+/// many steps before clearing it, then fades the new one in — otherwise the
+/// waveform is severed mid-sample and you hear a click. rodio samples the
+/// volume control every ~5ms, so steps are spaced to match.
+const FADE_STEPS: u32 = 8;
+const FADE_STEP: Duration = Duration::from_millis(5);
+const FADE_IN: Duration = Duration::from_millis(15);
 
 #[derive(Clone)]
 struct Conn {
@@ -360,8 +367,28 @@ pub async fn audio_play_track(
         .clone()
         .ok_or("audio not configured")?;
     let path = engine.cache.ensure(&conn, &track_id).await?;
-    let dec = open_decoder(&path)?;
-    let dur = dec.total_duration();
+
+    // If a track is playing, ramp it down before the abrupt clear() so the cut
+    // lands on near-silence instead of severing the waveform (the click). The
+    // new track then fades in from zero, smoothing the incoming edge too.
+    let (had_current, volume) = {
+        let g = engine.inner.lock().unwrap();
+        (g.current.is_some(), g.volume)
+    };
+    if had_current {
+        for step in (0..FADE_STEPS).rev() {
+            {
+                let g = engine.inner.lock().unwrap();
+                if let Some(p) = g.player.as_ref() {
+                    p.set_volume(volume * step as f32 / FADE_STEPS as f32);
+                }
+            }
+            tokio::time::sleep(FADE_STEP).await;
+        }
+    }
+
+    let faded = open_decoder(&path)?.fade_in(FADE_IN);
+    let dur = faded.total_duration();
     let mut g = engine.inner.lock().unwrap();
     if g.player.is_none() {
         return Err("no audio output".into());
@@ -369,7 +396,7 @@ pub async fn audio_play_track(
     let volume = g.volume;
     let player = g.player.as_ref().unwrap();
     player.clear();
-    player.append(dec);
+    player.append(faded);
     player.set_volume(volume);
     player.play();
     g.current_dur = dur;
