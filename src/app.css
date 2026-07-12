@@ -70,7 +70,7 @@ textarea {
 
 /* Frameless macOS window: clear the traffic lights on the left of the top bar. */
 .titlebar-pad {
-  padding-left: 78px;
+  padding-left: 86px;
 }
 html:not([data-platform="darwin"]) .titlebar-pad {
   padding-left: 1rem;
