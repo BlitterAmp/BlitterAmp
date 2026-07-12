@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.4.0...v0.5.0) (2026-07-12)
+
+
+### Features
+
+* configure fanart.tv artwork enrichment ([#25](https://github.com/BlitterAmp/BlitterAmp/issues/25)) ([82e8523](https://github.com/BlitterAmp/BlitterAmp/commit/82e852328a5a659754705f8ed501a9337f917bbb))
+* connect personal last.fm accounts ([#26](https://github.com/BlitterAmp/BlitterAmp/issues/26)) ([96b1850](https://github.com/BlitterAmp/BlitterAmp/commit/96b18500e1887cb45a728521ceb021a8a3b7fed0))
+* **library:** full local cache + delta sync (desktop) ([#21](https://github.com/BlitterAmp/BlitterAmp/issues/21)) ([ace8020](https://github.com/BlitterAmp/BlitterAmp/commit/ace8020f2a4d17b6244b9a0a1224fc1c9b0a0c13))
+* **ui:** playlist creation, play/shuffle/queue actions, mosaic art, shuffle modes ([#24](https://github.com/BlitterAmp/BlitterAmp/issues/24)) ([4d4d4ec](https://github.com/BlitterAmp/BlitterAmp/commit/4d4d4ec1379bb510efa3217b7bf0c159b0addc26))
+
+
+### Bug Fixes
+
+* rebuild bundled engine before Tauri dev ([#28](https://github.com/BlitterAmp/BlitterAmp/issues/28)) ([1bb29fd](https://github.com/BlitterAmp/BlitterAmp/commit/1bb29fd58571e95e5605d34b0e5bb7bb08f76c7f))
+
+
+### Performance Improvements
+
+* **library:** virtualize the track list; keep browse views alive; lazy art ([#23](https://github.com/BlitterAmp/BlitterAmp/issues/23)) ([5eeb0e2](https://github.com/BlitterAmp/BlitterAmp/commit/5eeb0e20a02e25e99b17039cd57b665d963c9b67))
+
 ## [0.4.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.3.0...v0.4.0) (2026-07-12)
 
 
