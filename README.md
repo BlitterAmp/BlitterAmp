@@ -21,8 +21,7 @@ Requires node + pnpm and the Rust toolchain (Tauri v2).
 
 ```sh
 pnpm install
-pnpm engine:build  # build the bundled BlitterServer sidecar (needs ../blitterserver + Go)
-pnpm tauri dev     # run
+pnpm tauri dev     # rebuild the bundled engine from ../blitterserver, then run
 pnpm test          # unit tests
 pnpm build         # typecheck + frontend build
 pnpm gen:api       # regenerate contract types from ../blitterserver
