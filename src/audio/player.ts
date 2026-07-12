@@ -24,6 +24,9 @@ export type PlayerState = {
 
 type Listener = (s: PlayerState) => void;
 
+export type QueueState = Pick<PlayerState, "track" | "queue" | "queueIndex">;
+type QueueListener = () => void;
+
 /** How many upcoming tracks Rust keeps downloaded to the temp cache. */
 export const PRELOAD_COUNT = 3;
 
@@ -50,6 +53,7 @@ function uuid(): string {
 
 export class Player {
   private listeners = new Set<Listener>();
+  private queueListeners = new Set<QueueListener>();
   private state: PlayerState = {
     track: null,
     playing: false,
@@ -89,9 +93,35 @@ export class Player {
     return this.state;
   }
 
+  currentQueueState(): QueueState {
+    return this.queueState;
+  }
+
+  subscribeQueue(fn: QueueListener): () => void {
+    this.queueListeners.add(fn);
+    return () => {
+      this.queueListeners.delete(fn);
+    };
+  }
+
+  private queueState: QueueState = {
+    track: this.state.track,
+    queue: this.state.queue,
+    queueIndex: this.state.queueIndex,
+  };
+
   private patch(p: Partial<PlayerState>) {
+    const previous = this.state;
     this.state = { ...this.state, ...p };
     for (const fn of this.listeners) fn(this.state);
+    if (
+      previous.track !== this.state.track ||
+      previous.queue !== this.state.queue ||
+      previous.queueIndex !== this.state.queueIndex
+    ) {
+      this.queueState = { track: this.state.track, queue: this.state.queue, queueIndex: this.state.queueIndex };
+      for (const fn of this.queueListeners) fn();
+    }
   }
 
   private setQueue(queue: Track[], index: number) {

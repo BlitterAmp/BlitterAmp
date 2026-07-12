@@ -137,6 +137,16 @@ describe("Player", () => {
     expect(backend.lastPreload()).toEqual(["b", "c", "d"].slice(0, PRELOAD_COUNT));
   });
 
+  it("keeps backend staging bounded for a 10,000-track queue", async () => {
+    const { p, backend } = setup();
+    const many = Array.from({ length: 10_000 }, (_, index) => track(String(index)));
+    await p.playQueue(many);
+
+    expect(backend.staged).toEqual(["1"]);
+    expect(backend.preloaded).toEqual([["1", "2", "3"].slice(0, PRELOAD_COUNT)]);
+    expect(backend.preloaded.flat()).toHaveLength(PRELOAD_COUNT);
+  });
+
   it("gapless advance moves to the staged next, reports ended+started, re-stages", async () => {
     const { p, backend, events, get } = setup();
     await p.playQueue([track("a"), track("b"), track("c")], 0);
