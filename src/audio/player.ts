@@ -4,6 +4,7 @@
 // so taste/recently-played/presence work. Rust drives two things back to us:
 // position ticks, and self-advances when a staged next track begins gaplessly.
 import { Client, type Track } from "../api/client";
+import { getShuffleMode, spreadByArtist } from "../state/shuffle";
 import type { AdvancedEvent, AudioBackend, AudioErrorEvent, PositionEvent } from "./backend";
 
 export type Repeat = "off" | "all" | "one";
@@ -120,7 +121,8 @@ export class Player {
       const j = Math.floor(Math.random() * (i + 1));
       [rest[i], rest[j]] = [rest[j], rest[i]];
     }
-    return keepFirst ? [keepFirst, ...rest] : rest;
+    const ordered = getShuffleMode() === "spread" ? spreadByArtist(rest) : rest;
+    return keepFirst ? [keepFirst, ...ordered] : ordered;
   }
 
   async playQueue(tracks: Track[], startIndex = 0): Promise<void> {
@@ -139,6 +141,12 @@ export class Player {
     }
     this.setQueue(queue, first);
     this.start(queue[first]);
+  }
+
+  /** Turn shuffle on (if off) and play the set from a random order. */
+  async playShuffled(tracks: Track[]): Promise<void> {
+    if (!this.state.shuffle) this.patch({ shuffle: true });
+    await this.playQueue(tracks);
   }
 
   playNext(tracks: Track[]): void {

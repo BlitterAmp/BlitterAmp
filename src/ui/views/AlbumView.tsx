@@ -1,9 +1,10 @@
-import { ArrowLeft, Play, Shuffle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useMemo } from "react";
 import type { Client } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
+import { PlayActions } from "../PlayActions";
 import { TrackList, type NavTarget } from "../TrackList";
 
 export function AlbumView({
@@ -49,20 +50,8 @@ export function AlbumView({
             >
               {first.artistName}
             </button>
-            <div className="mt-4 flex items-center gap-2">
-              <button type="button" className="btn btn-primary gap-2" onClick={() => void player.playQueue(tracks)}>
-                <Play size={16} /> Play
-              </button>
-              <button
-                type="button"
-                className="btn gap-2"
-                onClick={() => {
-                  player.toggleShuffle();
-                  void player.playQueue(tracks);
-                }}
-              >
-                <Shuffle size={15} /> Shuffle
-              </button>
+            <div className="mt-4">
+              <PlayActions player={player} tracks={tracks} />
             </div>
           </div>
         </div>
