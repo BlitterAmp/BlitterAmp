@@ -8,6 +8,9 @@ use tauri::{AppHandle, Emitter, Runtime};
 
 pub const PREFERENCES: &str = "preferences";
 pub const ABOUT: &str = "about";
+pub const LOGS: &str = "logs";
+pub const GITHUB: &str = "github";
+pub const REPORT_ISSUE: &str = "report-issue";
 
 pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     // Our own About item (rather than the predefined native panel) so it opens
@@ -16,6 +19,9 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let preferences = MenuItemBuilder::with_id(PREFERENCES, "Preferences…")
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
+    let logs = MenuItemBuilder::with_id(LOGS, "Logs…").build(app)?;
+    let github = MenuItemBuilder::with_id(GITHUB, "GitHub").build(app)?;
+    let report_issue = MenuItemBuilder::with_id(REPORT_ISSUE, "Report an Issue").build(app)?;
 
     let app_menu = SubmenuBuilder::new(app, "BlitterAmp")
         .item(&about)
@@ -39,9 +45,15 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .minimize()
         .fullscreen()
         .build()?;
+    let help_menu = SubmenuBuilder::new(app, "Help")
+        .item(&logs)
+        .separator()
+        .item(&github)
+        .item(&report_issue)
+        .build()?;
 
     let menu = MenuBuilder::new(app)
-        .items(&[&app_menu, &edit_menu, &window_menu])
+        .items(&[&app_menu, &edit_menu, &window_menu, &help_menu])
         .build()?;
     app.set_menu(menu)?;
     Ok(())
@@ -56,6 +68,22 @@ pub fn on_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
         }
         ABOUT => {
             let _ = app.emit("menu:about", ());
+        }
+        LOGS => {
+            let _ = app.emit("menu:logs", ());
+        }
+        GITHUB => {
+            use tauri_plugin_opener::OpenerExt;
+            let _ = app
+                .opener()
+                .open_url("https://github.com/BlitterAmp/BlitterAmp", None::<&str>);
+        }
+        REPORT_ISSUE => {
+            use tauri_plugin_opener::OpenerExt;
+            let _ = app.opener().open_url(
+                "https://github.com/BlitterAmp/BlitterAmp/issues/new",
+                None::<&str>,
+            );
         }
         _ => {}
     }

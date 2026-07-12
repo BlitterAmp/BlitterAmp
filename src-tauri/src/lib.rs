@@ -1,4 +1,5 @@
 mod audio;
+mod diagnostics;
 mod engine;
 mod library;
 mod lru;
@@ -41,9 +42,15 @@ pub fn run() {
             library::library_snapshot,
             library::library_resync,
             library::library_art,
-            frontend_log
+            diagnostics::frontend_log,
+            diagnostics::diagnostics_snapshot,
+            diagnostics::diagnostics_clear,
+            diagnostics::diagnostics_open_folder
         ])
         .setup(|app| {
+            let log_dir = app.path().app_log_dir().map_err(|_| ());
+            let home = app.path().home_dir().ok();
+            app.manage(diagnostics::Diagnostics::new(log_dir, home));
             menu::build(app.handle())?;
             app.manage(AudioEngine::new(app.handle()));
             app.manage(LibraryState::new(app.handle()));
@@ -59,11 +66,4 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-// Forwards webview console/errors to stderr for troubleshooting a running
-// build (the webview devtools aren't reachable from a packaged app).
-#[tauri::command]
-fn frontend_log(message: String) {
-    eprintln!("[webview] {message}");
 }

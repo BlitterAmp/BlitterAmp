@@ -399,7 +399,12 @@ async fn run_sync(app: &AppHandle, lib: &LibraryState) {
         lib.delta(&conn).await.map(|_| ())
     };
     if let Err(e) = result {
-        eprintln!("[library] initial sync failed: {e}");
+        crate::diagnostics::log(
+            app,
+            crate::diagnostics::Level::Error,
+            crate::diagnostics::Source::Desktop,
+            format!("library initial sync failed: {e}"),
+        );
         return;
     }
     let _ = app.emit("library:changed", ());

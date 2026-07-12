@@ -13,11 +13,49 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_shell::process::CommandChild;
+use tauri_plugin_shell::process::CommandEvent;
 use tauri_plugin_shell::ShellExt;
 
 /// Handle to the running engine child, killed on app exit.
 #[derive(Default)]
-pub struct EngineState(pub Mutex<Option<CommandChild>>);
+struct EngineInner {
+    child: Option<CommandChild>,
+    generation: u64,
+}
+pub struct EngineState {
+    inner: Mutex<EngineInner>,
+    start: tokio::sync::Mutex<()>,
+}
+impl Default for EngineState {
+    fn default() -> Self {
+        Self {
+            inner: Mutex::new(EngineInner::default()),
+            start: tokio::sync::Mutex::new(()),
+        }
+    }
+}
+
+fn active(state: &EngineState, generation: u64) -> bool {
+    state
+        .inner
+        .lock()
+        .map(|s| generation_is_active(s.generation, s.child.is_some(), generation))
+        .unwrap_or(false)
+}
+
+fn generation_is_active(current: u64, child_installed: bool, expected: u64) -> bool {
+    current == expected && child_installed
+}
+
+fn close_generation(state: &EngineState, generation: u64) {
+    if let Ok(mut inner) = state.inner.lock() {
+        if inner.generation == generation {
+            if let Some(child) = inner.child.take() {
+                let _ = child.kill();
+            }
+        }
+    }
+}
 
 /// What the app needs to talk to the engine after it's provisioned.
 #[derive(Serialize, Clone)]
@@ -91,16 +129,22 @@ pub async fn engine_start(
     app: AppHandle,
     state: State<'_, EngineState>,
 ) -> Result<EngineInfo, String> {
+    let _start = state.start.lock().await;
     // A previously spawned child (e.g. after a soft reload) is replaced.
-    if let Some(child) = state.0.lock().unwrap().take() {
-        let _ = child.kill();
-    }
+    let generation = {
+        let mut inner = state.inner.lock().map_err(|_| "engine state unavailable")?;
+        if let Some(child) = inner.child.take() {
+            let _ = child.kill();
+        }
+        inner.generation = inner.generation.saturating_add(1);
+        inner.generation
+    };
 
     let dir = engine_dir(&app)?;
     let port = free_loopback_port()?;
     let base = format!("http://127.0.0.1:{port}");
 
-    let (_rx, child) = app
+    let (mut rx, child) = app
         .shell()
         .sidecar("blitterserver")
         .map_err(|e| format!("sidecar: {e}"))?
@@ -112,30 +156,151 @@ pub async fn engine_start(
         ])
         .spawn()
         .map_err(|e| format!("spawn engine: {e}"))?;
-    eprintln!(
-        "[engine] started on 127.0.0.1:{port} (data dir: {})",
-        dir.display()
+    crate::diagnostics::log(
+        &app,
+        crate::diagnostics::Level::Info,
+        crate::diagnostics::Source::ServerLifecycle,
+        "bundled server started",
     );
-    *state.0.lock().unwrap() = Some(child);
+    {
+        let mut inner = state.inner.lock().map_err(|_| "engine state unavailable")?;
+        if inner.generation != generation {
+            let _ = child.kill();
+            return Err("engine start was superseded".into());
+        }
+        inner.child = Some(child);
+    }
+    let event_app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let mut stdout = crate::diagnostics::StreamFramer::new();
+        let mut stderr = crate::diagnostics::StreamFramer::new();
+        let mut exited = false;
+        while let Some(event) = rx.recv().await {
+            if !active(&event_app.state::<EngineState>(), generation) {
+                continue;
+            }
+            match event {
+                CommandEvent::Stdout(bytes) => {
+                    for line in stdout.push(&bytes) {
+                        let (level, message) = crate::diagnostics::parse_server_line(
+                            &line,
+                            crate::diagnostics::Level::Info,
+                        );
+                        crate::diagnostics::log(
+                            &event_app,
+                            level,
+                            crate::diagnostics::Source::ServerStdout,
+                            message,
+                        );
+                    }
+                }
+                CommandEvent::Stderr(bytes) => {
+                    for line in stderr.push(&bytes) {
+                        let (level, message) = crate::diagnostics::parse_server_line(
+                            &line,
+                            crate::diagnostics::Level::Warn,
+                        );
+                        crate::diagnostics::log(
+                            &event_app,
+                            level,
+                            crate::diagnostics::Source::ServerStderr,
+                            message,
+                        );
+                    }
+                }
+                CommandEvent::Error(error) => crate::diagnostics::log(
+                    &event_app,
+                    crate::diagnostics::Level::Error,
+                    crate::diagnostics::Source::ServerLifecycle,
+                    format!("server output error: {error}"),
+                ),
+                CommandEvent::Terminated(payload) => {
+                    flush_stream(
+                        &event_app,
+                        &mut stdout,
+                        crate::diagnostics::Source::ServerStdout,
+                        crate::diagnostics::Level::Info,
+                    );
+                    flush_stream(
+                        &event_app,
+                        &mut stderr,
+                        crate::diagnostics::Source::ServerStderr,
+                        crate::diagnostics::Level::Warn,
+                    );
+                    if !exited {
+                        crate::diagnostics::log(
+                            &event_app,
+                            crate::diagnostics::Level::Info,
+                            crate::diagnostics::Source::ServerLifecycle,
+                            format!("bundled server exited with code {:?}", payload.code),
+                        );
+                        exited = true;
+                    }
+                    close_generation(&event_app.state::<EngineState>(), generation);
+                }
+                _ => {}
+            }
+        }
+        if active(&event_app.state::<EngineState>(), generation) {
+            flush_stream(
+                &event_app,
+                &mut stdout,
+                crate::diagnostics::Source::ServerStdout,
+                crate::diagnostics::Level::Info,
+            );
+            flush_stream(
+                &event_app,
+                &mut stderr,
+                crate::diagnostics::Source::ServerStderr,
+                crate::diagnostics::Level::Warn,
+            );
+        }
+    });
 
     let http = reqwest::Client::builder()
         .cookie_store(true)
         .build()
         .map_err(|e| e.to_string())?;
 
-    wait_ready(&http, &base).await?;
-    let info = provision(&app, &http, &base).await.map_err(|e| {
-        eprintln!("[engine] provisioning failed: {e}");
-        e
-    })?;
+    if let Err(error) = wait_ready(&http, &base).await {
+        close_generation(&state, generation);
+        return Err(error);
+    }
+    let info = provision(&app, &http, &base)
+        .await
+        .map_err(|e| {
+            crate::diagnostics::log(
+                &app,
+                crate::diagnostics::Level::Error,
+                crate::diagnostics::Source::ServerLifecycle,
+                format!("server provisioning failed: {e}"),
+            );
+            e
+        })
+        .inspect_err(|_| close_generation(&state, generation))?;
     Ok(info)
 }
 
 /// Stops the engine (called on app exit).
 #[tauri::command]
 pub fn engine_stop(state: State<'_, EngineState>) {
-    if let Some(child) = state.0.lock().unwrap().take() {
-        let _ = child.kill();
+    if let Ok(mut inner) = state.inner.lock() {
+        inner.generation = inner.generation.saturating_add(1);
+        if let Some(child) = inner.child.take() {
+            let _ = child.kill();
+        }
+    }
+}
+
+fn flush_stream(
+    app: &AppHandle,
+    framer: &mut crate::diagnostics::StreamFramer,
+    source: crate::diagnostics::Source,
+    fallback: crate::diagnostics::Level,
+) {
+    if let Some(line) = framer.flush() {
+        let (level, message) = crate::diagnostics::parse_server_line(&line, fallback);
+        crate::diagnostics::log(app, level, source, message);
     }
 }
 
@@ -459,5 +624,26 @@ fn status_ok(path: &str, status: reqwest::StatusCode) -> Result<(), String> {
         Ok(())
     } else {
         Err(format!("{path}: {status}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generation_transition_rejects_stale_or_uninstalled_children() {
+        assert!(generation_is_active(4, true, 4));
+        assert!(!generation_is_active(5, true, 4));
+        assert!(!generation_is_active(4, false, 4));
+    }
+
+    #[test]
+    fn start_guard_allows_only_one_start_path() {
+        let state = EngineState::default();
+        let first = state.start.try_lock().unwrap();
+        assert!(state.start.try_lock().is_err());
+        drop(first);
+        assert!(state.start.try_lock().is_ok());
     }
 }
