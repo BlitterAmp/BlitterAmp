@@ -1,9 +1,11 @@
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { MoreHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Client, LoveState, Track } from "../api/client";
 import type { Player } from "../audio/player";
 import { usePlaylists } from "../state/playlists";
 import { LoveButton } from "./LoveButton";
+import { useScrollParent } from "./ScrollContext";
 import { StarRating } from "./StarRating";
 
 export type NavTarget = { name: "album"; albumId: string } | { name: "artist"; artistId: string };
@@ -17,8 +19,9 @@ function closeMenus() {
   (document.activeElement as HTMLElement | null)?.blur();
 }
 
-/** A reusable track table with play-on-click, per-row love + rating, and a
- * context menu (play next / add to queue / go to album|artist / not for me). */
+/** A reusable track list with play-on-click, per-row love + rating, and a
+ * context menu. Virtualized against the app's main scroll container so it stays
+ * fast at tens of thousands of rows. */
 export function TrackList({
   client,
   player,
@@ -67,8 +70,8 @@ export function TrackList({
       /* ignore */
     }
   }
-  // Local love/rating overlay so toggles reflect instantly (seeded from the
-  // server's per-profile decoration).
+
+  // Local love/rating overlay so toggles reflect instantly.
   const [loves, setLoves] = useState<Record<string, LoveState | undefined>>({});
   const [ratings, setRatings] = useState<Record<string, number>>({});
   useEffect(() => {
@@ -96,27 +99,59 @@ export function TrackList({
     }
   }
 
+  // ── virtualization ──
+  const scrollRef = useScrollParent();
+  const listRef = useRef<HTMLDivElement>(null);
+  const rowH = showAlbum ? 56 : 44;
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const scroll = scrollRef?.current;
+    if (!list || !scroll) return;
+    const measure = () =>
+      setScrollMargin(list.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(scroll);
+    ro.observe(list);
+    return () => ro.disconnect();
+  }, [scrollRef, tracks.length]);
+
+  const virtualizer = useVirtualizer({
+    count: tracks.length,
+    getScrollElement: () => scrollRef?.current ?? null,
+    estimateSize: () => rowH,
+    overscan: 12,
+    scrollMargin,
+  });
+
   return (
-    <table className="table table-sm">
-      <tbody>
-        {tracks.map((t, i) => (
-          <tr key={t.trackId} className="hover group cursor-pointer" onDoubleClick={() => void player.playQueue(tracks, i)}>
-            <td className="w-8 text-right tabular-nums opacity-50" onClick={() => void player.playQueue(tracks, i)}>
+    <div ref={listRef} className="relative" style={{ height: virtualizer.getTotalSize() }}>
+      {virtualizer.getVirtualItems().map((vi) => {
+        const t = tracks[vi.index];
+        const i = vi.index;
+        return (
+          <div
+            key={t.trackId}
+            className="group absolute left-0 flex w-full cursor-pointer items-center gap-2 border-b border-base-200/40 px-2 hover:bg-base-200/40"
+            style={{ top: 0, height: rowH, transform: `translateY(${vi.start - scrollMargin}px)` }}
+            onDoubleClick={() => void player.playQueue(tracks, i)}
+          >
+            <div className="w-8 shrink-0 text-right tabular-nums opacity-50" onClick={() => void player.playQueue(tracks, i)}>
               {t.index ?? i + 1}
-            </td>
-            <td onClick={() => void player.playQueue(tracks, i)}>
-              <div className="font-medium">{t.title}</div>
-              {showAlbum && <div className="text-xs opacity-60">{t.albumTitle}</div>}
-              {!player.canPlay(t) && <span className="text-xs opacity-50">({t.media.container} — needs the mpv engine)</span>}
-            </td>
-            <td className="w-40">
-              <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
-                <LoveButton state={loves[t.trackId]} onChange={(s) => void love(t, s)} />
-                <StarRating rating10={ratings[t.trackId] ?? 0} onChange={(r) => void rate(t, r)} />
-              </div>
-            </td>
-            <td className="w-14 text-right tabular-nums opacity-60">{fmt(t.durationMs)}</td>
-            <td className="w-8">
+            </div>
+            <div className="min-w-0 flex-1" onClick={() => void player.playQueue(tracks, i)}>
+              <div className="truncate font-medium">{t.title}</div>
+              {showAlbum && <div className="truncate text-xs opacity-60">{t.albumTitle}</div>}
+              {!player.canPlay(t) && <span className="text-xs opacity-50">({t.media.container} — unsupported)</span>}
+            </div>
+            <div className="flex w-40 shrink-0 items-center justify-end gap-1 opacity-0 transition group-hover:opacity-100">
+              <LoveButton state={loves[t.trackId]} onChange={(s) => void love(t, s)} />
+              <StarRating rating10={ratings[t.trackId] ?? 0} onChange={(r) => void rate(t, r)} />
+            </div>
+            <div className="w-14 shrink-0 text-right tabular-nums opacity-60">{fmt(t.durationMs)}</div>
+            <div className="w-8 shrink-0">
               <div className="dropdown dropdown-end">
                 <button tabIndex={0} type="button" className="btn btn-ghost btn-xs btn-square opacity-0 group-hover:opacity-100" aria-label="More">
                   <MoreHorizontal size={15} />
@@ -153,10 +188,10 @@ export function TrackList({
                   )}
                 </ul>
               </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
