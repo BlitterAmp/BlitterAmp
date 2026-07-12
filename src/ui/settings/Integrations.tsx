@@ -3,13 +3,16 @@ import type { AdminClient } from "../../admin/adminClient";
 
 interface LidarrConfig { configured: boolean; baseUrl?: string | null; apiKeySet?: boolean; }
 interface LastfmConfig { configured: boolean; }
+interface FanartConfig { configured: boolean; }
 interface TestResult { ok: boolean; version?: string | null; error?: string | null; }
 
 export function Integrations({ admin }: { admin: AdminClient }) {
   const [lidarr, setLidarr] = useState<LidarrConfig | null>(null);
   const [lastfm, setLastfm] = useState<LastfmConfig | null>(null);
+  const [fanart, setFanart] = useState<FanartConfig | null>(null);
   const [lidarrForm, setLidarrForm] = useState({ baseUrl: "", apiKey: "" });
   const [lastfmForm, setLastfmForm] = useState({ apiKey: "", sharedSecret: "" });
+  const [fanartApiKey, setFanartApiKey] = useState("");
   const [test, setTest] = useState<TestResult | null>(null);
   const [error, setError] = useState("");
 
@@ -19,6 +22,7 @@ export function Integrations({ admin }: { admin: AdminClient }) {
       setLidarr(l);
       if (l.baseUrl) setLidarrForm((f) => ({ ...f, baseUrl: l.baseUrl ?? "" }));
       setLastfm(await admin.get<LastfmConfig>("/admin/api/integrations/lastfm"));
+      setFanart(await admin.get<FanartConfig>("/admin/api/integrations/fanart"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -65,6 +69,18 @@ export function Integrations({ admin }: { admin: AdminClient }) {
     await admin.del("/admin/api/integrations/lastfm");
     await refresh();
   });
+  const saveFanart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await wrap(async () => {
+      await admin.put("/admin/api/integrations/fanart", { apiKey: fanartApiKey });
+      setFanartApiKey("");
+      await refresh();
+    })();
+  };
+  const removeFanart = wrap(async () => {
+    await admin.del("/admin/api/integrations/fanart");
+    await refresh();
+  });
 
   return (
     <div>
@@ -98,7 +114,7 @@ export function Integrations({ admin }: { admin: AdminClient }) {
         </div>
       </form>
 
-      <form className="rounded-box bg-base-200 p-4" onSubmit={saveLastfm}>
+      <form className="mb-5 rounded-box bg-base-200 p-4" onSubmit={saveLastfm}>
         <div className="mb-2 flex items-center gap-2 font-medium">
           last.fm
           <span className={`badge badge-sm ${lastfm?.configured ? "badge-success" : "badge-ghost"}`}>
@@ -113,6 +129,31 @@ export function Integrations({ admin }: { admin: AdminClient }) {
           <button type="submit" className="btn btn-sm btn-primary" disabled={!lastfmForm.apiKey || !lastfmForm.sharedSecret}>Save</button>
           {lastfm?.configured && (
             <button type="button" className="btn btn-sm btn-error btn-outline" onClick={() => void removeLastfm()}>Remove</button>
+          )}
+        </div>
+      </form>
+
+      <form className="rounded-box bg-base-200 p-4" onSubmit={saveFanart}>
+        <div className="mb-2 flex items-center gap-2 font-medium">
+          fanart.tv
+          <span className={`badge badge-sm ${fanart?.configured ? "badge-success" : "badge-ghost"}`}>
+            {fanart?.configured ? "configured" : "off"}
+          </span>
+        </div>
+        <p className="mb-2 text-sm opacity-70">Supplies artist photos and additional artwork during library enrichment.</p>
+        <div className="mb-2 flex gap-2">
+          <input
+            className="input input-sm input-bordered flex-1"
+            type="password"
+            placeholder="fanart.tv API key"
+            value={fanartApiKey}
+            onChange={(e) => setFanartApiKey(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <button type="submit" className="btn btn-sm btn-primary" disabled={!fanartApiKey} aria-label="Save fanart.tv">Save</button>
+          {fanart?.configured && (
+            <button type="button" className="btn btn-sm btn-error btn-outline" onClick={() => void removeFanart()} aria-label="Remove fanart.tv">Remove</button>
           )}
         </div>
       </form>

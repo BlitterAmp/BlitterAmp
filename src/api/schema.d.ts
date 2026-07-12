@@ -1374,6 +1374,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/api/integrations/fanart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * fanart.tv config state
+         * @description fanart.tv supplies artist photos (and extra art) during enrichment.
+         */
+        get: operations["adminGetFanart"];
+        /** Set the fanart.tv API key */
+        put: operations["adminSetFanart"];
+        post?: never;
+        /** Remove the fanart.tv API key */
+        delete: operations["adminDeleteFanart"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/api/profiles": {
         parameters: {
             query?: never;
@@ -4545,6 +4567,73 @@ export interface operations {
         };
     };
     adminDeleteLastfm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    adminGetFanart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Config */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        configured: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    adminSetFanart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    apiKey: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    adminDeleteFanart: {
         parameters: {
             query?: never;
             header?: never;
