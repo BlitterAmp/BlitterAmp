@@ -221,7 +221,7 @@ pub struct AudioEngine {
 
 /// Opens the default output on a dedicated thread (cpal's stream is `!Send` and
 /// must outlive playback) and returns the shareable rodio handle.
-fn spawn_output() -> Option<Player> {
+fn spawn_output(app: AppHandle) -> Option<Player> {
     let (tx, rx) = mpsc::channel();
     std::thread::spawn(move || match DeviceSinkBuilder::open_default_sink() {
         Ok(mut sink) => {
@@ -233,7 +233,12 @@ fn spawn_output() -> Option<Player> {
             }
         }
         Err(e) => {
-            eprintln!("[audio] no output device: {e}");
+            crate::diagnostics::log(
+                &app,
+                crate::diagnostics::Level::Error,
+                crate::diagnostics::Source::Desktop,
+                format!("audio output unavailable: {e}"),
+            );
             let _ = tx.send(None);
         }
     });
@@ -261,7 +266,7 @@ impl AudioEngine {
             .unwrap_or_else(|_| std::env::temp_dir().join("blitteramp-audio"));
         let http = reqwest::Client::builder().build().unwrap_or_default();
         let cache = Arc::new(FileCache::new(dir, http));
-        let inner = Arc::new(Mutex::new(Inner::new(spawn_output())));
+        let inner = Arc::new(Mutex::new(Inner::new(spawn_output(app.clone()))));
         let engine = AudioEngine {
             inner: Arc::clone(&inner),
             cache: Arc::clone(&cache),

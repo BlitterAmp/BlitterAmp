@@ -15,6 +15,7 @@ import { MixView } from "./views/MixView";
 import { Settings } from "./Settings";
 import { AboutModal } from "./AboutModal";
 import { UpdatePrompt } from "./UpdatePrompt";
+import { LogsModal } from "./LogsModal";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
 import { ArtistsView } from "./views/ArtistsView";
@@ -55,6 +56,7 @@ function ShellInner({
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [logsOpen, setLogsOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
   const mainRef = useRef<HTMLElement>(null);
@@ -67,6 +69,7 @@ function ShellInner({
     const unlisten = Promise.all([
       listen("menu:preferences", () => setSettingsOpen(true)),
       listen("menu:about", () => setAboutOpen(true)),
+      listen("menu:logs", () => setLogsOpen(true)),
     ]);
     return () => void unlisten.then((fns) => fns.forEach((f) => f()));
   }, []);
@@ -218,6 +221,7 @@ function ShellInner({
       )}
 
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+      {logsOpen && <LogsModal onClose={() => setLogsOpen(false)} />}
 
       <UpdatePrompt />
     </div>
