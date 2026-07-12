@@ -5,8 +5,12 @@ import "./app.css";
 import { initThemes } from "./state/theme";
 import { logWebview } from "./diagnostics";
 
-// The theme keys macOS traffic-light padding off this attribute.
-document.documentElement.dataset.platform = navigator.userAgent.includes("Mac") ? "darwin" : "other";
+// Window chrome and macOS traffic-light padding key off this attribute.
+document.documentElement.dataset.platform = navigator.userAgent.includes("Mac")
+  ? "darwin"
+  : navigator.userAgent.includes("Linux")
+    ? "linux"
+    : "other";
 initThemes();
 // Surface webview errors to the process stderr — the packaged app has no
 // reachable devtools, so this is how a running build is diagnosed.

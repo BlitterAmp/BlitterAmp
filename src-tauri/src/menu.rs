@@ -3,6 +3,7 @@
 //! in-app Settings by emitting `menu:preferences` to the webview. The Edit
 //! submenu is kept so copy/paste/select-all work in Settings' text fields.
 
+#[cfg(not(target_os = "linux"))]
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{AppHandle, Emitter, Runtime};
 
@@ -13,50 +14,59 @@ pub const GITHUB: &str = "github";
 pub const REPORT_ISSUE: &str = "report-issue";
 
 pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-    // Our own About item (rather than the predefined native panel) so it opens
-    // the in-app About window with the full acknowledgements list.
-    let about = MenuItemBuilder::with_id(ABOUT, "About BlitterAmp").build(app)?;
-    let preferences = MenuItemBuilder::with_id(PREFERENCES, "Preferences…")
-        .accelerator("CmdOrCtrl+,")
-        .build(app)?;
-    let logs = MenuItemBuilder::with_id(LOGS, "Logs…").build(app)?;
-    let github = MenuItemBuilder::with_id(GITHUB, "GitHub").build(app)?;
-    let report_issue = MenuItemBuilder::with_id(REPORT_ISSUE, "Report an Issue").build(app)?;
+    #[cfg(target_os = "linux")]
+    {
+        let _ = app;
+        return Ok(());
+    }
 
-    let app_menu = SubmenuBuilder::new(app, "BlitterAmp")
-        .item(&about)
-        .separator()
-        .item(&preferences)
-        .separator()
-        .quit()
-        .build()?;
+    #[cfg(not(target_os = "linux"))]
+    {
+        // Our own About item (rather than the predefined native panel) so it opens
+        // the in-app About window with the full acknowledgements list.
+        let about = MenuItemBuilder::with_id(ABOUT, "About BlitterAmp").build(app)?;
+        let preferences = MenuItemBuilder::with_id(PREFERENCES, "Preferences…")
+            .accelerator("CmdOrCtrl+,")
+            .build(app)?;
+        let logs = MenuItemBuilder::with_id(LOGS, "Logs…").build(app)?;
+        let github = MenuItemBuilder::with_id(GITHUB, "GitHub").build(app)?;
+        let report_issue = MenuItemBuilder::with_id(REPORT_ISSUE, "Report an Issue").build(app)?;
 
-    let edit_menu = SubmenuBuilder::new(app, "Edit")
-        .undo()
-        .redo()
-        .separator()
-        .cut()
-        .copy()
-        .paste()
-        .select_all()
-        .build()?;
+        let app_menu = SubmenuBuilder::new(app, "BlitterAmp")
+            .item(&about)
+            .separator()
+            .item(&preferences)
+            .separator()
+            .quit()
+            .build()?;
 
-    let window_menu = SubmenuBuilder::new(app, "Window")
-        .minimize()
-        .fullscreen()
-        .build()?;
-    let help_menu = SubmenuBuilder::new(app, "Help")
-        .item(&logs)
-        .separator()
-        .item(&github)
-        .item(&report_issue)
-        .build()?;
+        let edit_menu = SubmenuBuilder::new(app, "Edit")
+            .undo()
+            .redo()
+            .separator()
+            .cut()
+            .copy()
+            .paste()
+            .select_all()
+            .build()?;
 
-    let menu = MenuBuilder::new(app)
-        .items(&[&app_menu, &edit_menu, &window_menu, &help_menu])
-        .build()?;
-    app.set_menu(menu)?;
-    Ok(())
+        let window_menu = SubmenuBuilder::new(app, "Window")
+            .minimize()
+            .fullscreen()
+            .build()?;
+        let help_menu = SubmenuBuilder::new(app, "Help")
+            .item(&logs)
+            .separator()
+            .item(&github)
+            .item(&report_issue)
+            .build()?;
+
+        let menu = MenuBuilder::new(app)
+            .items(&[&app_menu, &edit_menu, &window_menu, &help_menu])
+            .build()?;
+        app.set_menu(menu)?;
+        Ok(())
+    }
 }
 
 /// Routes menu clicks to the webview: Preferences opens Settings, About opens
