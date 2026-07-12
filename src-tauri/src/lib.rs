@@ -4,6 +4,7 @@ mod engine;
 mod library;
 mod lru;
 mod menu;
+mod platform;
 
 use audio::AudioEngine;
 use engine::EngineState;
@@ -15,6 +16,8 @@ use tauri::Manager;
 // the webview; music logic lives in BlitterServer.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    platform::configure_display_environment();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
