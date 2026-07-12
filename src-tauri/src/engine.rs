@@ -72,6 +72,12 @@ struct EngineFile {
     admin_password: String,
     profile_token: String,
     profile_name: String,
+    #[serde(default)]
+    canonical_url: String,
+}
+
+fn canonical_url_needs_refresh(file: &EngineFile, base: &str) -> bool {
+    file.canonical_url != base
 }
 
 fn engine_dir(app: &AppHandle) -> Result<PathBuf, String> {
@@ -358,7 +364,30 @@ async fn provision(
         return Err("engine is set up but the desktop lost its admin password".into());
     }
 
-    // An existing profile token that still validates means we're done.
+    // The managed engine binds a new ephemeral port on every process launch.
+    // Refresh its public callback base before reusing a still-valid profile
+    // token, otherwise browser callbacks target the previous, dead listener.
+    post(
+        http,
+        base,
+        "/admin/api/session",
+        &serde_json::json!({ "password": file.admin_password }),
+    )
+    .await?;
+    if canonical_url_needs_refresh(&file, base) {
+        put(
+            http,
+            base,
+            "/admin/api/settings/server",
+            &serde_json::json!({ "canonicalUrl": base }),
+        )
+        .await?;
+        file.canonical_url = base.to_string();
+        write_state(app, &file)?;
+    }
+
+    // An existing profile token that still validates means we're done after
+    // the callback base has been refreshed.
     if !file.profile_token.is_empty() {
         let ok = http
             .get(format!("{base}/v1/me"))
@@ -376,23 +405,8 @@ async fn provision(
         }
     }
 
-    // Log in and mint a fresh profile token via the proven pairing recipe.
-    post(
-        http,
-        base,
-        "/admin/api/session",
-        &serde_json::json!({ "password": file.admin_password }),
-    )
-    .await?;
-    put(
-        http,
-        base,
-        "/admin/api/settings/server",
-        &serde_json::json!({ "canonicalUrl": base }),
-    )
-    .await?;
-
-    // On first provision, default the library to ~/Music/BlitterAmp when it
+    // Mint a fresh profile token via the proven pairing recipe. On first
+    // provision, default the library to ~/Music/BlitterAmp when it
     // exists, so a fresh install lands in a populated library with no folder
     // picking. The user can change it later in Settings.
     if fresh {
@@ -645,5 +659,31 @@ mod tests {
         assert!(state.start.try_lock().is_err());
         drop(first);
         assert!(state.start.try_lock().is_ok());
+    }
+
+    #[test]
+    fn reused_engine_state_requires_canonical_url_refresh_after_port_change() {
+        let state: EngineFile = serde_json::from_str(
+            r#"{"admin_password":"secret","profile_token":"token","profile_name":"Me"}"#,
+        )
+        .unwrap();
+        assert!(state.canonical_url.is_empty());
+        assert!(canonical_url_needs_refresh(
+            &state,
+            "http://127.0.0.1:42035"
+        ));
+
+        let current = EngineFile {
+            canonical_url: "http://127.0.0.1:42035".into(),
+            ..state
+        };
+        assert!(!canonical_url_needs_refresh(
+            &current,
+            "http://127.0.0.1:42035"
+        ));
+        assert!(canonical_url_needs_refresh(
+            &current,
+            "http://127.0.0.1:52199"
+        ));
     }
 }
