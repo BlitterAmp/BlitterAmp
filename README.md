@@ -10,9 +10,10 @@ run a BlitterServer, connect to it under Settings → Connection (PIN pairing).
 Features: Home with server-composed rails and mixes; browse albums/artists/tracks with an artist page;
 federated search; a real play queue (shuffle/repeat/volume, up-next, add/play-next); playlists
 (create/edit, add/remove, the auto Loved Tracks list); inline loves and star ratings; per-track radio;
-theme picker with custom themes. Playback uses the system webview (flac/mp3/m4a); the mpv engine for
-gapless ogg/opus is a later arc, as is SSE live-updates and personal last.fm scrobbling. Manage the
-library, profiles, devices, and integrations natively under Settings.
+theme picker with custom themes. Native playback supports gapless flac/mp3/aac/alac/vorbis/wav, with
+an honest limitation for Opus. The local metadata/art cache stays current through server deltas and
+SSE. Personal last.fm connection and scrobbling work per profile; manage the library, profiles,
+devices, and server-wide integrations natively under Settings.
 
 ## Development
 
