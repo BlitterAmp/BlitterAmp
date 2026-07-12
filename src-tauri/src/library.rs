@@ -23,7 +23,6 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager};
 
-
 #[derive(Clone)]
 struct Conn {
     base_url: String,
@@ -49,7 +48,9 @@ impl Mirror {
 
     fn meta(&self, key: &str) -> Option<String> {
         self.db
-            .query_row("SELECT value FROM meta WHERE key = ?1", [key], |r| r.get::<_, String>(0))
+            .query_row("SELECT value FROM meta WHERE key = ?1", [key], |r| {
+                r.get::<_, String>(0)
+            })
             .ok()
     }
 
@@ -61,7 +62,9 @@ impl Mirror {
     }
 
     fn version(&self) -> i64 {
-        self.meta("version").and_then(|v| v.parse().ok()).unwrap_or(0)
+        self.meta("version")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0)
     }
 
     fn wipe(&self) {
@@ -70,7 +73,9 @@ impl Mirror {
     }
 
     fn wipe_kind(&self, kind: &str) {
-        let _ = self.db.execute("DELETE FROM entities WHERE kind = ?1", [kind]);
+        let _ = self
+            .db
+            .execute("DELETE FROM entities WHERE kind = ?1", [kind]);
     }
 
     fn upsert(&self, kind: &str, id: &str, json: &str) {
@@ -82,7 +87,10 @@ impl Mirror {
     }
 
     fn delete(&self, kind: &str, id: &str) {
-        let _ = self.db.execute("DELETE FROM entities WHERE kind = ?1 AND id = ?2", [kind, id]);
+        let _ = self.db.execute(
+            "DELETE FROM entities WHERE kind = ?1 AND id = ?2",
+            [kind, id],
+        );
     }
 
     fn snapshot(&self, kind: &str) -> Vec<Value> {
@@ -171,16 +179,35 @@ impl LibraryState {
     }
 
     /// Page a cursor list endpoint into the mirror, replacing that kind.
-    async fn bootstrap_list(&self, conn: &Conn, kind: &str, path: &str, id_field: &str) -> Result<(), String> {
+    async fn bootstrap_list(
+        &self,
+        conn: &Conn,
+        kind: &str,
+        path: &str,
+        id_field: &str,
+    ) -> Result<(), String> {
         {
             self.mirror.lock().unwrap().wipe_kind(kind);
         }
         let mut cursor = String::new();
         loop {
             let sep = if path.contains('?') { '&' } else { '?' };
-            let url = format!("{}{}limit=500{}", path, sep, if cursor.is_empty() { String::new() } else { format!("&cursor={cursor}") });
+            let url = format!(
+                "{}{}limit=500{}",
+                path,
+                sep,
+                if cursor.is_empty() {
+                    String::new()
+                } else {
+                    format!("&cursor={cursor}")
+                }
+            );
             let page = self.get_json(conn, &url).await?;
-            let items = page.get("items").and_then(|v| v.as_array()).cloned().unwrap_or_default();
+            let items = page
+                .get("items")
+                .and_then(|v| v.as_array())
+                .cloned()
+                .unwrap_or_default();
             {
                 let m = self.mirror.lock().unwrap();
                 for it in &items {
@@ -197,7 +224,13 @@ impl LibraryState {
         Ok(())
     }
 
-    async fn bootstrap_bare(&self, conn: &Conn, kind: &str, path: &str, id_field: &str) -> Result<(), String> {
+    async fn bootstrap_bare(
+        &self,
+        conn: &Conn,
+        kind: &str,
+        path: &str,
+        id_field: &str,
+    ) -> Result<(), String> {
         let arr = self.get_json(conn, path).await?;
         let m = self.mirror.lock().unwrap();
         m.wipe_kind(kind);
@@ -212,13 +245,20 @@ impl LibraryState {
     }
 
     async fn bootstrap(&self, conn: &Conn) -> Result<(), String> {
-        self.bootstrap_list(conn, "artist", "/v1/artists", "artistId").await?;
-        self.bootstrap_list(conn, "album", "/v1/albums", "albumId").await?;
-        self.bootstrap_list(conn, "track", "/v1/tracks", "trackId").await?;
-        self.bootstrap_bare(conn, "playlist", "/v1/playlists", "playlistId").await?;
+        self.bootstrap_list(conn, "artist", "/v1/artists", "artistId")
+            .await?;
+        self.bootstrap_list(conn, "album", "/v1/albums", "albumId")
+            .await?;
+        self.bootstrap_list(conn, "track", "/v1/tracks", "trackId")
+            .await?;
+        self.bootstrap_bare(conn, "playlist", "/v1/playlists", "playlistId")
+            .await?;
         let lib = self.get_json(conn, "/v1/library").await?;
         let version = lib.get("version").and_then(|v| v.as_i64()).unwrap_or(0);
-        self.mirror.lock().unwrap().set_meta("version", &version.to_string());
+        self.mirror
+            .lock()
+            .unwrap()
+            .set_meta("version", &version.to_string());
         Ok(())
     }
 
@@ -230,7 +270,11 @@ impl LibraryState {
         loop {
             let url = format!(
                 "/v1/changes?since={since}{}",
-                if cursor.is_empty() { String::new() } else { format!("&cursor={cursor}") }
+                if cursor.is_empty() {
+                    String::new()
+                } else {
+                    format!("&cursor={cursor}")
+                }
             );
             let d = self.get_json(conn, &url).await?;
             {
@@ -266,7 +310,10 @@ impl LibraryState {
                 Some(c) if !c.is_empty() => cursor = c.to_string(),
                 _ => {
                     let v = d.get("version").and_then(|v| v.as_i64()).unwrap_or(since);
-                    self.mirror.lock().unwrap().set_meta("version", &v.to_string());
+                    self.mirror
+                        .lock()
+                        .unwrap()
+                        .set_meta("version", &v.to_string());
                     since = v;
                     let _ = since;
                     break;
@@ -279,7 +326,10 @@ impl LibraryState {
     async fn refetch_playlist(&self, conn: &Conn, id: &str) -> Result<(), String> {
         match self.get_json(conn, &format!("/v1/playlists/{id}")).await {
             Ok(pl) => {
-                self.mirror.lock().unwrap().upsert("playlist", id, &pl.to_string());
+                self.mirror
+                    .lock()
+                    .unwrap()
+                    .upsert("playlist", id, &pl.to_string());
                 Ok(())
             }
             Err(_) => {
@@ -318,7 +368,11 @@ pub async fn library_configure(
             m.set_meta("identity", &identity);
         }
     }
-    *lib.conn.lock().unwrap() = Some(Conn { base_url, token, identity });
+    *lib.conn.lock().unwrap() = Some(Conn {
+        base_url,
+        token,
+        identity,
+    });
 
     // One sync loop at a time.
     {
@@ -376,23 +430,25 @@ async fn stream_events(app: &AppHandle, lib: &LibraryState, conn: &Conn) {
         };
         let mut resp = resp;
         let mut buf = String::new();
-        loop {
-            match resp.chunk().await {
-                Ok(Some(bytes)) => {
-                    buf.push_str(&String::from_utf8_lossy(&bytes));
-                    while let Some(idx) = buf.find("\n\n") {
-                        let frame: String = buf.drain(..idx + 2).collect();
-                        handle_frame(app, lib, conn, &frame, &mut last_id).await;
-                    }
-                }
-                _ => break, // disconnected → reconnect
+        // Reads until the stream ends/errors, then falls through to reconnect.
+        while let Ok(Some(bytes)) = resp.chunk().await {
+            buf.push_str(&String::from_utf8_lossy(&bytes));
+            while let Some(idx) = buf.find("\n\n") {
+                let frame: String = buf.drain(..idx + 2).collect();
+                handle_frame(app, lib, conn, &frame, &mut last_id).await;
             }
         }
         tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
     }
 }
 
-async fn handle_frame(app: &AppHandle, lib: &LibraryState, conn: &Conn, frame: &str, last_id: &mut String) {
+async fn handle_frame(
+    app: &AppHandle,
+    lib: &LibraryState,
+    conn: &Conn,
+    frame: &str,
+    last_id: &mut String,
+) {
     let mut data = String::new();
     for line in frame.lines() {
         if let Some(v) = line.strip_prefix("id:") {
@@ -404,7 +460,9 @@ async fn handle_frame(app: &AppHandle, lib: &LibraryState, conn: &Conn, frame: &
     if data.is_empty() {
         return; // heartbeat / comment
     }
-    let Ok(env) = serde_json::from_str::<Value>(&data) else { return };
+    let Ok(env) = serde_json::from_str::<Value>(&data) else {
+        return;
+    };
     let typ = env.get("type").and_then(|v| v.as_str()).unwrap_or("");
     let payload = env.get("data").cloned().unwrap_or(Value::Null);
     let changed = match typ {
@@ -419,7 +477,10 @@ async fn handle_frame(app: &AppHandle, lib: &LibraryState, conn: &Conn, frame: &
         }
         "love.updated" => {
             // ref is like trk_/alb_/art_… — patch the matching entity in place.
-            if let (Some(r), state) = (payload.get("ref").and_then(|v| v.as_str()), payload.get("state").cloned()) {
+            if let (Some(r), state) = (
+                payload.get("ref").and_then(|v| v.as_str()),
+                payload.get("state").cloned(),
+            ) {
                 let kind = match &r[..r.find('_').map(|i| i + 1).unwrap_or(0)] {
                     "trk_" => "track",
                     "alb_" => "album",
@@ -427,7 +488,10 @@ async fn handle_frame(app: &AppHandle, lib: &LibraryState, conn: &Conn, frame: &
                     _ => "",
                 };
                 if !kind.is_empty() {
-                    lib.mirror.lock().unwrap().patch_love(kind, r, &state.unwrap_or(Value::Null));
+                    lib.mirror
+                        .lock()
+                        .unwrap()
+                        .patch_love(kind, r, &state.unwrap_or(Value::Null));
                     true
                 } else {
                     false
@@ -477,15 +541,26 @@ pub fn library_resync(app: AppHandle, lib: tauri::State<'_, LibraryState>) {
 
 /// Cached album art (immutable per art id). Fetches once, then serves from disk.
 #[tauri::command]
-pub async fn library_art(lib: tauri::State<'_, LibraryState>, art_id: String, size: u32) -> Result<Vec<u8>, String> {
-    let safe: String = art_id.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '_').collect();
+pub async fn library_art(
+    lib: tauri::State<'_, LibraryState>,
+    art_id: String,
+    size: u32,
+) -> Result<Vec<u8>, String> {
+    let safe: String = art_id
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
+        .collect();
     let path = lib.art_dir.join(format!("{safe}_{size}"));
     if let Ok(bytes) = std::fs::read(&path) {
         return Ok(bytes);
     }
     let conn = lib.conn().ok_or("library not configured")?;
     // Dedupe concurrent fetches of the same art.
-    let ours = lib.art_inflight.lock().unwrap().insert(path.to_string_lossy().to_string());
+    let ours = lib
+        .art_inflight
+        .lock()
+        .unwrap()
+        .insert(path.to_string_lossy().to_string());
     if !ours {
         for _ in 0..100 {
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
@@ -496,13 +571,19 @@ pub async fn library_art(lib: tauri::State<'_, LibraryState>, art_id: String, si
     }
     let result = lib
         .http
-        .get(format!("{}/v1/art/{art_id}?w={size}&h={size}", conn.base_url.trim_end_matches('/')))
+        .get(format!(
+            "{}/v1/art/{art_id}?w={size}&h={size}",
+            conn.base_url.trim_end_matches('/')
+        ))
         .bearer_auth(&conn.token)
         .send()
         .await
         .map_err(|e| e.to_string())
         .and_then(|r| r.error_for_status().map_err(|e| e.to_string()));
-    lib.art_inflight.lock().unwrap().remove(&path.to_string_lossy().to_string());
+    lib.art_inflight
+        .lock()
+        .unwrap()
+        .remove(&path.to_string_lossy().to_string());
     let bytes = result?.bytes().await.map_err(|e| e.to_string())?.to_vec();
     let tmp = path.with_extension("tmp");
     std::fs::write(&tmp, &bytes).map_err(|e| e.to_string())?;
@@ -553,7 +634,11 @@ mod tests {
     #[test]
     fn patch_love_updates_in_place() {
         let m = mem();
-        m.upsert("track", "trk_1", r#"{"trackId":"trk_1","loveState":"neutral"}"#);
+        m.upsert(
+            "track",
+            "trk_1",
+            r#"{"trackId":"trk_1","loveState":"neutral"}"#,
+        );
         m.patch_love("track", "trk_1", &serde_json::json!("loved"));
         assert_eq!(m.snapshot("track")[0]["loveState"], "loved");
     }

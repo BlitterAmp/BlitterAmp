@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Player } from "./audio/player";
 import { TauriAudioBackend } from "./audio/tauriBackend";
 import { type Connection, resolveConnection } from "./state/connection";
+import { LibraryProvider } from "./state/library";
 import { Shell } from "./ui/Shell";
 
 type Phase =
@@ -78,10 +79,12 @@ export default function App() {
   }
 
   return (
-    <Shell
-      connection={phase.connection}
-      player={player as Player}
-      onConnectionChange={(c) => setPhase({ name: "app", connection: c })}
-    />
+    <LibraryProvider connection={phase.connection}>
+      <Shell
+        connection={phase.connection}
+        player={player as Player}
+        onConnectionChange={(c) => setPhase({ name: "app", connection: c })}
+      />
+    </LibraryProvider>
   );
 }
