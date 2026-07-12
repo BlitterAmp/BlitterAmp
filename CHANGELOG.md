@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.3.0...v0.4.0) (2026-07-12)
+
+
+### Features
+
+* use the musex app icon for BlitterAmp ([#18](https://github.com/BlitterAmp/BlitterAmp/issues/18)) ([274ab2d](https://github.com/BlitterAmp/BlitterAmp/commit/274ab2d6ce3f4185da7a56eed588f7aebb3435ab))
+
 ## [0.3.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.2.0...v0.3.0) (2026-07-12)
 
 
