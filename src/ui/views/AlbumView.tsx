@@ -1,7 +1,8 @@
 import { ArrowLeft, Play, Shuffle } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { Client, Track } from "../../api/client";
+import { useMemo } from "react";
+import type { Client } from "../../api/client";
 import type { Player } from "../../audio/player";
+import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
 import { TrackList, type NavTarget } from "../TrackList";
 
@@ -18,15 +19,12 @@ export function AlbumView({
   onNavigate: (t: NavTarget) => void;
   onBack: () => void;
 }) {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    client
-      .albumTracks(albumId)
-      .then(setTracks)
-      .catch((err) => setError(err instanceof Error ? err.message : "Could not load the album."));
-  }, [client, albumId]);
+  const { tracksByAlbum } = useLibrary();
+  const tracks = useMemo(() => {
+    const list = [...(tracksByAlbum.get(albumId) ?? [])];
+    list.sort((a, b) => (a.discNumber ?? 0) - (b.discNumber ?? 0) || (a.index ?? 0) - (b.index ?? 0));
+    return list;
+  }, [tracksByAlbum, albumId]);
 
   const first = tracks[0];
 
@@ -35,12 +33,11 @@ export function AlbumView({
       <button type="button" className="btn btn-ghost btn-sm mb-4 gap-1" onClick={onBack}>
         <ArrowLeft size={14} /> Back
       </button>
-      {error && <div className="alert alert-error mb-4">{error}</div>}
 
       {first && (
         <div className="mb-6 flex gap-6">
           <div className="size-48 shrink-0 overflow-hidden rounded-box shadow-lg">
-            <AlbumArt client={client} artId={first.artId} size={600} alt={first.albumTitle} />
+            <AlbumArt artId={first.artId} size={600} alt={first.albumTitle} />
           </div>
           <div className="flex flex-col justify-end">
             <div className="text-xs uppercase tracking-wider opacity-50">Album</div>

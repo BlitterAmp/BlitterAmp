@@ -1,15 +1,32 @@
+import { invoke } from "@tauri-apps/api/core";
 import { Music } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Client } from "../api/client";
 
-/** Cover art via the authed client (plain <img src> can't send the bearer). */
+// Cover art from the Rust host's persistent on-disk cache (keyed by art id,
+// fetched once from the server then served locally forever). Object URLs are
+// memoized per art+size so re-renders don't re-decode.
+const urls = new Map<string, Promise<string>>();
+
+function artUrl(artId: string, size: number): Promise<string> {
+  const key = `${artId}@${size}`;
+  let p = urls.get(key);
+  if (!p) {
+    p = invoke<number[]>("library_art", { artId, size }).then(
+      (bytes) => URL.createObjectURL(new Blob([new Uint8Array(bytes)])),
+    );
+    p.catch(() => urls.delete(key));
+    urls.set(key, p);
+  }
+  return p;
+}
+
+// `client` is accepted but unused — art no longer goes through the HTTP client.
 export function AlbumArt({
-  client,
   artId,
   size = 300,
   alt = "",
 }: {
-  client: Client;
+  client?: unknown;
   artId?: string | null;
   size?: number;
   alt?: string;
@@ -20,15 +37,14 @@ export function AlbumArt({
     let live = true;
     setSrc(null);
     if (artId) {
-      client
-        .loadArt(artId, size)
+      artUrl(artId, size)
         .then((url) => live && setSrc(url))
         .catch(() => {});
     }
     return () => {
       live = false;
     };
-  }, [client, artId, size]);
+  }, [artId, size]);
 
   if (!src) {
     return (

@@ -1,8 +1,8 @@
 import { FolderOpen } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Album, Client } from "../../api/client";
+import type { Client } from "../../api/client";
+import { resyncLibrary, useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
-import { useLibraryVersion } from "../../state/useLibrarySync";
 import { pickFolder } from "../Settings";
 import { setEngineSource } from "../../state/engine";
 
@@ -17,21 +17,9 @@ export function AlbumsView({
   onOpen: (albumId: string) => void;
   onManage: () => void;
 }) {
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [cursor, setCursor] = useState<string | null | undefined>(undefined);
+  const { albums, ready } = useLibrary();
   const [error, setError] = useState("");
-  const libVersion = useLibraryVersion(client);
   const [scanning, setScanning] = useState(false);
-
-  async function loadMore(from?: string) {
-    try {
-      const page = await client.albums(from);
-      setAlbums((prev) => (from ? [...prev, ...page.items] : page.items));
-      setCursor(page.nextCursor ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load albums.");
-    }
-  }
 
   async function chooseFolder() {
     const path = await pickFolder();
@@ -40,45 +28,31 @@ export function AlbumsView({
     setScanning(true);
     try {
       await setEngineSource(client.baseUrl, path);
-      for (let i = 0; i < 40; i++) {
-        await new Promise((r) => setTimeout(r, 750));
-        const page = await client.albums();
-        if (page.items.length > 0) {
-          setAlbums(page.items);
-          setCursor(page.nextCursor ?? null);
-          break;
-        }
-      }
+      resyncLibrary(); // the scan's library.changed also refreshes the mirror
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not set the music folder.");
-    } finally {
       setScanning(false);
     }
   }
 
+  // The scan runs server-side; clear the spinner once the mirror has albums.
   useEffect(() => {
-    void loadMore();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, libVersion]);
+    if (albums.length > 0) setScanning(false);
+  }, [albums.length]);
 
   return (
     <section>
       <div className="mb-4 flex items-baseline justify-between">
         <h1 className="text-2xl font-semibold">Albums</h1>
-        <span className="text-sm opacity-60">{albums.length} loaded</span>
+        <span className="text-sm opacity-60">{albums.length}</span>
       </div>
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">
         {albums.map((a) => (
-          <button
-            type="button"
-            key={a.albumId}
-            className="group text-left"
-            onClick={() => onOpen(a.albumId)}
-          >
+          <button type="button" key={a.albumId} className="group text-left" onClick={() => onOpen(a.albumId)}>
             <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-              <AlbumArt client={client} artId={a.artId} alt={a.title} />
+              <AlbumArt artId={a.artId} alt={a.title} />
             </div>
             <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
             <div className="truncate text-xs opacity-60">
@@ -89,15 +63,7 @@ export function AlbumsView({
         ))}
       </div>
 
-      {cursor && (
-        <div className="mt-6 flex justify-center">
-          <button type="button" className="btn btn-sm" onClick={() => void loadMore(cursor)}>
-            Load more
-          </button>
-        </div>
-      )}
-
-      {albums.length === 0 && !error && (
+      {ready && albums.length === 0 && !error && (
         <div className="hero mt-10">
           <div className="hero-content text-center">
             <div className="max-w-md">
