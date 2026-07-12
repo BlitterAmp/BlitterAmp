@@ -50,11 +50,11 @@ operational docs. Do not add design docs here.
 ## Commands
 
 - `pnpm test` — vitest; `pnpm exec tsc --noEmit` — typecheck; `pnpm build` — typecheck + vite build.
-- `pnpm tauri dev` — run the app against a live BlitterServer (dev proxy in vite.config.ts).
+- `pnpm tauri dev` — rebuild the bundled sidecar from `../blitterserver`, then run it (dev proxy in vite.config.ts).
 - `pnpm tauri build` — package; `--debug --no-bundle` for a quick real-binary compile check.
 - `pnpm gen:api` — regenerate the contract types (needs ../blitterserver checked out).
-- `pnpm engine:build` — build the BlitterServer sidecar for this host (needs ../blitterserver + Go).
-  Required before `pnpm tauri dev/build` on a fresh clone.
+- `pnpm engine:build` — build the BlitterServer sidecar for this host (needs `../blitterserver` + Go).
+  `tauri dev` runs this automatically; package/cross-target builds run it explicitly.
 
 ## Layout
 
