@@ -1,4 +1,4 @@
-fn should_disable_dmabuf(
+fn should_force_shm(
     is_wayland: bool,
     is_nvidia: bool,
     has_override: bool,
@@ -24,12 +24,13 @@ pub fn configure_display_environment() {
             .to_ascii_lowercase()
             .contains("nvidia")
     }) || std::path::Path::new("/proc/driver/nvidia/version").exists();
-    let has_override = std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_some();
+    let has_override = std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_some()
+        || std::env::var_os("WEBKIT_DMABUF_RENDERER_FORCE_SHM").is_some();
     let force_enable = std::env::var("BLITTERAMP_FORCE_DMABUF_RENDERER")
         .is_ok_and(|value| value == "1" || value.eq_ignore_ascii_case("true"));
 
-    if should_disable_dmabuf(is_wayland, is_nvidia, has_override, force_enable) {
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    if should_force_shm(is_wayland, is_nvidia, has_override, force_enable) {
+        std::env::set_var("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1");
     }
 }
 
@@ -38,22 +39,22 @@ pub fn configure_display_environment() {}
 
 #[cfg(test)]
 mod tests {
-    use super::should_disable_dmabuf;
+    use super::should_force_shm;
 
     #[test]
-    fn disables_dmabuf_for_nvidia_wayland() {
-        assert!(should_disable_dmabuf(true, true, false, false));
+    fn forces_shm_for_nvidia_wayland() {
+        assert!(should_force_shm(true, true, false, false));
     }
 
     #[test]
     fn preserves_an_explicit_override() {
-        assert!(!should_disable_dmabuf(true, true, true, false));
-        assert!(!should_disable_dmabuf(true, true, false, true));
+        assert!(!should_force_shm(true, true, true, false));
+        assert!(!should_force_shm(true, true, false, true));
     }
 
     #[test]
     fn leaves_other_sessions_and_drivers_unchanged() {
-        assert!(!should_disable_dmabuf(false, true, false, false));
-        assert!(!should_disable_dmabuf(true, false, false, false));
+        assert!(!should_force_shm(false, true, false, false));
+        assert!(!should_force_shm(true, false, false, false));
     }
 }

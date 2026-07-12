@@ -58,9 +58,11 @@ Package names differ on other distributions; use the
 [Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) for the equivalent
 WebKit/GTK packages and also install ALSA development headers and `ffmpeg`.
 
-On Wayland with an NVIDIA driver, BlitterAmp automatically disables WebKitGTK's incompatible
-DMA-BUF renderer before the UI starts. Set `BLITTERAMP_FORCE_DMABUF_RENDERER=1` to bypass that
-default, or set `WEBKIT_DISABLE_DMABUF_RENDERER` explicitly to manage WebKit's setting yourself.
+On Wayland with an NVIDIA driver, BlitterAmp automatically makes WebKitGTK's DMA-BUF renderer use
+shared-memory presentation instead of its incompatible GBM path. Set
+`BLITTERAMP_FORCE_DMABUF_RENDERER=1` to bypass that default, or set
+`WEBKIT_DMABUF_RENDERER_FORCE_SHM` or `WEBKIT_DISABLE_DMABUF_RENDERER` explicitly to manage
+WebKit's setting yourself.
 
 #### macOS
 
