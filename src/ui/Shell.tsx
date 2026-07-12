@@ -12,6 +12,7 @@ import { SearchView } from "./views/SearchView";
 import { MixView } from "./views/MixView";
 import { Settings } from "./Settings";
 import { AboutModal } from "./AboutModal";
+import { UpdatePrompt } from "./UpdatePrompt";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
 import { ArtistsView } from "./views/ArtistsView";
@@ -207,6 +208,8 @@ function ShellInner({
       )}
 
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+
+      <UpdatePrompt />
     </div>
   );
 }
