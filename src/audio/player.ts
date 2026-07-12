@@ -3,7 +3,7 @@
 // UI subscribes to PlayerState; the store reports playback events to the server
 // so taste/recently-played/presence work. Rust drives two things back to us:
 // position ticks, and self-advances when a staged next track begins gaplessly.
-import { Client, type Track } from "../api/client";
+import { Client, type PlaybackEvent, type Track } from "../api/client";
 import { getShuffleMode, spreadByArtist } from "../state/shuffle";
 import type { AdvancedEvent, AudioBackend, AudioErrorEvent, PositionEvent } from "./backend";
 
@@ -65,6 +65,7 @@ export class Player {
   /** Original (unshuffled) queue order, so toggling shuffle is reversible. */
   private ordered: Track[] = [];
   private lastReportedProgress = 0;
+  private playSessionId: string | null = null;
 
   constructor(
     private client: Client,
@@ -185,13 +186,12 @@ export class Player {
 
   async jumpTo(index: number): Promise<void> {
     if (index < 0 || index >= this.state.queue.length) return;
-    if (this.state.track) this.report("skipped", this.state.track, this.state.positionSec);
     this.setQueue(this.state.queue, index);
     this.start(this.state.queue[index]);
   }
 
   async next(): Promise<void> {
-    if (this.state.track) this.report("skipped", this.state.track, this.state.positionSec);
+    this.finishSession("skipped");
     const next = this.nextPlayableAfter(this.state.queueIndex);
     if (next < 0) return this.onQueueEnd();
     this.setQueue(this.state.queue, next);
@@ -214,9 +214,13 @@ export class Player {
 
   /** Hard-cut playback to a track (user action): clear, load, play from 0. */
   private start(track: Track): void {
+    this.finishSession("skipped");
     this.lastReportedProgress = 0;
+    this.playSessionId = uuid();
+    const attemptSessionId = this.playSessionId;
     this.patch({ track, playing: true, error: "", positionSec: 0, durationSec: track.durationMs / 1000 });
     this.backend.playTrack(track.trackId).catch((err) => {
+      if (this.playSessionId !== attemptSessionId) return;
       // Tauri's invoke rejects with the command's Err string, not an Error, so
       // read it directly rather than dropping the real reason.
       const message =
@@ -253,7 +257,7 @@ export class Player {
   /** Rust advanced on its own: a staged next began gaplessly, or the queue
    * drained (currentTrackId null). */
   private onAdvanced(e: AdvancedEvent): void {
-    if (this.state.track) this.report("ended", this.state.track, this.state.durationSec);
+    this.finishSession("ended", this.state.durationSec);
     if (e.currentTrackId === null) {
       // The staged next wasn't ready in time (or there was none). Recover by
       // playing the next-in-line ourselves rather than assuming the queue ended.
@@ -270,6 +274,7 @@ export class Player {
       return;
     }
     this.lastReportedProgress = 0;
+    this.playSessionId = uuid();
     this.setQueue(this.state.queue, index >= 0 ? index : this.state.queueIndex);
     this.patch({ track, playing: true, positionSec: 0, durationSec: track.durationMs / 1000 });
     this.report("started", track, 0);
@@ -290,11 +295,13 @@ export class Player {
   }
 
   private stop(): void {
+    this.finishSession("skipped");
     this.backend.stop();
     this.patch({ track: null, playing: false, positionSec: 0, durationSec: 0, queueIndex: -1 });
   }
 
   private onError(e: AudioErrorEvent): void {
+    if (e.trackId !== this.state.track?.trackId) return;
     this.patch({ error: e.message || "Playback failed for this track." });
     const next = this.nextPlayableAfter(this.state.queueIndex);
     if (next < 0) return this.onQueueEnd();
@@ -362,13 +369,22 @@ export class Player {
     this.setRepeat(order[(order.indexOf(this.state.repeat) + 1) % 3]);
   }
 
-  private report(type: string, track: Track, positionSec: number): void {
+  private report(type: PlaybackEvent["type"], track: Track, positionSec: number): void {
+    const playSessionId = this.playSessionId;
+    if (!playSessionId) return;
     void this.client
       .post("/v1/playback/events", {
-        events: [{ eventId: uuid(), type, trackId: track.trackId, positionSec, at: new Date().toISOString() }],
+        events: [{ eventId: uuid(), playSessionId, type, trackId: track.trackId, positionSec, at: new Date().toISOString() } satisfies PlaybackEvent],
       })
       .catch(() => {
         /* reporting is best-effort — never breaks playback */
       });
+  }
+
+  private finishSession(type: "ended" | "skipped", positionSec = this.state.positionSec): void {
+    const track = this.state.track;
+    if (!track || !this.playSessionId) return;
+    this.report(type, track, positionSec);
+    this.playSessionId = null;
   }
 }
