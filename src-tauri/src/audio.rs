@@ -151,12 +151,18 @@ impl FileCache {
             .await
             .map_err(|e| e.to_string())?;
         let url = grant["url"].as_str().ok_or("stream grant missing url")?;
-        // Grants are self-authenticating URLs; no bearer needed on the fetch.
-        let full = if url.starts_with("http") {
-            url.to_string()
-        } else {
-            format!("{}{}", conn.base_url, url)
+        // The grant bakes in the server's canonicalUrl, whose port goes stale
+        // across engine relaunches (the bundled engine binds a fresh loopback
+        // port each launch). The grant is host-independent, so fetch from the
+        // base_url we're actually connected to, keeping only its path + query.
+        let path_q = match url.find("://") {
+            Some(i) => {
+                let after = &url[i + 3..];
+                after.find('/').map(|j| &after[j..]).unwrap_or("/")
+            }
+            None => url,
         };
+        let full = format!("{}{}", conn.base_url.trim_end_matches('/'), path_q);
         let bytes = self
             .http
             .get(full)

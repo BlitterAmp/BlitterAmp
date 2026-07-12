@@ -209,7 +209,11 @@ export class Player {
     this.lastReportedProgress = 0;
     this.patch({ track, playing: true, error: "", positionSec: 0, durationSec: track.durationMs / 1000 });
     this.backend.playTrack(track.trackId).catch((err) => {
-      this.onError({ trackId: track.trackId, message: err instanceof Error ? err.message : "Playback failed." });
+      // Tauri's invoke rejects with the command's Err string, not an Error, so
+      // read it directly rather than dropping the real reason.
+      const message =
+        typeof err === "string" ? err : err instanceof Error ? err.message : "Playback failed.";
+      this.onError({ trackId: track.trackId, message });
     });
     this.report("started", track, 0);
     this.stageUpcoming();
