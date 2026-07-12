@@ -4,7 +4,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 
 vi.mock("@tauri-apps/plugin-opener", () => ({ openUrl: vi.fn() }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { AboutModal } from "./AboutModal";
@@ -28,6 +31,30 @@ describe("AboutModal", () => {
     render(<AboutModal onClose={() => {}} />);
     fireEvent.click(screen.getByText("MIT License"));
     expect(openUrl).toHaveBeenCalledWith("https://opensource.org/license/mit");
+  });
+
+  it("plays the logo sound once until playback ends", async () => {
+    const play = vi.fn(() => Promise.resolve());
+    let onEnded = () => {};
+    vi.stubGlobal(
+      "Audio",
+      class {
+        play = play;
+        addEventListener(event: string, listener: () => void) {
+          if (event === "ended") onEnded = listener;
+        }
+      },
+    );
+
+    render(<AboutModal onClose={() => {}} />);
+    const logo = screen.getByRole("button", { name: "Play BlitterAmp sound", hidden: true });
+    fireEvent.click(logo);
+    fireEvent.click(logo);
+    expect(play).toHaveBeenCalledTimes(1);
+
+    onEnded();
+    fireEvent.click(logo);
+    expect(play).toHaveBeenCalledTimes(2);
   });
 
   it("closes on the close button", () => {
