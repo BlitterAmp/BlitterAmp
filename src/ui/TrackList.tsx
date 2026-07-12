@@ -4,10 +4,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Client, LoveState, Track } from "../api/client";
 import type { Player } from "../audio/player";
 import { usePlaylists } from "../state/playlists";
-import { LoveButton } from "./LoveButton";
+import { AlbumArt } from "./AlbumArt";
+import { LoveControl } from "./LoveControl";
 import { usePrompt } from "./PromptProvider";
 import { useScrollParent } from "./ScrollContext";
-import { StarRating } from "./StarRating";
 
 export type NavTarget = { name: "album"; albumId: string } | { name: "artist"; artistId: string };
 
@@ -20,7 +20,7 @@ function closeMenus() {
   (document.activeElement as HTMLElement | null)?.blur();
 }
 
-/** A reusable track list with play-on-click, per-row love + rating, and a
+/** A reusable track list with play-on-click, per-row taste controls, and a
  * context menu. Virtualized against the app's main scroll container so it stays
  * fast at tens of thousands of rows. */
 export function TrackList({
@@ -29,6 +29,7 @@ export function TrackList({
   tracks,
   onNavigate,
   showAlbum = false,
+  showArtwork = false,
   onRemove,
 }: {
   client: Client;
@@ -36,6 +37,7 @@ export function TrackList({
   tracks: Track[];
   onNavigate: (t: NavTarget) => void;
   showAlbum?: boolean;
+  showArtwork?: boolean;
   /** When set, adds a "Remove from this playlist" menu item. */
   onRemove?: (track: Track) => void;
 }) {
@@ -73,31 +75,22 @@ export function TrackList({
     }
   }
 
-  // Local love/rating overlay so toggles reflect instantly.
+  // Local love overlay so toggles reflect instantly.
   const [loves, setLoves] = useState<Record<string, LoveState | undefined>>({});
-  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [loveError, setLoveError] = useState("");
   useEffect(() => {
     setLoves(Object.fromEntries(tracks.map((t) => [t.trackId, t.loveState])));
-    setRatings(Object.fromEntries(tracks.map((t) => [t.trackId, t.userRating10 ?? 0])));
   }, [tracks]);
 
   async function love(t: Track, state: LoveState) {
     const prev = loves[t.trackId];
+    setLoveError("");
     setLoves((m) => ({ ...m, [t.trackId]: state === "neutral" ? undefined : state }));
     try {
       await client.setLove(t.trackId, state);
     } catch {
       setLoves((m) => ({ ...m, [t.trackId]: prev }));
-    }
-  }
-
-  async function rate(t: Track, rating10: number) {
-    const prev = ratings[t.trackId] ?? 0;
-    setRatings((m) => ({ ...m, [t.trackId]: rating10 }));
-    try {
-      await client.setRating("track", t.trackId, rating10 || null);
-    } catch {
-      setRatings((m) => ({ ...m, [t.trackId]: prev }));
+      setLoveError(`Could not update taste for ${t.title}.`);
     }
   }
 
@@ -130,6 +123,7 @@ export function TrackList({
 
   return (
     <div ref={listRef} className="relative" style={{ height: virtualizer.getTotalSize() }}>
+      {loveError && <div role="alert" className="sr-only">{loveError}</div>}
       {virtualizer.getVirtualItems().map((vi) => {
         const t = tracks[vi.index];
         const i = vi.index;
@@ -140,17 +134,25 @@ export function TrackList({
             style={{ top: 0, height: rowH, transform: `translateY(${vi.start - scrollMargin}px)` }}
             onDoubleClick={() => void player.playQueue(tracks, i)}
           >
-            <div className="w-8 shrink-0 text-right tabular-nums opacity-50" onClick={() => void player.playQueue(tracks, i)}>
-              {t.index ?? i + 1}
-            </div>
+            {showArtwork ? (
+              <button type="button" className="size-10 shrink-0 overflow-hidden rounded" onClick={() => void player.playQueue(tracks, i)} aria-label={`Play ${t.title}`}>
+                <AlbumArt client={client} artId={t.artId} size={80} alt="" />
+              </button>
+            ) : (
+              <div className="w-8 shrink-0 text-right tabular-nums opacity-50" onClick={() => void player.playQueue(tracks, i)}>
+                {t.index ?? i + 1}
+              </div>
+            )}
             <div className="min-w-0 flex-1" onClick={() => void player.playQueue(tracks, i)}>
               <div className="truncate font-medium">{t.title}</div>
               {showAlbum && <div className="truncate text-xs opacity-60">{t.albumTitle}</div>}
               {!player.canPlay(t) && <span className="text-xs opacity-50">({t.media.container} — unsupported)</span>}
             </div>
-            <div className="flex w-40 shrink-0 items-center justify-end gap-1 opacity-0 transition group-hover:opacity-100">
-              <LoveButton state={loves[t.trackId]} onChange={(s) => void love(t, s)} />
-              <StarRating rating10={ratings[t.trackId] ?? 0} onChange={(r) => void rate(t, r)} />
+            <button type="button" className="w-32 shrink-0 truncate text-left text-xs opacity-60 hover:text-primary hover:opacity-100" onClick={() => onNavigate({ name: "artist", artistId: t.artistId })}>
+              {t.artistName}
+            </button>
+            <div className="flex shrink-0 items-center justify-end">
+              <LoveControl state={loves[t.trackId]} onChange={(s) => void love(t, s)} label={`Taste for ${t.title}`} />
             </div>
             <div className="w-14 shrink-0 text-right tabular-nums opacity-60">{fmt(t.durationMs)}</div>
             <div className="w-8 shrink-0">
@@ -175,11 +177,6 @@ export function TrackList({
                         ))}
                       </ul>
                     </details>
-                  </li>
-                  <li>
-                    <button type="button" onClick={() => { closeMenus(); void love(t, loves[t.trackId] === "not_for_me" ? "neutral" : "not_for_me"); }}>
-                      {loves[t.trackId] === "not_for_me" ? "Un-exclude" : "Not for me"}
-                    </button>
                   </li>
                   {onRemove && (
                     <li>

@@ -10,11 +10,13 @@ export function AlbumsView({
   client,
   managed,
   onOpen,
+  onOpenArtist,
   onManage,
 }: {
   client: Client;
   managed: boolean;
   onOpen: (albumId: string) => void;
+  onOpenArtist: (artistId: string) => void;
   onManage: () => void;
 }) {
   const { albums, ready } = useLibrary();
@@ -50,16 +52,18 @@ export function AlbumsView({
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">
         {albums.map((a) => (
-          <button type="button" key={a.albumId} className="group text-left" onClick={() => onOpen(a.albumId)}>
-            <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-              <AlbumArt artId={a.artId} alt={a.title} />
+          <div key={a.albumId} className="group min-w-0 text-left">
+            <button type="button" className="block w-full text-left" onClick={() => onOpen(a.albumId)}>
+              <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
+                <AlbumArt artId={a.artId} alt={a.title} />
+              </div>
+              <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
+            </button>
+            <div className="flex min-w-0 text-xs opacity-60">
+              <button type="button" className="truncate hover:text-primary" onClick={() => onOpenArtist(a.artistId)}>{a.artistName}</button>
+              {a.year ? <span className="shrink-0"> · {a.year}</span> : null}
             </div>
-            <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
-            <div className="truncate text-xs opacity-60">
-              {a.artistName}
-              {a.year ? ` · ${a.year}` : ""}
-            </div>
-          </button>
+          </div>
         ))}
       </div>
 

@@ -41,7 +41,7 @@ export function TracksView({
       <div className="mb-4">
         <PlayActions player={player} tracks={shown} />
       </div>
-      <TrackList client={client} player={player} tracks={shown} onNavigate={onNavigate} showAlbum />
+      <TrackList client={client} player={player} tracks={shown} onNavigate={onNavigate} showAlbum showArtwork />
     </section>
   );
 }

@@ -4,6 +4,7 @@ import type { Album, Client, HomeRails, Track } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibraryVersion } from "../../state/useLibrarySync";
 import { AlbumArt } from "../AlbumArt";
+import { MosaicArt } from "../MosaicArt";
 import { TrackList, type NavTarget } from "../TrackList";
 
 export function HomeView({
@@ -43,7 +44,7 @@ export function HomeView({
               {rail.mixes.map((m) => (
                 <button key={m.mixId} type="button" className="group text-left" onClick={() => onOpenMix(m.mixId, m.title)}>
                   <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-box bg-gradient-to-br from-primary/30 to-secondary/30 shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-                    <span className="px-2 text-center text-lg font-semibold">{m.title}</span>
+                    <MosaicArt artIds={m.collageArtIds ?? []} alt={m.title} />
                   </div>
                   <div className="mt-2 truncate text-sm font-medium">{m.title}</div>
                 </button>
@@ -67,13 +68,17 @@ export function HomeView({
           {rail.albums && (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
               {rail.albums.map((a: Album) => (
-                <button key={a.albumId} type="button" className="group text-left" onClick={() => onNavigate({ name: "album", albumId: a.albumId })}>
-                  <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-                    <AlbumArt client={client} artId={a.artId} alt={a.title} />
-                  </div>
-                  <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
-                  <div className="truncate text-xs opacity-60">{a.artistName}</div>
-                </button>
+                <div key={a.albumId} className="group min-w-0 text-left">
+                  <button type="button" className="block w-full text-left" onClick={() => onNavigate({ name: "album", albumId: a.albumId })}>
+                    <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
+                      <AlbumArt client={client} artId={a.artId} alt={a.title} />
+                    </div>
+                    <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
+                  </button>
+                  <button type="button" className="block max-w-full truncate text-xs opacity-60 hover:text-primary hover:opacity-100" onClick={() => onNavigate({ name: "artist", artistId: a.artistId })}>
+                    {a.artistName}
+                  </button>
+                </div>
               ))}
             </div>
           )}

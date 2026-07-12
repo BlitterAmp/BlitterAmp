@@ -176,6 +176,7 @@ function ShellInner({
               client={client}
               managed={connection.kind === "local"}
               onOpen={(albumId) => setView({ name: "album", albumId })}
+              onOpenArtist={(artistId) => setView({ name: "artist", artistId })}
               onManage={() => setSettingsOpen(true)}
             />
           </div>
@@ -214,10 +215,10 @@ function ShellInner({
           )}
         </main>
         </ScrollContext.Provider>
-        {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} />}
+        {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} onNavigate={navigate} />}
       </div>
 
-      <NowPlayingBar client={client} player={player} queueOpen={queueOpen} onToggleQueue={() => setQueueOpen((o) => !o)} />
+      <NowPlayingBar client={client} player={player} queueOpen={queueOpen} onToggleQueue={() => setQueueOpen((o) => !o)} onNavigate={navigate} />
 
       {settingsOpen && (
         <Settings
