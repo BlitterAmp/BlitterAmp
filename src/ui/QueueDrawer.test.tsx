@@ -139,6 +139,17 @@ describe("QueueDrawer", () => {
     expect(screen.getByText("Track 5")).toBeTruthy();
   });
 
+  it("navigates from an artist without jumping the queue", async () => {
+    const { client, player } = setup(3);
+    const navigate = vi.fn();
+    const jump = vi.spyOn(player, "jumpTo");
+    render(<QueueDrawer client={client} player={player} onClose={() => {}} onNavigate={navigate} />);
+
+    fireEvent.click((await screen.findAllByRole("button", { name: "Artist 1" }))[0]);
+    expect(navigate).toHaveBeenCalledWith({ name: "artist", artistId: "artist-1" });
+    expect(jump).not.toHaveBeenCalled();
+  });
+
   it("removes the intended duplicate occurrence and updates absolute indices", async () => {
     const { client, player } = setup(6);
     const duplicate = { ...track(2), trackId: "track-1", title: "Track 1 duplicate" };

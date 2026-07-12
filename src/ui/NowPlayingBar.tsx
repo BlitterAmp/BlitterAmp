@@ -1,8 +1,10 @@
 import { ListMusic, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Client } from "../api/client";
+import type { Client, LoveState } from "../api/client";
 import type { Player, PlayerState } from "../audio/player";
 import { AlbumArt } from "./AlbumArt";
+import { LoveControl } from "./LoveControl";
+import type { NavTarget } from "./TrackList";
 
 function fmt(sec: number): string {
   if (!Number.isFinite(sec) || sec <= 0) return "0:00";
@@ -16,16 +18,37 @@ export function NowPlayingBar({
   player,
   queueOpen,
   onToggleQueue,
+  onNavigate,
 }: {
   client: Client;
   player: Player;
   queueOpen: boolean;
   onToggleQueue: () => void;
+  onNavigate: (target: NavTarget) => void;
 }) {
   const [s, setS] = useState<PlayerState>(player.currentState());
+  const [love, setLove] = useState<LoveState>(s.track?.loveState ?? "neutral");
+  const [loveError, setLoveError] = useState("");
   useEffect(() => player.subscribe(setS), [player]);
 
   const t = s.track;
+  useEffect(() => {
+    setLove(t?.loveState ?? "neutral");
+    setLoveError("");
+  }, [t?.trackId, t?.loveState]);
+
+  async function updateLove(state: LoveState) {
+    if (!t) return;
+    const previous = love;
+    setLove(state);
+    setLoveError("");
+    try {
+      await client.setLove(t.trackId, state);
+    } catch {
+      setLove(previous);
+      setLoveError("Could not update taste.");
+    }
+  }
   const progress = s.durationSec > 0 ? (s.positionSec / s.durationSec) * 100 : 0;
 
   return (
@@ -38,10 +61,14 @@ export function NowPlayingBar({
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold">{t.title}</div>
-              <div className="truncate text-xs opacity-60">
-                {t.artistName} — {t.albumTitle}
+              <div className="flex min-w-0 items-center text-xs opacity-60">
+                <button type="button" className="truncate hover:text-primary" onClick={() => onNavigate({ name: "artist", artistId: t.artistId })}>{t.artistName}</button>
+                <span className="shrink-0"> — </span>
+                <button type="button" className="truncate hover:text-primary" onClick={() => onNavigate({ name: "album", albumId: t.albumId })}>{t.albumTitle}</button>
               </div>
             </div>
+            <LoveControl state={love} onChange={(state) => void updateLove(state)} label={`Taste for ${t.title}`} />
+            {loveError && <span role="alert" className="sr-only">{loveError}</span>}
           </>
         ) : (
           <div className="text-xs opacity-60">{s.error || "Nothing playing"}</div>

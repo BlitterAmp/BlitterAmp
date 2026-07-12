@@ -23,6 +23,8 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager};
 
+const READ_MODEL_VERSION: &str = "2";
+
 #[derive(Clone)]
 struct Conn {
     base_url: String,
@@ -76,6 +78,16 @@ impl Mirror {
         let _ = self
             .db
             .execute("DELETE FROM entities WHERE kind = ?1", [kind]);
+    }
+
+    fn prepare(&self, identity: &str) {
+        let identity_changed = self.meta("identity").as_deref() != Some(identity);
+        let model_changed = self.meta("read_model_version").as_deref() != Some(READ_MODEL_VERSION);
+        if identity_changed || model_changed {
+            self.wipe();
+        }
+        self.set_meta("identity", identity);
+        self.set_meta("read_model_version", READ_MODEL_VERSION);
     }
 
     fn upsert(&self, kind: &str, id: &str, json: &str) {
@@ -359,14 +371,11 @@ pub async fn library_configure(
     token: String,
     identity: String,
 ) -> Result<(), String> {
-    // A different server (or a switch local↔remote) means a different catalog —
-    // wipe and re-bootstrap. Same identity keeps the mirror and only deltas.
+    // A different server or read-model contract means a full bootstrap. The
+    // latter refreshes derived fields whose source rows did not change version.
     {
         let m = lib.mirror.lock().unwrap();
-        if m.meta("identity").as_deref() != Some(identity.as_str()) {
-            m.wipe();
-            m.set_meta("identity", &identity);
-        }
+        m.prepare(&identity);
     }
     *lib.conn.lock().unwrap() = Some(Conn {
         base_url,
@@ -646,5 +655,24 @@ mod tests {
         );
         m.patch_love("track", "trk_1", &serde_json::json!("loved"));
         assert_eq!(m.snapshot("track")[0]["loveState"], "loved");
+    }
+
+    #[test]
+    fn stale_read_model_version_forces_metadata_bootstrap() {
+        let m = mem();
+        m.set_meta("identity", "local-engine");
+        m.set_meta("version", "42");
+        m.set_meta("read_model_version", "1");
+        m.upsert("artist", "art_1", r#"{"artistId":"art_1"}"#);
+
+        m.prepare("local-engine");
+
+        assert_eq!(m.version(), 0);
+        assert!(m.snapshot("artist").is_empty());
+        assert_eq!(m.meta("identity").as_deref(), Some("local-engine"));
+        assert_eq!(
+            m.meta("read_model_version").as_deref(),
+            Some(READ_MODEL_VERSION)
+        );
     }
 }

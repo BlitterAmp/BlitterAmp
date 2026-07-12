@@ -5,8 +5,9 @@ import type { Client } from "../api/client";
 import type { Player } from "../audio/player";
 import { AlbumArt } from "./AlbumArt";
 import { projectQueueScrollOffset, QUEUE_ROW_HEIGHT } from "./queueScroll";
+import type { NavTarget } from "./TrackList";
 
-export function QueueDrawer({ client, player, onClose }: { client: Client; player: Player; onClose: () => void }) {
+export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: { client: Client; player: Player; onClose: () => void; onNavigate?: (target: NavTarget) => void }) {
   const s = useSyncExternalStore(
     (notify) => player.subscribeQueue(notify),
     () => player.currentQueueState(),
@@ -64,7 +65,7 @@ export function QueueDrawer({ client, player, onClose }: { client: Client; playe
         {s.track && (
           <>
             <div className="px-2 py-1 text-[10.5px] font-semibold uppercase tracking-wider opacity-50">Now playing</div>
-            <Row client={client} title={s.track.title} sub={s.track.artistName} artId={s.track.artId} active onClick={() => {}} />
+            <Row client={client} title={s.track.title} artistId={s.track.artistId} artistName={s.track.artistName} artId={s.track.artId} active onClick={() => {}} onOpenArtist={onNavigate} />
           </>
         )}
         {count > 0 && (
@@ -96,10 +97,12 @@ export function QueueDrawer({ client, player, onClose }: { client: Client; playe
                 <Row
                   client={client}
                   title={t.title}
-                  sub={t.artistName}
+                  artistId={t.artistId}
+                  artistName={t.artistName}
                   artId={t.artId}
                   onClick={() => void player.jumpTo(queueIndex)}
                   onRemove={() => player.removeFromQueue(queueIndex)}
+                  onOpenArtist={onNavigate}
                 />
               </div>
             );
@@ -113,19 +116,23 @@ export function QueueDrawer({ client, player, onClose }: { client: Client; playe
 function Row({
   client,
   title,
-  sub,
+  artistId,
+  artistName,
   artId,
   active,
   onClick,
   onRemove,
+  onOpenArtist,
 }: {
   client: Client;
   title: string;
-  sub: string;
+  artistId: string;
+  artistName: string;
   artId?: string | null;
   active?: boolean;
   onClick: () => void;
   onRemove?: () => void;
+  onOpenArtist: (target: NavTarget) => void;
 }) {
   return (
     <div className={`group flex h-12 items-center gap-2 rounded-lg px-2 ${active ? "bg-base-300" : "hover:bg-base-200"}`}>
@@ -135,9 +142,9 @@ function Row({
         </div>
         <div className="min-w-0">
           <div className={`truncate text-sm ${active ? "font-semibold text-primary" : ""}`}>{title}</div>
-          <div className="truncate text-xs opacity-60">{sub}</div>
         </div>
       </button>
+      <button type="button" className="max-w-24 truncate text-xs opacity-60 hover:text-primary hover:opacity-100" onClick={() => onOpenArtist({ name: "artist", artistId })}>{artistName}</button>
       {onRemove && (
         <button type="button" className="btn btn-ghost btn-xs btn-square opacity-0 group-hover:opacity-100" onClick={onRemove} aria-label="Remove">
           <X size={13} />

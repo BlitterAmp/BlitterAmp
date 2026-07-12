@@ -4,8 +4,7 @@ import type { ArtistDetail, Client } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
-import { StarRating } from "../StarRating";
-import { LoveButton } from "../LoveButton";
+import { LoveControl } from "../LoveControl";
 import { PlayActions } from "../PlayActions";
 import { TrackList, type NavTarget } from "../TrackList";
 
@@ -32,6 +31,7 @@ export function ArtistView({
 
   // Bio/stats aren't in the cached list shape — fetch the detail on open.
   const [artist, setArtist] = useState<ArtistDetail | null>(null);
+  const [loveError, setLoveError] = useState("");
   useEffect(() => {
     setArtist(null);
     client
@@ -50,7 +50,7 @@ export function ArtistView({
       </button>
 
       <div className="mb-6 flex items-end gap-6">
-        <div className="size-40 shrink-0 overflow-hidden rounded-full shadow-lg">
+        <div className="size-40 shrink-0 overflow-hidden rounded-box shadow-lg">
           <AlbumArt artId={artId} size={480} alt={name} />
         </div>
         <div className="min-w-0">
@@ -68,20 +68,23 @@ export function ArtistView({
           <div className="mt-3 flex items-center gap-3">
             <PlayActions player={player} tracks={tracks} size="sm" />
             {artist && (
-              <>
-                <LoveButton
-                  state={artist.loveState}
-                  size={18}
-                  onChange={(s) => void client.setLove(artist.artistId, s).catch(() => {})}
-                />
-                <StarRating
-                  rating10={artist.userRating10 ?? 0}
-                  size={16}
-                  onChange={(r) => void client.setRating("artist", artist.artistId, r || null).catch(() => {})}
-                />
-              </>
+              <LoveControl
+                state={artist.loveState}
+                size={18}
+                label={`Taste for ${artist.name}`}
+                onChange={(state) => {
+                  const previous = artist.loveState;
+                  setArtist({ ...artist, loveState: state });
+                  setLoveError("");
+                  void client.setLove(artist.artistId, state).catch(() => {
+                    setArtist((current) => current ? { ...current, loveState: previous } : current);
+                    setLoveError("Could not update artist taste.");
+                  });
+                }}
+              />
             )}
           </div>
+          {loveError && <div role="alert" className="mt-2 text-xs text-error">{loveError}</div>}
           {artist?.bio && <p className="mt-3 line-clamp-3 max-w-2xl text-sm opacity-70">{artist.bio}</p>}
         </div>
       </div>
