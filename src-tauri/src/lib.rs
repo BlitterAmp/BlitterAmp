@@ -1,10 +1,12 @@
 mod audio;
 mod engine;
+mod library;
 mod lru;
 mod menu;
 
 use audio::AudioEngine;
 use engine::EngineState;
+use library::LibraryState;
 use tauri::Manager;
 
 // BlitterAmp's Rust host: window/plugin lifecycle, the native app menu, and
@@ -35,11 +37,16 @@ pub fn run() {
             audio::audio_seek,
             audio::audio_set_volume,
             audio::audio_stop,
+            library::library_configure,
+            library::library_snapshot,
+            library::library_resync,
+            library::library_art,
             frontend_log
         ])
         .setup(|app| {
             menu::build(app.handle())?;
             app.manage(AudioEngine::new(app.handle()));
+            app.manage(LibraryState::new(app.handle()));
             Ok(())
         })
         .on_menu_event(|app, event| menu::on_event(app, event.id().as_ref()))

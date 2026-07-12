@@ -248,6 +248,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalog delta since a version (for client caches)
+         * @description Returns catalog entities (artists/albums/tracks) whose client-visible content changed since `since` — a version from a prior sync or `Library.version` — plus the ids of entities to drop. The intended flow: bootstrap the cache from the paged list endpoints, record `Library.version`, then call this (driven by the `library.changed` SSE event) for incremental updates. Keyset-paginated: follow `nextCursor` until null, then the returned `version` is the `since` for the next sync.
+         */
+        get: operations["listChanges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/artists": {
         parameters: {
             query?: never;
@@ -1620,11 +1640,35 @@ export interface components {
              * @description Freshness anchor (max of source updatedAt/scannedAt); changes when the source rescans
              */
             updatedAt: number;
+            /**
+             * Format: int64
+             * @description Monotonic catalog version (scan seq). The delta-sync cursor: after bootstrapping the cache, pass this as `since` to GET /v1/changes.
+             */
+            version: number;
             counts: {
                 artists?: number;
                 albums?: number;
                 tracks?: number;
             };
+        };
+        LibraryChanges: {
+            /**
+             * Format: int64
+             * @description Current catalog version. When nextCursor is null, use this as `since` next time.
+             */
+            version: number;
+            /** @description Continue this delta batch; null when drained. */
+            nextCursor?: string | null;
+            /** @description Artists that changed (upsert into the cache). */
+            artists: components["schemas"]["Artist"][];
+            /** @description Albums that changed (upsert into the cache). */
+            albums: components["schemas"]["Album"][];
+            /** @description Tracks that changed (upsert into the cache). */
+            tracks: components["schemas"]["Track"][];
+            /** @description Artist ids the client should drop. */
+            removedArtistIds: string[];
+            removedAlbumIds: string[];
+            removedTrackIds: string[];
         };
         Artist: {
             /** @example art_9f3kq2 */
@@ -2558,6 +2602,34 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Library"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            503: components["responses"]["SourceUnavailable"];
+        };
+    };
+    listChanges: {
+        parameters: {
+            query?: {
+                /** @description The catalog version the client already holds. 0 returns everything. */
+                since?: number;
+                /** @description Opaque continuation within a delta batch (from a prior nextCursor). */
+                cursor?: string;
+                limit?: components["parameters"]["limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Catalog changes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryChanges"];
                 };
             };
             401: components["responses"]["Unauthorized"];
