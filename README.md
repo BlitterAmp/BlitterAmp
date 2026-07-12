@@ -58,6 +58,10 @@ Package names differ on other distributions; use the
 [Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) for the equivalent
 WebKit/GTK packages and also install ALSA development headers and `ffmpeg`.
 
+On Wayland with an NVIDIA driver, BlitterAmp automatically disables WebKitGTK's incompatible
+DMA-BUF renderer before the UI starts. Set `BLITTERAMP_FORCE_DMABUF_RENDERER=1` to bypass that
+default, or set `WEBKIT_DISABLE_DMABUF_RENDERER` explicitly to manage WebKit's setting yourself.
+
 #### macOS
 
 Install Xcode Command Line Tools and `ffmpeg`:
