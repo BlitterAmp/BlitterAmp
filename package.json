@@ -10,6 +10,7 @@
     "tauri": "tauri",
     "test": "vitest run",
     "gen:api": "openapi-typescript ../blitterserver/api/openapi.yaml --output src/api/schema.d.ts",
+    "gen:licenses": "node scripts/generate-licenses.mjs",
     "typecheck": "tsc --noEmit",
     "engine:build": "bash scripts/build-engine.sh"
   },

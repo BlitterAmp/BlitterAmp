@@ -1,0 +1,3914 @@
+[
+  {
+    "ecosystem": "npm",
+    "name": "@tauri-apps/api",
+    "version": "2.11.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/tauri#readme",
+    "description": "Tauri API definitions"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@tauri-apps/plugin-dialog",
+    "version": "2.7.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace#readme",
+    "description": null
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@tauri-apps/plugin-http",
+    "version": "2.5.9",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace#readme",
+    "description": null
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@tauri-apps/plugin-opener",
+    "version": "2.5.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace#readme",
+    "description": "Open files and URLs using their default application."
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@tauri-apps/plugin-shell",
+    "version": "2.3.5",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace#readme",
+    "description": null
+  },
+  {
+    "ecosystem": "npm",
+    "name": "@tauri-apps/plugin-store",
+    "version": "2.4.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace#readme",
+    "description": "Simple, persistent key-value store."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "adler2",
+    "version": "2.0.1",
+    "license": "0BSD OR MIT OR Apache-2.0",
+    "homepage": "https://github.com/oyvindln/adler2",
+    "description": "A simple clean-room implementation of the Adler-32 checksum"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "aho-corasick",
+    "version": "1.1.4",
+    "license": "Unlicense OR MIT",
+    "homepage": "https://github.com/BurntSushi/aho-corasick",
+    "description": "Fast multiple substring searching."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "alloc-no-stdlib",
+    "version": "2.0.4",
+    "license": "BSD-3-Clause",
+    "homepage": "https://github.com/dropbox/rust-alloc-no-stdlib",
+    "description": "A dynamic allocator that may be used with or without the stdlib. This allows a package with nostd to allocate memory dynamically and be used either with a custom allocator, items on the stack, or by a package that wishes to simply use Box<>. It also provides options to use calloc or a mutable global variable for pre-zeroed memory"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "alloc-stdlib",
+    "version": "0.2.4",
+    "license": "BSD-3-Clause",
+    "homepage": "https://github.com/dropbox/rust-alloc-no-stdlib",
+    "description": "A dynamic allocator example that may be used with the stdlib"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "alsa",
+    "version": "0.11.0",
+    "license": "Apache-2.0/MIT",
+    "homepage": "https://github.com/diwic/alsa-rs",
+    "description": "Thin but safe wrappers for ALSA (Linux sound API)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "alsa-sys",
+    "version": "0.4.0",
+    "license": "MIT",
+    "homepage": "https://github.com/diwic/alsa-sys",
+    "description": "FFI bindings for the ALSA project (Advanced Linux Sound Architecture)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "android_system_properties",
+    "version": "0.1.5",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/nical/android_system_properties",
+    "description": "Minimal Android system properties wrapper"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "anyhow",
+    "version": "1.0.103",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/anyhow",
+    "description": "Flexible concrete Error type built on std::error::Error"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "arrayvec",
+    "version": "0.7.8",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/bluss/arrayvec",
+    "description": "A vector with fixed capacity, backed by an array (it can be stored on the stack too). Implements fixed capacity ArrayVec and ArrayString."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-broadcast",
+    "version": "0.7.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/smol-rs/async-broadcast",
+    "description": "Async broadcast channels"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-channel",
+    "version": "2.5.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-channel",
+    "description": "Async multi-producer multi-consumer channel"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-executor",
+    "version": "1.14.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-executor",
+    "description": "Async executor"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-io",
+    "version": "2.6.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-io",
+    "description": "Async I/O and timers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-lock",
+    "version": "3.4.2",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-lock",
+    "description": "Async synchronization primitives"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-process",
+    "version": "2.5.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-process",
+    "description": "Async interface for working with processes"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-recursion",
+    "version": "1.1.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dcchut/async-recursion",
+    "description": "Recursion for async functions"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-signal",
+    "version": "0.2.14",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-signal",
+    "description": "Async signal handling"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-task",
+    "version": "4.7.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/async-task",
+    "description": "Task abstraction for building executors"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "async-trait",
+    "version": "0.1.89",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/async-trait",
+    "description": "Type erasure for async trait methods"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "atk",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED Rust bindings for the ATK library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "atk-sys",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED FFI bindings to libatk-1"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "atomic-waker",
+    "version": "1.1.2",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/atomic-waker",
+    "description": "A synchronization primitive for task wakeup"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "base64",
+    "version": "0.22.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/marshallpierce/rust-base64",
+    "description": "encodes and decodes base64 as bytes or utf8"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bit-set",
+    "version": "0.8.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/contain-rs/bit-set",
+    "description": "A set of bits"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bit-vec",
+    "version": "0.8.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/contain-rs/bit-vec",
+    "description": "A vector of bits"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bitflags",
+    "version": "2.13.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/bitflags/bitflags",
+    "description": "A macro to generate structures which behave like bitflags.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "block-buffer",
+    "version": "0.10.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustCrypto/utils",
+    "description": "Buffer type for block processing of data"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "block2",
+    "version": "0.6.2",
+    "license": "MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Apple's C language extension of blocks"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "blocking",
+    "version": "1.6.2",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/blocking",
+    "description": "A thread pool for isolating blocking I/O in async programs"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "brotli",
+    "version": "8.0.4",
+    "license": "BSD-3-Clause AND MIT",
+    "homepage": "https://github.com/dropbox/rust-brotli",
+    "description": "A brotli compressor and decompressor that with an interface avoiding the rust stdlib. This makes it suitable for embedded devices and kernels. It is designed with a pluggable allocator so that the standard lib's allocator may be employed. The default build also includes a stdlib allocator and stream interface. Disable this with --features=no-stdlib. All included code is safe."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "brotli-decompressor",
+    "version": "5.0.3",
+    "license": "BSD-3-Clause/MIT",
+    "homepage": "https://github.com/dropbox/rust-brotli-decompressor",
+    "description": "A brotli decompressor that with an interface avoiding the rust stdlib. This makes it suitable for embedded devices and kernels. It is designed with a pluggable allocator so that the standard lib's allocator may be employed. The default build also includes a stdlib allocator and stream interface. Disable this with --features=no-stdlib. Alternatively, --features=unsafe turns off array bounds checks and memory initialization but provides a safe interface for the caller.  Without adding the --features=unsafe argument, all included code is safe. For compression in addition to this library, download https://github.com/dropbox/rust-brotli "
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bs58",
+    "version": "0.5.1",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/Nullus157/bs58-rs",
+    "description": "Another Base58 codec implementation."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bumpalo",
+    "version": "3.20.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/fitzgen/bumpalo",
+    "description": "A fast bump allocation arena for Rust."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bytemuck",
+    "version": "1.25.1",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/Lokathor/bytemuck",
+    "description": "A crate for mucking around with piles of bytes."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "byteorder",
+    "version": "1.5.0",
+    "license": "Unlicense OR MIT",
+    "homepage": "https://github.com/BurntSushi/byteorder",
+    "description": "Library for reading/writing numbers in big-endian and little-endian."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "bytes",
+    "version": "1.12.1",
+    "license": "MIT",
+    "homepage": "https://github.com/tokio-rs/bytes",
+    "description": "Types and traits for working with bytes"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cairo-rs",
+    "version": "0.18.5",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "Rust bindings for the Cairo library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cairo-sys-rs",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "FFI bindings to libcairo"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "camino",
+    "version": "1.2.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/camino-rs/camino",
+    "description": "UTF-8 paths"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cargo_metadata",
+    "version": "0.19.2",
+    "license": "MIT",
+    "homepage": "https://github.com/oli-obk/cargo_metadata",
+    "description": "structured access to the output of `cargo metadata`"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cargo-platform",
+    "version": "0.1.9",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/cargo",
+    "description": "Cargo's representation of a target platform."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cesu8",
+    "version": "1.1.0",
+    "license": "Apache-2.0/MIT",
+    "homepage": "https://github.com/emk/cesu8-rs",
+    "description": "Convert to and from CESU-8 encoding (similar to UTF-8)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cfb",
+    "version": "0.7.3",
+    "license": "MIT",
+    "homepage": "https://github.com/mdsteele/rust-cfb",
+    "description": "Read/write Compound File Binary (structured storage) files"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cfg-if",
+    "version": "1.0.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/cfg-if",
+    "description": "A macro to ergonomically define an item depending on a large number of #[cfg]\nparameters. Structured like an if-else chain, the first matching branch is the\nitem that gets emitted.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "chacha20",
+    "version": "0.10.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustCrypto/stream-ciphers",
+    "description": "The ChaCha20 stream cipher (RFC 8439) implemented in pure Rust using traits\nfrom the RustCrypto `cipher` crate, with optional architecture-specific\nhardware acceleration (AVX2, SSE2). Additionally provides the ChaCha8, ChaCha12,\nXChaCha20, XChaCha12 and XChaCha8 stream ciphers, and also optional\nrand_core-compatible RNGs based on those ciphers.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "chrono",
+    "version": "0.4.45",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/chronotope/chrono",
+    "description": "Date and time library for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "combine",
+    "version": "4.6.7",
+    "license": "MIT",
+    "homepage": "https://github.com/Marwes/combine",
+    "description": "Fast parser combinators on arbitrary streams with zero-copy support."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "concurrent-queue",
+    "version": "2.5.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/concurrent-queue",
+    "description": "Concurrent multi-producer multi-consumer queue"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cookie",
+    "version": "0.18.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/SergioBenitez/cookie-rs",
+    "description": "HTTP cookie parsing and cookie jar management. Supports signed and private\n(encrypted, authenticated) jars.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cookie_store",
+    "version": "0.22.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/pfernie/cookie_store",
+    "description": "Implementation of Cookie storage and retrieval"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "core-foundation",
+    "version": "0.9.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/core-foundation-rs",
+    "description": "Bindings to Core Foundation for macOS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "core-foundation-sys",
+    "version": "0.8.7",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/core-foundation-rs",
+    "description": "Bindings to Core Foundation for macOS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "core-graphics",
+    "version": "0.25.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/core-foundation-rs",
+    "description": "Bindings to Core Graphics for macOS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "core-graphics-types",
+    "version": "0.2.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/core-foundation-rs",
+    "description": "Bindings for some fundamental Core Graphics types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "coreaudio-rs",
+    "version": "0.14.2",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/RustAudio/coreaudio-rs",
+    "description": "A friendly rust interface for Apple's CoreAudio API."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cpal",
+    "version": "0.17.3",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/RustAudio/cpal",
+    "description": "Low-level cross-platform audio I/O library in pure Rust."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cpufeatures",
+    "version": "0.2.17",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustCrypto/utils",
+    "description": "Lightweight runtime CPU feature detection for aarch64, loongarch64, and x86/x86_64 targets, \nwith no_std support and support for mobile targets including Android and iOS\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "crc32fast",
+    "version": "1.5.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/srijs/rust-crc32fast",
+    "description": "Fast, SIMD-accelerated CRC32 (IEEE) checksum computation"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "crossbeam-channel",
+    "version": "0.5.16",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/crossbeam-rs/crossbeam/tree/master/crossbeam-channel",
+    "description": "Multi-producer multi-consumer channels for message passing"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "crossbeam-utils",
+    "version": "0.8.22",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/crossbeam-rs/crossbeam/tree/master/crossbeam-utils",
+    "description": "Utilities for concurrent programming"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "crypto-common",
+    "version": "0.1.7",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustCrypto/traits",
+    "description": "Common cryptographic traits"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cssparser",
+    "version": "0.36.0",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/servo/rust-cssparser",
+    "description": "Rust implementation of CSS Syntax Level 3"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "cssparser-macros",
+    "version": "0.6.1",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/servo/rust-cssparser",
+    "description": "Procedural macros for cssparser"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ctor",
+    "version": "0.8.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/mmastrac/rust-ctor",
+    "description": "__attribute__((constructor)) for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ctor-proc-macro",
+    "version": "0.0.7",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/mmastrac/rust-ctor",
+    "description": "proc-macro support for the ctor crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "darling",
+    "version": "0.23.0",
+    "license": "MIT",
+    "homepage": "https://github.com/TedDriggs/darling",
+    "description": "A proc-macro library for reading attributes into structs when\nimplementing custom derives.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "darling_core",
+    "version": "0.23.0",
+    "license": "MIT",
+    "homepage": "https://github.com/TedDriggs/darling",
+    "description": "Helper crate for proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "darling_macro",
+    "version": "0.23.0",
+    "license": "MIT",
+    "homepage": "https://github.com/TedDriggs/darling",
+    "description": "Internal support for a proc-macro library for reading attributes into structs when\nimplementing custom derives. Use https://crates.io/crates/darling in your code.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dasp_sample",
+    "version": "0.11.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rustaudio/sample",
+    "description": "An abstraction for audio PCM DSP samples, along with useful conversions and operations."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "data-url",
+    "version": "0.3.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/rust-url",
+    "description": "Processing of data: URL according to WHATWG’s Fetch Standard"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dbus",
+    "version": "0.9.12",
+    "license": "Apache-2.0/MIT",
+    "homepage": "https://github.com/diwic/dbus-rs",
+    "description": "Bindings to D-Bus, which is a bus commonly used on Linux for inter-process communication."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "deranged",
+    "version": "0.5.8",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jhpratt/deranged",
+    "description": "Ranged integers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "derive_more",
+    "version": "2.1.1",
+    "license": "MIT",
+    "homepage": "https://github.com/JelteF/derive_more",
+    "description": "Adds #[derive(x)] macros for more traits"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "derive_more-impl",
+    "version": "2.1.1",
+    "license": "MIT",
+    "homepage": "https://github.com/JelteF/derive_more",
+    "description": "Internal implementation of `derive_more` crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "digest",
+    "version": "0.10.7",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustCrypto/traits",
+    "description": "Traits for cryptographic hash functions and message authentication codes"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dirs",
+    "version": "6.0.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/soc/dirs-rs",
+    "description": "A tiny low-level library that provides platform-specific standard locations of directories for config, cache and other data on Linux, Windows, macOS and Redox by leveraging the mechanisms defined by the XDG base/user directory specifications on Linux, the Known Folder API on Windows, and the Standard Directory guidelines on macOS."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dirs-sys",
+    "version": "0.5.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dirs-dev/dirs-sys-rs",
+    "description": "System-level helper functions for the dirs and directories crates."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dispatch2",
+    "version": "0.3.1",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings and wrappers for Apple's Grand Central Dispatch (GCD)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "displaydoc",
+    "version": "0.2.6",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/yaahc/displaydoc",
+    "description": "A derive macro for implementing the display Trait via a doc comment and string interpolation\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dlopen2",
+    "version": "0.8.2",
+    "license": "MIT",
+    "homepage": "https://github.com/OpenByteDev/dlopen2",
+    "description": "Library for opening and operating on dynamic link libraries (also known as shared objects or shared libraries)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dlopen2_derive",
+    "version": "0.4.3",
+    "license": "MIT",
+    "homepage": "https://github.com/OpenByteDev/dlopen2",
+    "description": "Derive macros for the dlopen2 crate."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "document-features",
+    "version": "0.2.12",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://slint.rs",
+    "description": "Extract documentation for the feature flags from comments in Cargo.toml"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dom_query",
+    "version": "0.27.0",
+    "license": "MIT",
+    "homepage": "https://github.com/niklak/dom_query",
+    "description": "HTML querying and manipulation with CSS selectors"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dpi",
+    "version": "0.1.2",
+    "license": "Apache-2.0 AND MIT",
+    "homepage": "https://github.com/rust-windowing/winit",
+    "description": "Types for handling UI scaling"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dtoa",
+    "version": "1.0.11",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/dtoa",
+    "description": "Fast floating point primitive to string conversion"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dtoa-short",
+    "version": "0.3.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/upsuper/dtoa-short",
+    "description": "Serialize float number and truncate to certain precision"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dtor",
+    "version": "0.3.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/mmastrac/rust-ctor",
+    "description": "__attribute__((destructor)) for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dtor-proc-macro",
+    "version": "0.0.6",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/mmastrac/rust-ctor",
+    "description": "proc-macro support for the dtor crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dunce",
+    "version": "1.0.5",
+    "license": "CC0-1.0 OR MIT-0 OR Apache-2.0",
+    "homepage": "https://lib.rs/crates/dunce",
+    "description": "Normalize Windows paths to the most compatible format, avoiding UNC where possible"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "dyn-clone",
+    "version": "1.0.20",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/dyn-clone",
+    "description": "Clone trait that is dyn-compatible"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "embed_plist",
+    "version": "1.2.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/nvzqz/embed-plist-rs",
+    "description": "Embed property list files like Info.plist directly in your executable binary."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "encoding_rs",
+    "version": "0.8.35",
+    "license": "(Apache-2.0 OR MIT) AND BSD-3-Clause",
+    "homepage": "https://docs.rs/encoding_rs/",
+    "description": "A Gecko-oriented implementation of the Encoding Standard"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "endi",
+    "version": "1.1.1",
+    "license": "MIT",
+    "homepage": "https://github.com/zeenix/endi",
+    "description": "A simple endian-handling library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "enumflags2",
+    "version": "0.7.12",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/meithecatte/enumflags2",
+    "description": "Enum-based bit flags"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "enumflags2_derive",
+    "version": "0.7.12",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/meithecatte/enumflags2",
+    "description": "Do not use directly, use the reexport in the `enumflags2` crate. This allows for better compatibility across versions."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "equivalent",
+    "version": "1.0.2",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/indexmap-rs/equivalent",
+    "description": "Traits for key comparison in maps."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "erased-serde",
+    "version": "0.4.10",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/erased-serde",
+    "description": "Type-erased Serialize and Serializer traits"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "errno",
+    "version": "0.3.14",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/lambda-fairy/rust-errno",
+    "description": "Cross-platform interface to the `errno` variable."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "event-listener",
+    "version": "5.4.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/event-listener",
+    "description": "Notify async tasks or threads"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "event-listener-strategy",
+    "version": "0.5.4",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/event-listener-strategy",
+    "description": "Block or poll on event_listener easily"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "extended",
+    "version": "0.1.0",
+    "license": "MIT",
+    "homepage": "https://github.com/depp/extended-rs",
+    "description": "Extended precision 80-bit floating-point numbers (f80).\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "fastrand",
+    "version": "2.4.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/fastrand",
+    "description": "A simple and fast random number generator"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "fdeflate",
+    "version": "0.3.7",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/image-rs/fdeflate",
+    "description": "Fast specialized deflate implementation"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "field-offset",
+    "version": "0.3.6",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/Diggsey/rust-field-offset",
+    "description": "Safe pointer-to-member implementation"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "flate2",
+    "version": "1.1.9",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/flate2-rs",
+    "description": "DEFLATE compression and decompression exposed as Read/BufRead/Write streams.\nSupports miniz_oxide and multiple zlib implementations. Supports zlib, gzip,\nand raw deflate streams.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "fnv",
+    "version": "1.0.7",
+    "license": "Apache-2.0 / MIT",
+    "homepage": "https://github.com/servo/rust-fnv",
+    "description": "Fowler–Noll–Vo hash function"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "foldhash",
+    "version": "0.2.0",
+    "license": "Zlib",
+    "homepage": "https://github.com/orlp/foldhash",
+    "description": "A fast, non-cryptographic, minimally DoS-resistant hashing algorithm."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "foreign-types",
+    "version": "0.5.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/sfackler/foreign-types",
+    "description": "A framework for Rust wrappers over C APIs"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "foreign-types-macros",
+    "version": "0.2.3",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/sfackler/foreign-types",
+    "description": "An internal crate used by foreign-types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "foreign-types-shared",
+    "version": "0.3.1",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/sfackler/foreign-types",
+    "description": "An internal crate used by foreign-types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "form_urlencoded",
+    "version": "1.2.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/rust-url",
+    "description": "Parser and serializer for the application/x-www-form-urlencoded syntax, as used by HTML forms."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-channel",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "Channels for asynchronous communication using futures-rs.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-core",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "The core traits and types in for the `futures` library.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-executor",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "Executors for asynchronous tasks based on the futures-rs library.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-io",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "The `AsyncRead`, `AsyncWrite`, `AsyncSeek`, and `AsyncBufRead` traits for the futures-rs library.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-lite",
+    "version": "2.6.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/futures-lite",
+    "description": "Futures, streams, and async I/O combinators"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-macro",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "The futures-rs procedural macro implementations.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-sink",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "The asynchronous `Sink` trait for the futures-rs library.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-task",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "Tools for working with tasks.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "futures-util",
+    "version": "0.3.32",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-lang.github.io/futures-rs",
+    "description": "Common utilities and extension traits for the futures-rs library.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdk",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED Rust bindings for the GDK 3 library (use gdk4 instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdk-pixbuf",
+    "version": "0.18.5",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "Rust bindings for the GdkPixbuf library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdk-pixbuf-sys",
+    "version": "0.18.0",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "FFI bindings to libgdk_pixbuf-2.0"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdk-sys",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED FFI bindings to libgdk-3 (use gdk4-sys instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdkwayland-sys",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED FFI bindings to libgdk-3-wayland (use gdk4-wayland-sys instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdkx11",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED Rust bindings for the GDK X11 library (use gdk4-x11 instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gdkx11-sys",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED FFI binding for libgdkx11 (use gdk4-x11-sys instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "generic-array",
+    "version": "0.14.7",
+    "license": "MIT",
+    "homepage": "https://github.com/fizyk20/generic-array.git",
+    "description": "Generic types implementing functionality of arrays"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "getrandom",
+    "version": "0.3.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-random/getrandom",
+    "description": "A small cross-platform library for retrieving random data from system source"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gio",
+    "version": "0.18.4",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "Rust bindings for the Gio library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gio-sys",
+    "version": "0.18.1",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "FFI bindings to libgio-2.0"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "glib",
+    "version": "0.18.5",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "Rust bindings for the GLib library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "glib-macros",
+    "version": "0.18.5",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "Rust bindings for the GLib library, proc macros crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "glib-sys",
+    "version": "0.18.1",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "FFI bindings to libglib-2.0"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "glob",
+    "version": "0.3.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/glob",
+    "description": "Support for matching file paths against Unix shell style patterns.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gobject-sys",
+    "version": "0.18.0",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "FFI bindings to libgobject-2.0"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gtk",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED Rust bindings for the GTK+ 3 library (use gtk4 instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gtk-sys",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED FFI bindings to libgtk-3 (use gtk4-sys instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "gtk3-macros",
+    "version": "0.18.2",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "UNMAINTAINED Rust bindings for the GTK 3 library (use gtk4-macros instead)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "h2",
+    "version": "0.4.15",
+    "license": "MIT",
+    "homepage": "https://github.com/hyperium/h2",
+    "description": "An HTTP/2 client and server"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "hashbrown",
+    "version": "0.17.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/hashbrown",
+    "description": "A Rust port of Google's SwissTable hash map"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "heck",
+    "version": "0.5.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/withoutboats/heck",
+    "description": "heck is a case conversion library."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "hermit-abi",
+    "version": "0.5.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/hermit-os/hermit-rs",
+    "description": "Hermit system calls definitions."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "hex",
+    "version": "0.4.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/KokaKiwi/rust-hex",
+    "description": "Encoding and decoding data into/from hexadecimal representation."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "html5ever",
+    "version": "0.38.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/html5ever",
+    "description": "High-performance browser-grade HTML5 parser"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "http",
+    "version": "1.4.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/hyperium/http",
+    "description": "A set of types for representing HTTP requests and responses.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "http-body",
+    "version": "1.0.1",
+    "license": "MIT",
+    "homepage": "https://github.com/hyperium/http-body",
+    "description": "Trait representing an asynchronous, streaming, HTTP request or response body.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "http-body-util",
+    "version": "0.1.3",
+    "license": "MIT",
+    "homepage": "https://github.com/hyperium/http-body",
+    "description": "Combinators and adapters for HTTP request or response bodies.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "httparse",
+    "version": "1.10.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/seanmonstar/httparse",
+    "description": "A tiny, safe, speedy, zero-copy HTTP/1.x parser."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "hyper",
+    "version": "1.10.1",
+    "license": "MIT",
+    "homepage": "https://hyper.rs",
+    "description": "A protective and efficient HTTP library for all."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "hyper-rustls",
+    "version": "0.27.9",
+    "license": "Apache-2.0 OR ISC OR MIT",
+    "homepage": "https://github.com/rustls/hyper-rustls",
+    "description": "Rustls+hyper integration for pure rust HTTPS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "hyper-util",
+    "version": "0.1.20",
+    "license": "MIT",
+    "homepage": "https://hyper.rs",
+    "description": "hyper utilities"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "iana-time-zone",
+    "version": "0.1.65",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/strawlab/iana-time-zone",
+    "description": "get the IANA time zone for the current system"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "iana-time-zone-haiku",
+    "version": "0.1.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/strawlab/iana-time-zone",
+    "description": "iana-time-zone support crate for Haiku OS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ico",
+    "version": "0.5.0",
+    "license": "MIT",
+    "homepage": "https://github.com/mdsteele/rust-ico",
+    "description": "A library for encoding/decoding ICO image files"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_collections",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "Collection of API for use in ICU libraries."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_locale_core",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "API for managing Unicode Language and Locale Identifiers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_normalizer",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "API for normalizing text into Unicode Normalization Forms"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_normalizer_data",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "Data for the icu_normalizer crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_properties",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "Definitions for Unicode properties"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_properties_data",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "Data for the icu_properties crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "icu_provider",
+    "version": "2.2.0",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "Trait and struct definitions for the ICU data provider"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ident_case",
+    "version": "1.0.1",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/TedDriggs/ident_case",
+    "description": "Utility for applying case rules to Rust identifiers."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "idna",
+    "version": "1.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/rust-url/",
+    "description": "IDNA (Internationalizing Domain Names in Applications) and Punycode."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "idna_adapter",
+    "version": "1.2.2",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://docs.rs/crate/idna_adapter/latest",
+    "description": "Back end adapter for idna"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "indexmap",
+    "version": "2.14.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/indexmap-rs/indexmap",
+    "description": "A hash table with consistent order and fast iteration."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "infer",
+    "version": "0.19.0",
+    "license": "MIT",
+    "homepage": "https://github.com/bojand/infer",
+    "description": "Small crate to infer file type based on magic number signatures"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ipnet",
+    "version": "2.12.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/krisprice/ipnet",
+    "description": "Provides types and useful methods for working with IPv4 and IPv6 network addresses, commonly called IP prefixes. The new `IpNet`, `Ipv4Net`, and `Ipv6Net` types build on the existing `IpAddr`, `Ipv4Addr`, and `Ipv6Addr` types already provided in Rust's standard library and align to their design to stay consistent. The module also provides useful traits that extend `Ipv4Addr` and `Ipv6Addr` with methods for `Add`, `Sub`, `BitAnd`, and `BitOr` operations. The module only uses stable feature so it is guaranteed to compile using the stable toolchain."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "is-docker",
+    "version": "0.2.0",
+    "license": "MIT",
+    "homepage": "https://github.com/TheLarkInn/is-docker",
+    "description": "Checks if the process is running inside a Docker container."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "is-wsl",
+    "version": "0.4.0",
+    "license": "MIT",
+    "homepage": "https://github.com/TheLarkInn/is-wsl",
+    "description": "Checks if the process is running inside Windows Subsystem for Linux."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "itoa",
+    "version": "1.0.18",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/itoa",
+    "description": "Fast integer primitive to string conversion"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "javascriptcore-rs",
+    "version": "1.1.2",
+    "license": "MIT",
+    "homepage": "https://github.com/tauri-apps/javascriptcore-rs",
+    "description": "Rust bindings for the javacriptcore library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "javascriptcore-rs-sys",
+    "version": "1.1.1",
+    "license": "MIT",
+    "homepage": "https://github.com/tauri-apps/javascriptcore-rs",
+    "description": "Sys functions for the Rust bindings of the javacriptcore library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "jni",
+    "version": "0.21.1",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/jni-rs/jni-rs",
+    "description": "Rust bindings to the JNI"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "jni-sys",
+    "version": "0.3.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jni-rs/jni-sys",
+    "description": "Rust definitions corresponding to jni.h"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "jni-sys-macros",
+    "version": "0.4.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jni-rs/jni-sys",
+    "description": "Macros for jni-sys crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "js-sys",
+    "version": "0.3.103",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen/",
+    "description": "Bindings for all JS global objects and functions in all JS environments like\nNode.js and browsers, built on `#[wasm_bindgen]` using the `wasm-bindgen` crate.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "json-patch",
+    "version": "3.0.1",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/idubrov/json-patch",
+    "description": "RFC 6902, JavaScript Object Notation (JSON) Patch"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "jsonptr",
+    "version": "0.6.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/chanced/jsonptr",
+    "description": "Data structures and logic for resolving, assigning, and deleting by JSON Pointers (RFC 6901)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "keyboard-types",
+    "version": "0.7.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/pyfisch/keyboard-types",
+    "description": "Contains types to define keyboard related events."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "lazy_static",
+    "version": "1.5.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang-nursery/lazy-static.rs",
+    "description": "A macro for declaring lazily evaluated statics in Rust."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "libappindicator",
+    "version": "0.9.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": null,
+    "description": "Rust safe bindings for libappindicator"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "libappindicator-sys",
+    "version": "0.9.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": null,
+    "description": "Rust sys bindings for libappindicator"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "libc",
+    "version": "0.2.186",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/libc",
+    "description": "Raw FFI bindings to platform libraries like libc."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "libdbus-sys",
+    "version": "0.2.7",
+    "license": "Apache-2.0/MIT",
+    "homepage": "https://github.com/diwic/dbus-rs",
+    "description": "FFI bindings to libdbus."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "libloading",
+    "version": "0.7.4",
+    "license": "ISC",
+    "homepage": "https://github.com/nagisa/rust_libloading/",
+    "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "libredox",
+    "version": "0.1.18",
+    "license": "MIT",
+    "homepage": "https://gitlab.redox-os.org/redox-os/libredox.git",
+    "description": "Redox stable ABI"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "linux-raw-sys",
+    "version": "0.12.1",
+    "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/sunfishcode/linux-raw-sys",
+    "description": "Generated bindings for Linux's userspace API"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "litemap",
+    "version": "0.8.2",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "A key-value Map implementation based on a flat, sorted Vec."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "litrs",
+    "version": "1.0.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/LukasKalbertodt/litrs",
+    "description": "Parse and inspect Rust literals (i.e. tokens in the Rust programming language\nrepresenting fixed values). Particularly useful for proc macros, but can also\nbe used outside of a proc-macro context.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "lock_api",
+    "version": "0.4.14",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/Amanieu/parking_lot",
+    "description": "Wrappers to create fully-featured Mutex and RwLock types. Compatible with no_std."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "log",
+    "version": "0.4.33",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/log",
+    "description": "A lightweight logging facade for Rust\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "lru-slab",
+    "version": "0.1.2",
+    "license": "MIT OR Apache-2.0 OR Zlib",
+    "homepage": "https://github.com/Ralith/lru-slab",
+    "description": "Pre-allocated storage with constant-time LRU tracking"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "lucide-react",
+    "version": "1.24.0",
+    "license": "ISC",
+    "homepage": "https://lucide.dev",
+    "description": "A Lucide icon library package for React applications."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "mach2",
+    "version": "0.5.0",
+    "license": "BSD-2-Clause OR MIT OR Apache-2.0",
+    "homepage": "https://github.com/JohnTitor/mach2",
+    "description": "A Rust interface to the user-space API of the Mach 3.0 kernel that underlies OSX."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "markup5ever",
+    "version": "0.38.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/html5ever",
+    "description": "Common code for xml5ever and html5ever"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "memchr",
+    "version": "2.8.3",
+    "license": "Unlicense OR MIT",
+    "homepage": "https://github.com/BurntSushi/memchr",
+    "description": "Provides extremely fast (uses SIMD on x86_64, aarch64 and wasm32) routines for\n1, 2 or 3 byte search and single substring search.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "memoffset",
+    "version": "0.9.1",
+    "license": "MIT",
+    "homepage": "https://github.com/Gilnaa/memoffset",
+    "description": "offset_of functionality for Rust structs."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "mime",
+    "version": "0.3.17",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/hyperium/mime",
+    "description": "Strongly Typed Mimes"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "miniz_oxide",
+    "version": "0.8.9",
+    "license": "MIT OR Zlib OR Apache-2.0",
+    "homepage": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide",
+    "description": "DEFLATE compression and decompression library rewritten in Rust based on miniz"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "mio",
+    "version": "1.2.1",
+    "license": "MIT",
+    "homepage": "https://github.com/tokio-rs/mio",
+    "description": "Lightweight non-blocking I/O."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "muda",
+    "version": "0.19.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/muda",
+    "description": "Menu Utilities for Desktop Applications"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ndk",
+    "version": "0.9.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-mobile/ndk",
+    "description": "Safe Rust bindings to the Android NDK"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ndk-context",
+    "version": "0.1.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-windowing/android-ndk-rs",
+    "description": "Handles for accessing Android APIs"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ndk-sys",
+    "version": "0.6.0+11769913",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-mobile/ndk",
+    "description": "FFI bindings for the Android NDK"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "new_debug_unreachable",
+    "version": "1.0.6",
+    "license": "MIT",
+    "homepage": "https://github.com/mbrubeck/rust-debug-unreachable",
+    "description": "panic in debug, intrinsics::unreachable() in release (fork of debug_unreachable)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num_enum",
+    "version": "0.7.6",
+    "license": "BSD-3-Clause OR MIT OR Apache-2.0",
+    "homepage": "https://github.com/illicitonion/num_enum",
+    "description": "Procedural macros to make inter-operation between primitives and enums easier."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num_enum_derive",
+    "version": "0.7.6",
+    "license": "BSD-3-Clause OR MIT OR Apache-2.0",
+    "homepage": "https://github.com/illicitonion/num_enum",
+    "description": "Internal implementation details for ::num_enum (Procedural macros to make inter-operation between primitives and enums easier)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num-bigint",
+    "version": "0.4.8",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-num/num-bigint",
+    "description": "Big integer implementation for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num-conv",
+    "version": "0.2.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jhpratt/num-conv",
+    "description": "`num_conv` is a crate to convert between integer types without using `as` casts. This provides\nbetter certainty when refactoring, makes the exact behavior of code more explicit, and allows using\nturbofish syntax.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num-derive",
+    "version": "0.4.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-num/num-derive",
+    "description": "Numeric syntax extensions"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num-integer",
+    "version": "0.1.46",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-num/num-integer",
+    "description": "Integer traits and functions"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num-rational",
+    "version": "0.4.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-num/num-rational",
+    "description": "Rational numbers implementation for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "num-traits",
+    "version": "0.2.19",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-num/num-traits",
+    "description": "Numeric traits for generic mathematics"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2",
+    "version": "0.6.4",
+    "license": "MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Objective-C interface and runtime bindings"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-app-kit",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the AppKit framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-audio-toolbox",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the AudioToolbox framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-avf-audio",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the AVFAudio framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-cloud-kit",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CloudKit framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-audio",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreAudio framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-audio-types",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreAudioTypes framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-data",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreData framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-foundation",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreFoundation framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-graphics",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreGraphics framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-image",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreImage framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-location",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreLocation framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-core-text",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the CoreText framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-encode",
+    "version": "4.1.0",
+    "license": "MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Objective-C type-encoding representation and parsing"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-exception-helper",
+    "version": "0.1.1",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "External helper function for catching Objective-C exceptions"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-foundation",
+    "version": "0.3.2",
+    "license": "MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the Foundation framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-io-surface",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the IOSurface framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-quartz-core",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the QuartzCore/CoreAnimation framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-ui-kit",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the UIKit framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-user-notifications",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the UserNotifications framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "objc2-web-kit",
+    "version": "0.3.2",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/madsmtm/objc2",
+    "description": "Bindings to the WebKit framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "once_cell",
+    "version": "1.21.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/matklad/once_cell",
+    "description": "Single assignment cells and lazy values."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "open",
+    "version": "5.3.6",
+    "license": "MIT",
+    "homepage": "https://github.com/Byron/open-rs",
+    "description": "Open a path or URL using the program configured on the system"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "option-ext",
+    "version": "0.2.0",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/soc/option-ext",
+    "description": "Extends `Option` with additional operations"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ordered-stream",
+    "version": "0.2.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/danieldg/ordered-stream",
+    "description": "Streams that are ordered relative to external events"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "os_pipe",
+    "version": "1.2.3",
+    "license": "MIT",
+    "homepage": "https://github.com/oconnor663/os_pipe.rs",
+    "description": "a cross-platform library for opening OS pipes"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "pango",
+    "version": "0.18.3",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "Rust bindings for the Pango library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "pango-sys",
+    "version": "0.18.0",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org/",
+    "description": "FFI bindings to libpango-1.0"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "parking",
+    "version": "2.2.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/parking",
+    "description": "Thread parking and unparking"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "parking_lot",
+    "version": "0.12.5",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/Amanieu/parking_lot",
+    "description": "More compact and efficient implementations of the standard synchronization primitives."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "parking_lot_core",
+    "version": "0.9.12",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/Amanieu/parking_lot",
+    "description": "An advanced API for creating custom synchronization primitives."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "percent-encoding",
+    "version": "2.3.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/rust-url/",
+    "description": "Percent encoding and decoding"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "phf",
+    "version": "0.13.1",
+    "license": "MIT",
+    "homepage": "https://github.com/rust-phf/rust-phf",
+    "description": "Runtime support for perfect hash function data structures"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "phf_generator",
+    "version": "0.13.1",
+    "license": "MIT",
+    "homepage": "https://github.com/rust-phf/rust-phf",
+    "description": "PHF generation logic"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "phf_macros",
+    "version": "0.13.1",
+    "license": "MIT",
+    "homepage": "https://github.com/rust-phf/rust-phf",
+    "description": "Macros to generate types in the phf crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "phf_shared",
+    "version": "0.13.1",
+    "license": "MIT",
+    "homepage": "https://github.com/rust-phf/rust-phf",
+    "description": "Support code shared by PHF libraries"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "pin-project-lite",
+    "version": "0.2.17",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/taiki-e/pin-project-lite",
+    "description": "A lightweight version of pin-project written with declarative macros.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "piper",
+    "version": "0.2.5",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/smol-rs/piper",
+    "description": "An asynchronous single-consumer single-producer pipe for bytes."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "plist",
+    "version": "1.10.0",
+    "license": "MIT",
+    "homepage": "https://github.com/ebarnard/rust-plist/",
+    "description": "A rusty plist parser. Supports Serde serialization."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "png",
+    "version": "0.18.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/image-rs/image-png",
+    "description": "PNG decoding and encoding library in pure Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "polling",
+    "version": "3.11.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/smol-rs/polling",
+    "description": "Portable interface to epoll, kqueue, event ports, and IOCP"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "potential_utf",
+    "version": "0.1.5",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "Unvalidated string and character types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "powerfmt",
+    "version": "0.2.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jhpratt/powerfmt",
+    "description": "    `powerfmt` is a library that provides utilities for formatting values. This crate makes it\n    significantly easier to support filling to a minimum width with alignment, avoid heap\n    allocation, and avoid repetitive calculations.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ppv-lite86",
+    "version": "0.2.21",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/cryptocorrosion/cryptocorrosion",
+    "description": "Cross-platform cryptography-oriented low-level SIMD library."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "precomputed-hash",
+    "version": "0.1.1",
+    "license": "MIT",
+    "homepage": "https://github.com/emilio/precomputed-hash",
+    "description": "A library intending to be a base dependency to expose a precomputed hash"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "proc-macro-crate",
+    "version": "1.3.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/bkchr/proc-macro-crate",
+    "description": "Replacement for crate (macro_rules keyword) in proc-macros\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "proc-macro-error",
+    "version": "1.0.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://gitlab.com/CreepySkeleton/proc-macro-error",
+    "description": "Almost drop-in replacement to panics in proc-macros"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "proc-macro-error-attr",
+    "version": "1.0.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://gitlab.com/CreepySkeleton/proc-macro-error",
+    "description": "Attribute macro for proc-macro-error crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "proc-macro2",
+    "version": "1.0.106",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/proc-macro2",
+    "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "psl-types",
+    "version": "2.0.11",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/addr-rs/psl-types",
+    "description": "Common types for the public suffix implementation crates"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "publicsuffix",
+    "version": "2.3.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/rushmorem/publicsuffix",
+    "description": "Extract root domain and suffix from a domain name"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "quick-xml",
+    "version": "0.41.0",
+    "license": "MIT",
+    "homepage": "https://github.com/tafia/quick-xml",
+    "description": "High performance xml reader and writer"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "quinn",
+    "version": "0.11.11",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/quinn-rs/quinn",
+    "description": "Versatile QUIC transport protocol implementation"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "quinn-proto",
+    "version": "0.11.16",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/quinn-rs/quinn",
+    "description": "State machine for the QUIC transport protocol"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "quinn-udp",
+    "version": "0.5.15",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/quinn-rs/quinn",
+    "description": "UDP sockets with ECN information for the QUIC transport protocol"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "quote",
+    "version": "1.0.46",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/quote",
+    "description": "Quasi-quoting macro quote!(...)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "r-efi",
+    "version": "5.3.0",
+    "license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+    "homepage": "https://github.com/r-efi/r-efi/wiki",
+    "description": "UEFI Reference Specification Protocol Constants and Definitions"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rand",
+    "version": "0.9.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-random.github.io/book",
+    "description": "Random number generators and other randomness functionality.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rand_chacha",
+    "version": "0.9.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-random.github.io/book",
+    "description": "ChaCha random number generator\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rand_core",
+    "version": "0.9.5",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-random.github.io/book",
+    "description": "Core random number generator traits and tools for implementation.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rand_pcg",
+    "version": "0.10.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://rust-random.github.io/book",
+    "description": "Selected PCG random number generators"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "raw-window-handle",
+    "version": "0.6.2",
+    "license": "MIT OR Apache-2.0 OR Zlib",
+    "homepage": "https://github.com/rust-windowing/raw-window-handle",
+    "description": "Interoperability library for Rust Windowing applications."
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react",
+    "version": "19.2.7",
+    "license": "MIT",
+    "homepage": "https://react.dev/",
+    "description": "React is a JavaScript library for building user interfaces."
+  },
+  {
+    "ecosystem": "npm",
+    "name": "react-dom",
+    "version": "19.2.7",
+    "license": "MIT",
+    "homepage": "https://react.dev/",
+    "description": "React package for working with the DOM."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "redox_syscall",
+    "version": "0.5.18",
+    "license": "MIT",
+    "homepage": "https://gitlab.redox-os.org/redox-os/syscall",
+    "description": "A Rust library to access raw Redox system calls"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "redox_users",
+    "version": "0.5.2",
+    "license": "MIT",
+    "homepage": "https://gitlab.redox-os.org/redox-os/users",
+    "description": "A Rust library to access Redox users and groups functionality"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ref-cast",
+    "version": "1.0.25",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/ref-cast",
+    "description": "Safely cast &T to &U where the struct U contains a single field of type T."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ref-cast-impl",
+    "version": "1.0.25",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/ref-cast",
+    "description": "Derive implementation for ref_cast::RefCast."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "regex",
+    "version": "1.13.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/regex",
+    "description": "An implementation of regular expressions for Rust. This implementation uses\nfinite automata and guarantees linear time matching on all inputs.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "regex-automata",
+    "version": "0.4.15",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/regex/tree/master/regex-automata",
+    "description": "Automata construction and matching using regular expressions."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "regex-syntax",
+    "version": "0.8.11",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/regex/tree/master/regex-syntax",
+    "description": "A regular expression parser."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "reqwest",
+    "version": "0.12.28",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/seanmonstar/reqwest",
+    "description": "higher level HTTP client library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rfd",
+    "version": "0.16.0",
+    "license": "MIT",
+    "homepage": "https://github.com/PolyMeilex/rfd",
+    "description": "Rusty File Dialog"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ring",
+    "version": "0.17.14",
+    "license": "Apache-2.0 AND ISC",
+    "homepage": "https://github.com/briansmith/ring",
+    "description": "An experiment."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rodio",
+    "version": "0.22.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustAudio/rodio",
+    "description": "Audio playback and recording library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rustc-hash",
+    "version": "2.1.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/rust-lang/rustc-hash",
+    "description": "A speedy, non-cryptographic hashing algorithm used by rustc"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rustix",
+    "version": "1.1.4",
+    "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/bytecodealliance/rustix",
+    "description": "Safe Rust bindings to POSIX/Unix/Linux/Winsock-like syscalls"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rustls",
+    "version": "0.23.41",
+    "license": "Apache-2.0 OR ISC OR MIT",
+    "homepage": "https://github.com/rustls/rustls",
+    "description": "Rustls is a modern TLS library written in Rust."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rustls-pki-types",
+    "version": "1.15.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rustls/pki-types",
+    "description": "Shared types for the rustls PKI ecosystem"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rustls-webpki",
+    "version": "0.103.13",
+    "license": "ISC",
+    "homepage": "https://github.com/rustls/webpki",
+    "description": "Web PKI X.509 Certificate Verification."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "rustversion",
+    "version": "1.0.23",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/rustversion",
+    "description": "Conditional compilation according to rustc compiler version"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "ryu",
+    "version": "1.0.23",
+    "license": "Apache-2.0 OR BSL-1.0",
+    "homepage": "https://github.com/dtolnay/ryu",
+    "description": "Fast floating point to string conversion"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "same-file",
+    "version": "1.0.6",
+    "license": "Unlicense/MIT",
+    "homepage": "https://github.com/BurntSushi/same-file",
+    "description": "A simple crate for determining whether two file paths point to the same file.\n"
+  },
+  {
+    "ecosystem": "npm",
+    "name": "scheduler",
+    "version": "0.27.0",
+    "license": "MIT",
+    "homepage": "https://react.dev/",
+    "description": "Cooperative scheduler for the browser environment."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "schemars",
+    "version": "0.8.22",
+    "license": "MIT",
+    "homepage": "https://graham.cool/schemars/",
+    "description": "Generate JSON Schemas from Rust code"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "schemars_derive",
+    "version": "0.8.22",
+    "license": "MIT",
+    "homepage": "https://graham.cool/schemars/",
+    "description": "Macros for #[derive(JsonSchema)], for use with schemars"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "scopeguard",
+    "version": "1.2.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/bluss/scopeguard",
+    "description": "A RAII scope guard that will run a given closure when it goes out of scope,\neven if the code between panics (assuming unwinding panic).\n\nDefines the macros `defer!`, `defer_on_unwind!`, `defer_on_success!` as\nshorthands for guards with one of the implemented strategies.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "selectors",
+    "version": "0.36.1",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/servo/stylo",
+    "description": "CSS Selectors matching for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "semver",
+    "version": "1.0.28",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/semver",
+    "description": "Parser and evaluator for Cargo's flavor of Semantic Versioning"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde",
+    "version": "1.0.228",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://serde.rs",
+    "description": "A generic serialization/deserialization framework"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_core",
+    "version": "1.0.228",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://serde.rs",
+    "description": "Serde traits only, with no support for derive -- use the `serde` crate instead"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_derive",
+    "version": "1.0.228",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://serde.rs",
+    "description": "Macros 1.1 implementation of #[derive(Serialize, Deserialize)]"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_derive_internals",
+    "version": "0.29.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://serde.rs",
+    "description": "AST representation used by Serde derive macros. Unstable."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_json",
+    "version": "1.0.150",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/serde-rs/json",
+    "description": "A JSON serialization file format"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_repr",
+    "version": "0.1.20",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/serde-repr",
+    "description": "Derive Serialize and Deserialize that delegates to the underlying repr of a C-like enum."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_spanned",
+    "version": "1.1.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/toml-rs/toml",
+    "description": "Serde-compatible spanned Value"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_urlencoded",
+    "version": "0.7.1",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/nox/serde_urlencoded",
+    "description": "`x-www-form-urlencoded` meets Serde"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_with",
+    "version": "3.21.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jonasbb/serde_with/",
+    "description": "Custom de/serialization functions for Rust's serde"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde_with_macros",
+    "version": "3.21.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/jonasbb/serde_with/",
+    "description": "proc-macro library for serde_with"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serde-untagged",
+    "version": "0.1.9",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/serde-untagged",
+    "description": "Serde `Visitor` implementation for deserializing untagged enums"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serialize-to-javascript",
+    "version": "0.1.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/chippers/serialize-to-javascript",
+    "description": "Serialize a serde::Serialize item to a JavaScript literal template using serde_json"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "serialize-to-javascript-impl",
+    "version": "0.1.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/chippers/serialize-to-javascript",
+    "description": "Implementation detail of `serialize-to-javascript`"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "servo_arc",
+    "version": "0.4.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/stylo",
+    "description": "A fork of std::sync::Arc with some extra functionality and without weak references"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "sha2",
+    "version": "0.10.9",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/RustCrypto/hashes",
+    "description": "Pure Rust implementation of the SHA-2 hash function family\nincluding SHA-224, SHA-256, SHA-384, and SHA-512.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "shared_child",
+    "version": "1.1.1",
+    "license": "MIT",
+    "homepage": "https://github.com/oconnor663/shared_child.rs",
+    "description": "a library for using child processes from multiple threads"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "sigchld",
+    "version": "0.2.4",
+    "license": "MIT",
+    "homepage": "https://github.com/oconnor663/sigchld.rs",
+    "description": "waiting for SIGCHLD from many threads at once"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "signal-hook",
+    "version": "0.3.18",
+    "license": "Apache-2.0/MIT",
+    "homepage": "https://github.com/vorner/signal-hook",
+    "description": "Unix signal handling"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "signal-hook-registry",
+    "version": "1.4.8",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/vorner/signal-hook",
+    "description": "Backend crate for signal-hook"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "simd-adler32",
+    "version": "0.3.9",
+    "license": "MIT",
+    "homepage": "https://github.com/mcountryman/simd-adler32",
+    "description": "A SIMD-accelerated Adler-32 hash algorithm implementation."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "siphasher",
+    "version": "1.0.3",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://docs.rs/siphasher",
+    "description": "SipHash-2-4, SipHash-1-3 and 128-bit variants in pure Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "slab",
+    "version": "0.4.12",
+    "license": "MIT",
+    "homepage": "https://github.com/tokio-rs/slab",
+    "description": "Pre-allocated storage for a uniform data type"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "smallvec",
+    "version": "1.15.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/rust-smallvec",
+    "description": "'Small vector' optimization: store up to a small number of items on the stack"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "socket2",
+    "version": "0.6.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-lang/socket2",
+    "description": "Utilities for handling networking sockets with a maximal amount of configuration\npossible intended.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "softbuffer",
+    "version": "0.4.8",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rust-windowing/softbuffer",
+    "description": "Cross-platform software buffer"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "soup3",
+    "version": "0.5.0",
+    "license": "MIT",
+    "homepage": "https://gitlab.gnome.org/World/Rust/soup3-rs",
+    "description": "Soup crate for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "soup3-sys",
+    "version": "0.5.0",
+    "license": "MIT",
+    "homepage": "https://gtk-rs.org",
+    "description": "Sys functions for the Rust bindings of the javacriptcore library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "stable_deref_trait",
+    "version": "1.2.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/storyyeller/stable_deref_trait",
+    "description": "An unsafe marker trait for types like Box and Rc that dereference to a stable address even when moved, and hence can be used with libraries such as owning_ref and rental.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "string_cache",
+    "version": "0.9.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/string-cache",
+    "description": "A string interning library for Rust, developed as part of the Servo project."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "strsim",
+    "version": "0.11.1",
+    "license": "MIT",
+    "homepage": "https://github.com/rapidfuzz/strsim-rs",
+    "description": "Implementations of string similarity metrics. Includes Hamming, Levenshtein,\nOSA, Damerau-Levenshtein, Jaro, Jaro-Winkler, and Sørensen-Dice.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "subtle",
+    "version": "2.6.1",
+    "license": "BSD-3-Clause",
+    "homepage": "https://dalek.rs/",
+    "description": "Pure-Rust traits and utilities for constant-time cryptographic implementations."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "swift-rs",
+    "version": "1.0.7",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/Brendonovich/swift-rs",
+    "description": "Call Swift from Rust with ease!"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust media container and audio decoding library."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-bundle-flac",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust FLAC demuxer and decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-bundle-mp3",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust MP1, MP2, and MP3 demuxer and decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-codec-aac",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust AAC decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-codec-adpcm",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust ADPCM audio decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-codec-alac",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust ALAC decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-codec-pcm",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust PCM audio decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-codec-vorbis",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust Vorbis decoder (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-core",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Project Symphonia shared structs, traits, and features."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-format-caf",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust CAF demuxer (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-format-isomp4",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust ISO/MP4 demuxer (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-format-mkv",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust MKV/WebM demuxer (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-format-ogg",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust OGG demuxer (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-format-riff",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Pure Rust RIFF demuxer (a part of project Symphonia)."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-metadata",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Project Symphonia multimedia tag and metadata readers."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "symphonia-utils-xiph",
+    "version": "0.5.5",
+    "license": "MPL-2.0",
+    "homepage": "https://github.com/pdeljanov/Symphonia",
+    "description": "Project Symphonia utilities for Xiph codecs and formats."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "syn",
+    "version": "2.0.118",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/syn",
+    "description": "Parser for Rust source code"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "sync_wrapper",
+    "version": "1.0.2",
+    "license": "Apache-2.0",
+    "homepage": "https://docs.rs/sync_wrapper",
+    "description": "A tool for enlisting the compiler's help in proving the absence of concurrency"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "synstructure",
+    "version": "0.13.2",
+    "license": "MIT",
+    "homepage": "https://github.com/mystor/synstructure",
+    "description": "Helper methods and macros for custom derives"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "system-configuration",
+    "version": "0.7.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/mullvad/system-configuration-rs",
+    "description": "Bindings to SystemConfiguration framework for macOS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "system-configuration-sys",
+    "version": "0.6.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/mullvad/system-configuration-rs",
+    "description": "Low level bindings to SystemConfiguration framework for macOS"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tao",
+    "version": "0.35.3",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/tao",
+    "description": "Cross-platform window manager library."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tao-macros",
+    "version": "0.1.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/tao",
+    "description": "Proc macros for tao"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri",
+    "version": "2.11.5",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://tauri.app/",
+    "description": "Make tiny, secure apps for all desktop platforms with Tauri"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-codegen",
+    "version": "2.6.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://tauri.app/",
+    "description": "code generation meant to be consumed inside of `tauri` through `tauri-build` or `tauri-macros`"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-macros",
+    "version": "2.6.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://tauri.app/",
+    "description": "Macros for the tauri crate."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-plugin-dialog",
+    "version": "2.7.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace",
+    "description": "Native system dialogs for opening and saving files along with message dialogs on your Tauri application."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-plugin-fs",
+    "version": "2.5.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace",
+    "description": "Access the file system."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-plugin-http",
+    "version": "2.5.9",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace",
+    "description": "Access an HTTP client written in Rust."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-plugin-opener",
+    "version": "2.5.4",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace",
+    "description": "Open files and URLs using their default application."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-plugin-shell",
+    "version": "2.3.5",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace",
+    "description": "Access the system shell. Allows you to spawn child processes and manage files and URLs using their default application."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-plugin-store",
+    "version": "2.4.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/plugins-workspace",
+    "description": "Simple, persistent key-value store."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-runtime",
+    "version": "2.11.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://tauri.app/",
+    "description": "Runtime for Tauri applications"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-runtime-wry",
+    "version": "2.11.4",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://tauri.app/",
+    "description": "Wry bindings to the Tauri runtime"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tauri-utils",
+    "version": "2.9.3",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://tauri.app/",
+    "description": "Utilities for Tauri"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tempfile",
+    "version": "3.27.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://stebalien.com/projects/tempfile-rs/",
+    "description": "A library for managing temporary files and directories."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tendril",
+    "version": "0.5.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/html5ever",
+    "description": "Compact buffer/string type for zero-copy parsing"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "thiserror",
+    "version": "2.0.18",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/thiserror",
+    "description": "derive(Error)"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "thiserror-impl",
+    "version": "2.0.18",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/thiserror",
+    "description": "Implementation detail of the `thiserror` crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "time",
+    "version": "0.3.53",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://time-rs.github.io",
+    "description": "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "time-core",
+    "version": "0.1.9",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/time-rs/time",
+    "description": "This crate is an implementation detail and should not be relied upon directly."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "time-macros",
+    "version": "0.2.31",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/time-rs/time",
+    "description": "    Procedural macros for the time crate.\n    This crate is an implementation detail and should not be relied upon directly.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tinystr",
+    "version": "0.8.3",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "A small ASCII-only bounded length string representation."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tinyvec",
+    "version": "1.12.0",
+    "license": "Zlib OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/Lokathor/tinyvec",
+    "description": "`tinyvec` provides 100% safe vec-like data structures."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tinyvec_macros",
+    "version": "0.1.1",
+    "license": "MIT OR Apache-2.0 OR Zlib",
+    "homepage": "https://github.com/Soveu/tinyvec_macros",
+    "description": "Some macros for tiny containers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tokio",
+    "version": "1.52.3",
+    "license": "MIT",
+    "homepage": "https://tokio.rs",
+    "description": "An event-driven, non-blocking I/O platform for writing asynchronous I/O\nbacked applications.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tokio-macros",
+    "version": "2.7.0",
+    "license": "MIT",
+    "homepage": "https://tokio.rs",
+    "description": "Tokio's proc macros.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tokio-rustls",
+    "version": "0.26.4",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/rustls/tokio-rustls",
+    "description": "Asynchronous TLS/SSL streams for Tokio using Rustls."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tokio-util",
+    "version": "0.7.18",
+    "license": "MIT",
+    "homepage": "https://tokio.rs",
+    "description": "Additional utilities for working with Tokio.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "toml",
+    "version": "1.1.2+spec-1.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/toml-rs/toml",
+    "description": "A native Rust encoder and decoder of TOML-formatted files and streams. Provides\nimplementations of the standard Serialize/Deserialize traits for TOML data to\nfacilitate deserializing and serializing Rust structures.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "toml_datetime",
+    "version": "1.1.1+spec-1.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/toml-rs/toml",
+    "description": "A TOML-compatible datetime type"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "toml_edit",
+    "version": "0.19.15",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/toml-rs/toml",
+    "description": "Yet another format-preserving TOML parser."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "toml_parser",
+    "version": "1.1.2+spec-1.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/toml-rs/toml",
+    "description": "Yet another format-preserving TOML parser."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "toml_writer",
+    "version": "1.1.1+spec-1.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/toml-rs/toml",
+    "description": "A low-level interface for writing out TOML\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tower",
+    "version": "0.5.3",
+    "license": "MIT",
+    "homepage": "https://github.com/tower-rs/tower",
+    "description": "Tower is a library of modular and reusable components for building robust\nclients and servers.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tower-http",
+    "version": "0.6.11",
+    "license": "MIT",
+    "homepage": "https://github.com/tower-rs/tower-http",
+    "description": "Tower middleware and utilities for HTTP clients and servers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tower-layer",
+    "version": "0.3.3",
+    "license": "MIT",
+    "homepage": "https://github.com/tower-rs/tower",
+    "description": "Decorates a `Service` to allow easy composition between `Service`s.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tower-service",
+    "version": "0.3.3",
+    "license": "MIT",
+    "homepage": "https://github.com/tower-rs/tower",
+    "description": "Trait representing an asynchronous, request / response based, client or server.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tracing",
+    "version": "0.1.44",
+    "license": "MIT",
+    "homepage": "https://tokio.rs",
+    "description": "Application-level tracing for Rust.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tracing-attributes",
+    "version": "0.1.31",
+    "license": "MIT",
+    "homepage": "https://tokio.rs",
+    "description": "Procedural macro attributes for automatically instrumenting functions.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tracing-core",
+    "version": "0.1.36",
+    "license": "MIT",
+    "homepage": "https://tokio.rs",
+    "description": "Core primitives for application-level tracing.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "tray-icon",
+    "version": "0.24.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/tauri-apps/tray-icon",
+    "description": "Create tray icons for desktop applications"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "try-lock",
+    "version": "0.2.5",
+    "license": "MIT",
+    "homepage": "https://github.com/seanmonstar/try-lock",
+    "description": "A lightweight atomic lock."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "typeid",
+    "version": "1.0.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/dtolnay/typeid",
+    "description": "Const TypeId and non-'static TypeId"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "typenum",
+    "version": "1.20.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/paholg/typenum",
+    "description": "Typenum is a Rust library for type-level numbers evaluated at\n    compile time. It currently supports bits, unsigned integers, and signed\n    integers. It also provides a type-level array of type-level numbers, but its\n    implementation is incomplete."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "uds_windows",
+    "version": "1.2.1",
+    "license": "MIT",
+    "homepage": "https://github.com/haraldh/rust_uds_windows",
+    "description": "Unix Domain Sockets for Windows!"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unic-char-property",
+    "version": "0.9.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/open-i18n/rust-unic/",
+    "description": "UNIC — Unicode Character Tools — Character Property taxonomy, contracts and build macros"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unic-char-range",
+    "version": "0.9.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/open-i18n/rust-unic/",
+    "description": "UNIC — Unicode Character Tools — Character Range and Iteration"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unic-common",
+    "version": "0.9.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/open-i18n/rust-unic/",
+    "description": "UNIC — Common Utilities"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unic-ucd-ident",
+    "version": "0.9.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/open-i18n/rust-unic/",
+    "description": "UNIC — Unicode Character Database — Identifier Properties"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unic-ucd-version",
+    "version": "0.9.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/open-i18n/rust-unic/",
+    "description": "UNIC — Unicode Character Database — Version"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unicode-ident",
+    "version": "1.0.24",
+    "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+    "homepage": "https://github.com/dtolnay/unicode-ident",
+    "description": "Determine whether characters have the XID_Start or XID_Continue properties according to Unicode Standard Annex #31"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "unicode-segmentation",
+    "version": "1.13.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/unicode-rs/unicode-segmentation",
+    "description": "This crate provides Grapheme Cluster, Word and Sentence boundaries\naccording to Unicode Standard Annex #29 rules.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "untrusted",
+    "version": "0.9.0",
+    "license": "ISC",
+    "homepage": "https://github.com/briansmith/untrusted",
+    "description": "Safe, fast, zero-panic, zero-crashing, zero-allocation parsing of untrusted inputs in Rust."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "url",
+    "version": "2.5.8",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/rust-url",
+    "description": "URL library for Rust, based on the WHATWG URL Standard"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "urlpattern",
+    "version": "0.3.0",
+    "license": "MIT",
+    "homepage": "https://github.com/denoland/rust-urlpattern",
+    "description": "rust-urlpattern is a Rust implementation of the URLPattern standard"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "utf8_iter",
+    "version": "1.0.4",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://docs.rs/utf8_iter/",
+    "description": "Iterator by char over potentially-invalid UTF-8 in &[u8]"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "uuid",
+    "version": "1.23.4",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/uuid-rs/uuid",
+    "description": "A library to generate and parse UUIDs."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "walkdir",
+    "version": "2.5.0",
+    "license": "Unlicense/MIT",
+    "homepage": "https://github.com/BurntSushi/walkdir",
+    "description": "Recursively walk a directory."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "want",
+    "version": "0.3.1",
+    "license": "MIT",
+    "homepage": "https://github.com/seanmonstar/want",
+    "description": "Detect when another Future wants a result."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasi",
+    "version": "0.11.1+wasi-snapshot-preview1",
+    "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/bytecodealliance/wasi",
+    "description": "Experimental WASI API bindings for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasip2",
+    "version": "1.0.4+wasi-0.2.12",
+    "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/bytecodealliance/wasi-rs",
+    "description": "WASIp2 API bindings for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasm-bindgen",
+    "version": "0.2.126",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen",
+    "description": "Easy support for interacting between JS and Rust.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasm-bindgen-futures",
+    "version": "0.4.76",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen/",
+    "description": "Bridging the gap between Rust Futures and JavaScript Promises"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasm-bindgen-macro",
+    "version": "0.2.126",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen/",
+    "description": "Definition of the `#[wasm_bindgen]` attribute, an internal dependency\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasm-bindgen-macro-support",
+    "version": "0.2.126",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen/",
+    "description": "Implementation APIs for the `#[wasm_bindgen]` attribute"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasm-bindgen-shared",
+    "version": "0.2.126",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen/",
+    "description": "Shared support between wasm-bindgen and wasm-bindgen cli, an internal\ndependency.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wasm-streams",
+    "version": "0.5.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/MattiasBuelens/wasm-streams/",
+    "description": "Bridging between web streams and Rust streams using WebAssembly\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "web_atoms",
+    "version": "0.2.5",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/servo/html5ever",
+    "description": "Atoms for xml5ever and html5ever"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "web-sys",
+    "version": "0.3.103",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://wasm-bindgen.github.io/wasm-bindgen/web-sys/index.html",
+    "description": "Bindings for all Web APIs, a procedurally generated crate from WebIDL\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "web-time",
+    "version": "1.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/daxpedda/web-time",
+    "description": "Drop-in replacement for std::time for Wasm in browsers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "webkit2gtk",
+    "version": "2.0.2",
+    "license": "MIT",
+    "homepage": "https://github.com/tauri-apps/webkit2gtk-rs",
+    "description": "Rust bindings for webkit-gtk library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "webkit2gtk-sys",
+    "version": "2.0.2",
+    "license": "MIT",
+    "homepage": "https://github.com/tauri-apps/webkit2gtk-rs",
+    "description": "Rust binding for webkit-gtk library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "webpki-roots",
+    "version": "1.0.8",
+    "license": "CDLA-Permissive-2.0",
+    "homepage": "https://github.com/rustls/webpki-roots",
+    "description": "Mozilla's CA root certificates for use with webpki"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "webview2-com",
+    "version": "0.38.2",
+    "license": "MIT",
+    "homepage": "https://github.com/wravery/webview2-rs",
+    "description": "Rust bindings for the WebView2 COM APIs"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "webview2-com-macros",
+    "version": "0.8.1",
+    "license": "MIT",
+    "homepage": "https://github.com/wravery/webview2-rs",
+    "description": "Macros which generate callback implementations for WebView2 COM APIs"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "webview2-com-sys",
+    "version": "0.38.2",
+    "license": "MIT",
+    "homepage": "https://github.com/wravery/webview2-rs",
+    "description": "Bindings generated with the windows crate for the WebView2 COM APIs"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "winapi",
+    "version": "0.3.9",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/retep998/winapi-rs",
+    "description": "Raw FFI bindings for all of Windows API."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "winapi-i686-pc-windows-gnu",
+    "version": "0.4.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/retep998/winapi-rs",
+    "description": "Import libraries for the i686-pc-windows-gnu target. Please don't use this crate directly, depend on winapi instead."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "winapi-util",
+    "version": "0.1.11",
+    "license": "Unlicense OR MIT",
+    "homepage": "https://github.com/BurntSushi/winapi-util",
+    "description": "A dumping ground for high level safe wrappers over windows-sys."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "winapi-x86_64-pc-windows-gnu",
+    "version": "0.4.0",
+    "license": "MIT/Apache-2.0",
+    "homepage": "https://github.com/retep998/winapi-rs",
+    "description": "Import libraries for the x86_64-pc-windows-gnu target. Please don't use this crate directly, depend on winapi instead."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "window-vibrancy",
+    "version": "0.6.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/tauri-plugin-vibrancy",
+    "description": "Make your windows vibrant."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows",
+    "version": "0.61.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Rust for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_aarch64_gnullvm",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_aarch64_msvc",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_i686_gnu",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_i686_gnullvm",
+    "version": "0.52.6",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_i686_msvc",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_x86_64_gnu",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_x86_64_gnullvm",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows_x86_64_msvc",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import lib for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-collections",
+    "version": "0.2.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows collection types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-core",
+    "version": "0.61.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Core type support for COM and Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-future",
+    "version": "0.2.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows async types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-implement",
+    "version": "0.60.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "The implement macro for the Windows crates"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-interface",
+    "version": "0.59.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "The interface macro for the Windows crates"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-link",
+    "version": "0.1.3",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Linking for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-numerics",
+    "version": "0.2.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows numeric types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-registry",
+    "version": "0.6.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows registry"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-result",
+    "version": "0.4.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows error handling"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-strings",
+    "version": "0.5.1",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows string types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-sys",
+    "version": "0.61.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Rust for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-targets",
+    "version": "0.42.2",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Import libs for Windows"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-threading",
+    "version": "0.1.0",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows threading"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "windows-version",
+    "version": "0.1.7",
+    "license": "MIT OR Apache-2.0",
+    "homepage": "https://github.com/microsoft/windows-rs",
+    "description": "Windows version information"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "winnow",
+    "version": "1.0.3",
+    "license": "MIT",
+    "homepage": "https://github.com/winnow-rs/winnow",
+    "description": "A byte-oriented, zero-copy, parser combinators library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wit-bindgen",
+    "version": "0.57.1",
+    "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/bytecodealliance/wit-bindgen",
+    "description": "Rust bindings generator and runtime support for WIT and the component model.\nUsed when compiling Rust programs to the component model.\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "writeable",
+    "version": "0.6.3",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "A more efficient alternative to fmt::Display"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "wry",
+    "version": "0.55.1",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/tauri-apps/wry",
+    "description": "Cross-platform WebView rendering library"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "x11",
+    "version": "2.21.0",
+    "license": "MIT",
+    "homepage": "https://github.com/AltF02/x11-rs.git",
+    "description": "X11 library bindings for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "x11-dl",
+    "version": "2.21.0",
+    "license": "MIT",
+    "homepage": "https://github.com/AltF02/x11-rs.git",
+    "description": "X11 library bindings for Rust"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "yoke",
+    "version": "0.8.3",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "Abstraction allowing borrowed data to be carried along with the backing data it borrows from"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "yoke-derive",
+    "version": "0.8.2",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "Custom derive for the yoke crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zbus",
+    "version": "5.17.0",
+    "license": "MIT",
+    "homepage": "https://github.com/z-galaxy/zbus/",
+    "description": "API for D-Bus communication"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zbus_macros",
+    "version": "5.17.0",
+    "license": "MIT",
+    "homepage": "https://github.com/z-galaxy/zbus/",
+    "description": "proc-macros for zbus"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zbus_names",
+    "version": "4.3.3",
+    "license": "MIT",
+    "homepage": "https://github.com/z-galaxy/zbus/",
+    "description": "A collection of D-Bus bus names types"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerocopy",
+    "version": "0.8.54",
+    "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/google/zerocopy",
+    "description": "Zerocopy makes zero-cost memory manipulation effortless. We write \"unsafe\" so you don't have to."
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerocopy-derive",
+    "version": "0.8.54",
+    "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+    "homepage": "https://github.com/google/zerocopy",
+    "description": "Custom derive for traits from the zerocopy crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerofrom",
+    "version": "0.1.8",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "ZeroFrom trait for constructing"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerofrom-derive",
+    "version": "0.1.7",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "Custom derive for the zerofrom crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zeroize",
+    "version": "1.9.0",
+    "license": "Apache-2.0 OR MIT",
+    "homepage": "https://github.com/RustCrypto/utils",
+    "description": "Securely clear secrets from memory with a simple trait built on\nstable Rust primitives which guarantee memory is zeroed using an\noperation will not be 'optimized away' by the compiler.\nUses a portable pure Rust implementation that works everywhere,\neven WASM!\n"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerotrie",
+    "version": "0.2.4",
+    "license": "Unicode-3.0",
+    "homepage": "https://icu4x.unicode.org",
+    "description": "A data structure that efficiently maps strings to integers"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerovec",
+    "version": "0.11.6",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "Zero-copy vector backed by a byte array"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zerovec-derive",
+    "version": "0.11.3",
+    "license": "Unicode-3.0",
+    "homepage": "https://github.com/unicode-org/icu4x",
+    "description": "Custom derive for the zerovec crate"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zmij",
+    "version": "1.0.21",
+    "license": "MIT",
+    "homepage": "https://github.com/dtolnay/zmij",
+    "description": "A double-to-string conversion algorithm based on Schubfach and yy"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zvariant",
+    "version": "5.13.0",
+    "license": "MIT",
+    "homepage": "https://github.com/z-galaxy/zbus/",
+    "description": "D-Bus & GVariant encoding & decoding"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zvariant_derive",
+    "version": "5.13.0",
+    "license": "MIT",
+    "homepage": "https://github.com/z-galaxy/zbus/",
+    "description": "D-Bus & GVariant encoding & decoding"
+  },
+  {
+    "ecosystem": "rust",
+    "name": "zvariant_utils",
+    "version": "3.5.0",
+    "license": "MIT",
+    "homepage": "https://github.com/z-galaxy/zbus/",
+    "description": "Various utilities used internally by the zvariant crate."
+  }
+]

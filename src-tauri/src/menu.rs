@@ -3,18 +3,22 @@
 //! in-app Settings by emitting `menu:preferences` to the webview. The Edit
 //! submenu is kept so copy/paste/select-all work in Settings' text fields.
 
-use tauri::menu::{AboutMetadata, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{AppHandle, Emitter, Runtime};
 
 pub const PREFERENCES: &str = "preferences";
+pub const ABOUT: &str = "about";
 
 pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+    // Our own About item (rather than the predefined native panel) so it opens
+    // the in-app About window with the full acknowledgements list.
+    let about = MenuItemBuilder::with_id(ABOUT, "About BlitterAmp").build(app)?;
     let preferences = MenuItemBuilder::with_id(PREFERENCES, "Preferences…")
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
 
     let app_menu = SubmenuBuilder::new(app, "BlitterAmp")
-        .about(Some(AboutMetadata::default()))
+        .item(&about)
         .separator()
         .item(&preferences)
         .separator()
@@ -43,9 +47,16 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     Ok(())
 }
 
-/// Routes menu clicks: Preferences opens the in-app Settings.
+/// Routes menu clicks to the webview: Preferences opens Settings, About opens
+/// the About window.
 pub fn on_event<R: Runtime>(app: &AppHandle<R>, id: &str) {
-    if id == PREFERENCES {
-        let _ = app.emit("menu:preferences", ());
+    match id {
+        PREFERENCES => {
+            let _ = app.emit("menu:preferences", ());
+        }
+        ABOUT => {
+            let _ = app.emit("menu:about", ());
+        }
+        _ => {}
     }
 }
