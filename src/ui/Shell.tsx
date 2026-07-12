@@ -11,6 +11,7 @@ import { HomeView } from "./views/HomeView";
 import { SearchView } from "./views/SearchView";
 import { MixView } from "./views/MixView";
 import { Settings } from "./Settings";
+import { AboutModal } from "./AboutModal";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
 import { ArtistsView } from "./views/ArtistsView";
@@ -50,6 +51,7 @@ function ShellInner({
   const [view, setView] = useState<View>({ name: "home" });
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
 
@@ -57,8 +59,11 @@ function ShellInner({
 
   // Preferences… (⌘,) from the native app menu.
   useEffect(() => {
-    const unlisten = listen("menu:preferences", () => setSettingsOpen(true));
-    return () => void unlisten.then((f) => f());
+    const unlisten = Promise.all([
+      listen("menu:preferences", () => setSettingsOpen(true)),
+      listen("menu:about", () => setAboutOpen(true)),
+    ]);
+    return () => void unlisten.then((fns) => fns.forEach((f) => f()));
   }, []);
 
   const navItem = (active: boolean) =>
@@ -200,6 +205,8 @@ function ShellInner({
           onClose={() => setSettingsOpen(false)}
         />
       )}
+
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
     </div>
   );
 }
