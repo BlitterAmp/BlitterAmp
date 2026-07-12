@@ -1,6 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import llamaSound from "../../assets/blitteramp_llama.mp3?url";
 
 // About window: brand, version, license, and a searchable acknowledgements list
 // of every dependency that ships — npm (the webview bundle) and the Rust crates
@@ -19,9 +20,33 @@ interface LicenseEntry {
 
 const REPO = "https://github.com/BlitterAmp/BlitterAmp";
 const MIT = "https://opensource.org/license/mit";
+let llamaAudio: HTMLAudioElement | null = null;
+let llamaPlaying = false;
 
 function link(url: string | null) {
   if (url) void openUrl(url);
+}
+
+function playLlamaSound() {
+  if (llamaPlaying) return;
+
+  if (!llamaAudio) {
+    llamaAudio = new Audio(llamaSound);
+    const reset = () => {
+      llamaPlaying = false;
+    };
+    llamaAudio.addEventListener("ended", reset);
+    llamaAudio.addEventListener("error", reset);
+  }
+
+  llamaPlaying = true;
+  try {
+    void llamaAudio.play().catch(() => {
+      llamaPlaying = false;
+    });
+  } catch {
+    llamaPlaying = false;
+  }
 }
 
 export function AboutModal({ onClose }: { onClose: () => void }) {
@@ -71,9 +96,14 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
         {/* Identity */}
         <div className="flex flex-col items-center gap-1 px-6 pt-6 text-center">
-          <div className="brand text-4xl">
+          <button
+            type="button"
+            className="brand cursor-pointer border-0 bg-transparent p-0 text-4xl"
+            aria-label="Play BlitterAmp sound"
+            onClick={playLlamaSound}
+          >
             Blitter<span>Amp</span>
-          </div>
+          </button>
           <div className="text-sm text-base-content/60">Version {__APP_VERSION__}</div>
           <div className="mt-2 text-sm text-base-content/70">
             © 2026 Nathan Ollerenshaw · Released under the{" "}
