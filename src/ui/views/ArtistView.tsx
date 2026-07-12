@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Shuffle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { ArtistDetail, Client } from "../../api/client";
 import type { Player } from "../../audio/player";
@@ -6,6 +6,7 @@ import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
 import { StarRating } from "../StarRating";
 import { LoveButton } from "../LoveButton";
+import { PlayActions } from "../PlayActions";
 import { TrackList, type NavTarget } from "../TrackList";
 
 export function ArtistView({
@@ -65,19 +66,7 @@ export function ArtistView({
             </div>
           )}
           <div className="mt-3 flex items-center gap-3">
-            <button type="button" className="btn btn-primary btn-sm gap-2" onClick={() => void player.playQueue(tracks)}>
-              <Play size={16} /> Play
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm gap-2"
-              onClick={() => {
-                player.toggleShuffle();
-                void player.playQueue(tracks);
-              }}
-            >
-              <Shuffle size={15} /> Shuffle
-            </button>
+            <PlayActions player={player} tracks={tracks} size="sm" />
             {artist && (
               <>
                 <LoveButton

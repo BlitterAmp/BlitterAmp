@@ -3,6 +3,7 @@ import { Disc3, Home, ListMusic, Mic2, Music, Plus, Search, Settings as Settings
 import { useEffect, useRef, useState } from "react";
 import type { Player } from "../audio/player";
 import { ScrollContext } from "./ScrollContext";
+import { usePrompt } from "./PromptProvider";
 import type { Connection } from "../state/connection";
 import { NowPlayingBar } from "./NowPlayingBar";
 import { QueueDrawer } from "./QueueDrawer";
@@ -57,6 +58,7 @@ function ShellInner({
   const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
   const mainRef = useRef<HTMLElement>(null);
+  const prompt = usePrompt();
 
   const navigate = (t: NavTarget) => setView(t);
 
@@ -129,7 +131,7 @@ function ShellInner({
               className="btn btn-ghost btn-xs btn-square"
               aria-label="New playlist"
               onClick={async () => {
-                const title = window.prompt("New playlist name");
+                const title = await prompt({ title: "New playlist", placeholder: "Playlist name", confirmLabel: "Create" });
                 if (!title) return;
                 const pl = await create(title);
                 setView({ name: "playlist", playlistId: pl.playlistId });

@@ -1,5 +1,6 @@
 import { Check, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { getShuffleMode, setShuffleMode, type ShuffleMode } from "../../state/shuffle";
 import {
   BUILTIN_THEMES,
   type ColorKey,
@@ -41,6 +42,12 @@ export function Appearance() {
   const [active, setActive] = useState(getActiveTheme());
   const [custom, setCustom] = useState<CustomTheme[]>(loadCustomThemes());
   const [editing, setEditing] = useState<CustomTheme | null>(null);
+  const [shuffle, setShuffle] = useState<ShuffleMode>(getShuffleMode());
+
+  function pickShuffle(mode: ShuffleMode) {
+    setShuffle(mode);
+    setShuffleMode(mode);
+  }
 
   function pick(name: string) {
     setActiveTheme(name);
@@ -70,6 +77,36 @@ export function Appearance() {
 
   return (
     <div>
+      <h3 className="mb-4 text-xl font-semibold">Shuffle</h3>
+      <div className="mb-8 flex flex-col gap-2">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="radio"
+            name="shuffle"
+            className="radio radio-primary radio-sm mt-0.5"
+            checked={shuffle === "spread"}
+            onChange={() => pickShuffle("spread")}
+          />
+          <span>
+            <span className="font-medium">Avoid repeats</span>
+            <span className="block text-xs opacity-60">Spread the same artist and album apart</span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="radio"
+            name="shuffle"
+            className="radio radio-primary radio-sm mt-0.5"
+            checked={shuffle === "random"}
+            onChange={() => pickShuffle("random")}
+          />
+          <span>
+            <span className="font-medium">Random</span>
+            <span className="block text-xs opacity-60">Pure random order</span>
+          </span>
+        </label>
+      </div>
+
       <h3 className="mb-4 text-xl font-semibold">Appearance</h3>
 
       <div className="mb-6">

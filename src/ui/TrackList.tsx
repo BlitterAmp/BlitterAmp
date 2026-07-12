@@ -5,6 +5,7 @@ import type { Client, LoveState, Track } from "../api/client";
 import type { Player } from "../audio/player";
 import { usePlaylists } from "../state/playlists";
 import { LoveButton } from "./LoveButton";
+import { usePrompt } from "./PromptProvider";
 import { useScrollParent } from "./ScrollContext";
 import { StarRating } from "./StarRating";
 
@@ -39,6 +40,7 @@ export function TrackList({
   onRemove?: (track: Track) => void;
 }) {
   const { playlists, create, append } = usePlaylists();
+  const prompt = usePrompt();
 
   async function addToPlaylist(t: Track, playlistId: string) {
     closeMenus();
@@ -61,7 +63,7 @@ export function TrackList({
 
   async function addToNewPlaylist(t: Track) {
     closeMenus();
-    const title = window.prompt("New playlist name");
+    const title = await prompt({ title: "New playlist", placeholder: "Playlist name", confirmLabel: "Create" });
     if (!title) return;
     try {
       const pl = await create(title);
