@@ -16,6 +16,7 @@ import { Settings } from "./Settings";
 import { AboutModal } from "./AboutModal";
 import { UpdatePrompt } from "./UpdatePrompt";
 import { LogsModal } from "./LogsModal";
+import { LinuxAppMenu, LinuxWindowControls } from "./LinuxWindowChrome";
 import { AlbumsView } from "./views/AlbumsView";
 import { AlbumView } from "./views/AlbumView";
 import { ArtistsView } from "./views/ArtistsView";
@@ -61,6 +62,7 @@ function ShellInner({
   const { client } = connection;
   const mainRef = useRef<HTMLElement>(null);
   const prompt = usePrompt();
+  const isLinux = document.documentElement.dataset.platform === "linux";
 
   const navigate = (t: NavTarget) => setView(t);
 
@@ -84,6 +86,13 @@ function ShellInner({
         className="titlebar-pad flex h-13 shrink-0 items-center gap-4 border-b border-base-300 bg-base-100 pr-3"
         data-tauri-drag-region
       >
+        {isLinux && (
+          <LinuxAppMenu
+            onSettings={() => setSettingsOpen(true)}
+            onAbout={() => setAboutOpen(true)}
+            onLogs={() => setLogsOpen(true)}
+          />
+        )}
         <div className="brand text-lg">
           Blitter<span>Amp</span>
         </div>
@@ -109,6 +118,7 @@ function ShellInner({
         >
           <SettingsIcon size={16} />
         </button>
+        {isLinux && <LinuxWindowControls />}
       </header>
 
       <div className="flex min-h-0 flex-1">
