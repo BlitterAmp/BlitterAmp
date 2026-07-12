@@ -109,9 +109,13 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: blitteramp
-          # Upload into the release-please release (or the dispatch tag). The
-          # action attaches this platform's bundles and merges latest.json.
+          # Upload into the release-please release (or the dispatch tag). If the
+          # release doesn't exist yet (e.g. a dispatch rebuild after cleanup),
+          # releaseName lets the action create it; otherwise it finds it by tag
+          # and merges this platform's bundles + latest.json.
           tagName: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+          releaseName: BlitterAmp v__VERSION__
+          releaseBody: See the assets below to download and install this version.
           releaseDraft: true
           args: --target ${{ matrix.target }}
 
