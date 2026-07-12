@@ -31,7 +31,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with: { workspaces: blitteramp/src-tauri }
       - name: tauri linux deps
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf ffmpeg libasound2-dev
       - name: build engine sidecar
         run: cd blitteramp && BLITTERSERVER_DIR=$GITHUB_WORKSPACE/blitterserver bash scripts/build-engine.sh
       - run: cargo check --manifest-path blitteramp/src-tauri/Cargo.toml
