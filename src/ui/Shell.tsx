@@ -1,7 +1,8 @@
 import { listen } from "@tauri-apps/api/event";
 import { Disc3, Home, ListMusic, Mic2, Music, Plus, Search, Settings as SettingsIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Player } from "../audio/player";
+import { ScrollContext } from "./ScrollContext";
 import type { Connection } from "../state/connection";
 import { NowPlayingBar } from "./NowPlayingBar";
 import { QueueDrawer } from "./QueueDrawer";
@@ -55,6 +56,7 @@ function ShellInner({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const { client } = connection;
+  const mainRef = useRef<HTMLElement>(null);
 
   const navigate = (t: NavTarget) => setView(t);
 
@@ -150,16 +152,21 @@ function ShellInner({
           </div>
         </nav>
 
-        <main className="min-w-0 flex-1 overflow-y-auto p-6">
-          {view.name === "albums" && (
+        <ScrollContext.Provider value={mainRef}>
+        <main ref={mainRef} className="min-w-0 flex-1 overflow-y-auto p-6">
+          {/* Grid views stay mounted (hidden when inactive) so switching back is
+              instant and their art doesn't re-flash. */}
+          <div hidden={view.name !== "albums"}>
             <AlbumsView
               client={client}
               managed={connection.kind === "local"}
               onOpen={(albumId) => setView({ name: "album", albumId })}
               onManage={() => setSettingsOpen(true)}
             />
-          )}
-          {view.name === "artists" && <ArtistsView client={client} onOpen={(artistId) => setView({ name: "artist", artistId })} />}
+          </div>
+          <div hidden={view.name !== "artists"}>
+            <ArtistsView client={client} onOpen={(artistId) => setView({ name: "artist", artistId })} />
+          </div>
           {view.name === "tracks" && <TracksView client={client} player={player} onNavigate={navigate} />}
           {view.name === "album" && (
             <AlbumView client={client} player={player} albumId={view.albumId} onNavigate={navigate} onBack={() => setView({ name: "albums" })} />
@@ -177,7 +184,7 @@ function ShellInner({
               onDeleted={() => setView({ name: "albums" })}
             />
           )}
-          {view.name === "home" && (
+          <div hidden={view.name !== "home"}>
             <HomeView
               client={client}
               player={player}
@@ -185,12 +192,13 @@ function ShellInner({
               onOpenMix={(mixId, title) => setView({ name: "mix", mixId, title })}
               onOpenPlaylist={(playlistId) => setView({ name: "playlist", playlistId })}
             />
-          )}
+          </div>
           {view.name === "search" && <SearchView client={client} player={player} query={search} onNavigate={navigate} />}
           {view.name === "mix" && (
             <MixView client={client} player={player} mixId={view.mixId} title={view.title} onNavigate={navigate} onBack={() => setView({ name: "home" })} />
           )}
         </main>
+        </ScrollContext.Provider>
         {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} />}
       </div>
 
