@@ -9,6 +9,7 @@ import { ConnectRemote } from "./settings/ConnectRemote";
 import { Devices } from "./settings/Devices";
 import { Integrations } from "./settings/Integrations";
 import { Library } from "./settings/Library";
+import { LastfmAccount } from "./settings/LastfmAccount";
 import { Profiles } from "./settings/Profiles";
 
 type Section = "connection" | "library" | "profiles" | "devices" | "integrations" | "appearance";
@@ -147,6 +148,7 @@ function ConnectionPane({
           </div>
         </div>
       )}
+      <LastfmAccount client={connection.client} />
     </div>
   );
 }

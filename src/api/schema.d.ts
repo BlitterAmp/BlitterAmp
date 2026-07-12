@@ -189,7 +189,10 @@ export interface paths {
         get: operations["getMyLastfm"];
         put?: never;
         post?: never;
-        /** Disconnect the calling profile's last.fm */
+        /**
+         * Disconnect the calling profile's last.fm
+         * @description Removes personal last.fm credentials, relay sessions, and provider linkage while retaining ordinary local playback history.
+         */
         delete: operations["disconnectMyLastfm"];
         options?: never;
         head?: never;
@@ -207,6 +210,46 @@ export interface paths {
         put?: never;
         /** Start last.fm auth for the calling profile (open the returned URL; completes via callback) */
         post: operations["connectMyLastfm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lastfm/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Complete browser-based last.fm authorization
+         * @description Single-use callback bound to the initiating profile by an opaque, 15-minute state value. State is consumed only after successful encrypted connection persistence. Returns minimal non-cacheable HTML and never exposes the session key.
+         */
+        get: operations["completeLastfmAuth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/api/profiles/{profileId}/anonymize-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview or remove stored personal last.fm data for a profile
+         * @description Admin-authenticated erasure path. Removes the PII username, secret session key, auth attempts, provider relay sessions, and last.fm linkage from retained general playback events. Local playback history remains intact; dry-run reports categories without changing data.
+         */
+        post: operations["adminAnonymizeProfileData"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1367,7 +1410,10 @@ export interface paths {
         /** Set last.fm API credentials */
         put: operations["adminSetLastfm"];
         post?: never;
-        /** Disconnect last.fm */
+        /**
+         * Disconnect last.fm
+         * @description Removes instance credentials and all personal last.fm data/linkage while retaining ordinary local playback history.
+         */
         delete: operations["adminDeleteLastfm"];
         options?: never;
         head?: never;
@@ -1615,7 +1661,7 @@ export interface components {
             /** @description aac absent when ffmpeg unavailable */
             transcodeFormats: ("original" | "aac")[];
             radio?: boolean;
-            /** @description An engine recommendation provider is configured — /v1/me/discover returns items */
+            /** @description A recommendation provider has operational instance credentials; personalized results additionally require a connected profile */
             discovery?: boolean;
         };
         Device: {
@@ -1873,6 +1919,8 @@ export interface components {
         PlaybackEvent: {
             /** @description Client-generated UUID (dedupe key) */
             eventId: string;
+            /** @description Stable client-generated ID for one listening session; use it for all events from started through ended/skipped */
+            playSessionId?: string | null;
             /** @enum {string} */
             type: "started" | "progress" | "paused" | "resumed" | "ended" | "skipped";
             trackId: string;
@@ -2502,6 +2550,7 @@ export interface operations {
                         /** @description Instance has last.fm API credentials (admin-configured) */
                         available: boolean;
                         connected: boolean;
+                        /** @description PII: last.fm username. Stored only while connected; removed on disconnect/profile deletion/anonymization. Never logged. */
                         username?: string | null;
                     };
                 };
@@ -2558,6 +2607,77 @@ export interface operations {
                     "application/problem+json": components["schemas"]["Problem"];
                 };
             };
+        };
+    };
+    completeLastfmAuth: {
+        parameters: {
+            query: {
+                state: string;
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorization completed */
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Referrer-Policy"?: string;
+                    "Content-Security-Policy"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            /** @description Invalid, expired, reused, or mismatched attempt */
+            400: {
+                headers: {
+                    "Cache-Control"?: string;
+                    "Referrer-Policy"?: string;
+                    "Content-Security-Policy"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+        };
+    };
+    adminAnonymizeProfileData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                profileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    dryRun: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Erasure preview/result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        dryRun: boolean;
+                        categories: ("lastfm_username" | "lastfm_session" | "lastfm_auth_attempts" | "lastfm_playback")[];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     getMySettings: {
@@ -2785,6 +2905,15 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+            /** @description Configured discovery provider is unavailable */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     listAlbums: {
@@ -3366,6 +3495,15 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             404: components["responses"]["NotFound"];
+            /** @description Configured discovery provider is unavailable */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getMyDiscover: {
@@ -3387,6 +3525,15 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            /** @description Configured discovery provider is unavailable */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     reportPlaybackEvents: {

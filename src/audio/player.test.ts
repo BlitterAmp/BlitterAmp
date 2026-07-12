@@ -85,22 +85,39 @@ class FakeBackend implements AudioBackend {
 function makeClient() {
   const client = new Client("http://s", "t");
   const events: string[] = [];
+  const reported: { type: string; playSessionId: string }[] = [];
   vi.spyOn(client, "post").mockImplementation(async (path: string, body?: unknown) => {
     if (path === "/v1/playback/events") {
-      for (const e of (body as { events: { type: string }[] }).events) events.push(e.type);
+      for (const e of (body as { events: { type: string; playSessionId: string }[] }).events) {
+        events.push(e.type);
+        reported.push(e);
+      }
     }
     return null as never;
   });
-  return { client, events };
+  return { client, events, reported };
 }
 
 function setup() {
-  const { client, events } = makeClient();
+  const { client, events, reported } = makeClient();
   const backend = new FakeBackend();
   const p = new Player(client, backend);
   let state = p.currentState();
   p.subscribe((s) => (state = s));
-  return { p, backend, events, get: () => state };
+  return { p, backend, events, reported, get: () => state };
+}
+
+function sessions(reported: { type: string; playSessionId: string }[]) {
+  return reported.reduce<Record<string, string[]>>((bySession, event) => {
+    (bySession[event.playSessionId] ??= []).push(event.type);
+    return bySession;
+  }, {});
+}
+
+function expectOneTerminalPerSession(reported: { type: string; playSessionId: string }[]) {
+  for (const events of Object.values(sessions(reported))) {
+    expect(events.filter((type) => type === "ended" || type === "skipped")).toHaveLength(1);
+  }
 }
 
 describe("Player", () => {
@@ -229,5 +246,105 @@ describe("Player", () => {
     expect(backend.paused).toBe(1);
     p.toggle();
     expect(backend.resumed).toBe(1);
+  });
+
+  it("uses one play session ID through a listen and a new ID for the next listen", async () => {
+    const { p, backend, reported } = setup();
+    await p.playQueue([track("a"), track("b"), track("c")]);
+    backend.emitPosition({ positionSec: 21, durationSec: 200 });
+    p.toggle();
+    p.toggle();
+    backend.emitAdvanced({ finished: 1, currentTrackId: "b" });
+
+    expect(reported.slice(0, 5).map((event) => event.type)).toEqual(["started", "progress", "paused", "resumed", "ended"]);
+    expect(new Set(reported.slice(0, 5).map((event) => event.playSessionId)).size).toBe(1);
+    expect(reported[5].type).toBe("started");
+    expect(reported[5].playSessionId).not.toBe(reported[0].playSessionId);
+
+    await p.next();
+    expect(reported[6]).toMatchObject({ type: "skipped", playSessionId: reported[5].playSessionId });
+    expect(reported[7].type).toBe("started");
+    expect(reported[7].playSessionId).not.toBe(reported[5].playSessionId);
+  });
+
+  it("terminates sessions when a queue replaces playback, including replay", async () => {
+    const { p, backend, reported } = setup();
+    await p.playQueue([track("a")]);
+    await p.playQueue([track("b")]);
+    await p.playQueue([track("b")]);
+    backend.emitAdvanced({ finished: 1, currentTrackId: null });
+
+    expect(Object.values(sessions(reported))).toEqual([
+      ["started", "skipped"],
+      ["started", "skipped"],
+      ["started", "ended"],
+    ]);
+  });
+
+  it("terminates the current session when previous moves tracks", async () => {
+    const { p, backend, reported } = setup();
+    await p.playQueue([track("a"), track("b")], 1);
+    backend.emitPosition({ positionSec: 2, durationSec: 2 });
+    await p.previous();
+    backend.emitAdvanced({ finished: 1, currentTrackId: null });
+    backend.emitAdvanced({ finished: 1, currentTrackId: null });
+    expectOneTerminalPerSession(reported);
+    expect(Object.values(sessions(reported))[0]).toEqual(["started", "skipped"]);
+  });
+
+  it("terminates errored sessions while advancing and at the queue boundary", async () => {
+    const { p, backend, reported } = setup();
+    await p.playQueue([track("a"), track("b")]);
+    backend.emitError({ trackId: "a", message: "decode failed" });
+    backend.emitError({ trackId: "b", message: "decode failed" });
+    expectOneTerminalPerSession(reported);
+    expect(Object.values(sessions(reported)).map((events) => events[events.length - 1])).toEqual(["skipped", "skipped"]);
+  });
+
+  it("ignores a late error from a track that has already been replaced", async () => {
+    const { p, backend, reported } = setup();
+    await p.playQueue([track("a"), track("b")]);
+    await p.next();
+    backend.emitError({ trackId: "a", message: "late failure" });
+    expect(p.currentState().track?.trackId).toBe("b");
+    expect(sessions(reported)[reported[reported.length - 1].playSessionId]).toEqual(["started"]);
+  });
+
+  it("ignores a late play rejection from an older replay of the same track", async () => {
+    const { p, backend, reported } = setup();
+    let rejectFirst!: (error: unknown) => void;
+    vi.spyOn(backend, "playTrack")
+      .mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectFirst = reject; }))
+      .mockResolvedValueOnce();
+    await p.playQueue([track("a")]);
+    await p.playQueue([track("a")]);
+    rejectFirst(new Error("late first attempt"));
+    await Promise.resolve();
+
+    expect(p.currentState().track?.trackId).toBe("a");
+    expect(p.currentState().error).toBe("");
+    expect(sessions(reported)[reported[reported.length - 1].playSessionId]).toEqual(["started"]);
+  });
+
+  it("uses one terminal event for natural end, repeat-one, repeat-all, jump, and null recovery", async () => {
+    const { p, backend, reported } = setup();
+    await p.playQueue([track("a"), track("b")]);
+    await p.jumpTo(1);
+    p.setRepeat("one");
+    backend.emitAdvanced({ finished: 1, currentTrackId: "b" });
+    p.setRepeat("all");
+    backend.emitAdvanced({ finished: 1, currentTrackId: null });
+    p.setRepeat("off");
+    backend.emitAdvanced({ finished: 1, currentTrackId: "b" });
+    backend.emitAdvanced({ finished: 1, currentTrackId: null });
+
+    expectOneTerminalPerSession(reported);
+    expect(Object.values(sessions(reported)).map((events) => events[events.length - 1])).toEqual([
+      "skipped",
+      "ended",
+      "ended",
+      "ended",
+      "ended",
+    ]);
   });
 });

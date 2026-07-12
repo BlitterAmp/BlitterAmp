@@ -2,7 +2,7 @@
 // HTTP plugin (Rust-side fetch) because the webview origin can't do CORS
 // against an arbitrary self-hosted server.
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import type { components } from "./schema";
+import type { components, operations } from "./schema";
 
 export type Schemas = components["schemas"];
 export type Artist = Schemas["Artist"];
@@ -19,6 +19,9 @@ export type SearchResults = Schemas["SearchResults"];
 export type HomeRails = Schemas["HomeRails"];
 export type Mix = Schemas["Mix"];
 export type LibrarySummary = Schemas["Library"];
+export type PlaybackEvent = Schemas["PlaybackEvent"];
+export type LastfmAccount = operations["getMyLastfm"]["responses"][200]["content"]["application/json"];
+export type LastfmConnect = operations["connectMyLastfm"]["responses"][201]["content"]["application/json"];
 
 export class ApiError extends Error {
   constructor(
@@ -81,6 +84,9 @@ export class Client {
   }
   put<T>(path: string, body?: unknown): Promise<T> {
     return this.request<T>("PUT", path, body);
+  }
+  del<T>(path: string): Promise<T> {
+    return this.request<T>("DELETE", path);
   }
 
   // ---- typed conveniences used across the app ----
