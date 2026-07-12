@@ -30,7 +30,9 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # A PAT (not the default GITHUB_TOKEN) so the release PR it opens
+          # triggers CI — PRs created by GITHUB_TOKEN don't run workflows.
+          token: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
       - name: Mark release as draft while bundles build
         if: steps.release.outputs.release_created == 'true'
         env:
