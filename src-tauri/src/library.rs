@@ -822,17 +822,25 @@ async fn fetch_art(lib: &LibraryState, art_id: &str, size: u32) -> Result<Vec<u8
         negative.remove(&key);
     }
 
-    let (sender, mut waiter, winner) = {
+    let (guard, waiter) = {
         let mut inflight = lib.art_inflight.lock().unwrap();
         if let Some(sender) = inflight.get(&key) {
-            (sender.clone(), sender.subscribe(), false)
+            (None, Some(sender.subscribe()))
         } else {
-            let (sender, receiver) = watch::channel(None);
+            let (sender, _) = watch::channel(None);
             inflight.insert(key.clone(), sender.clone());
-            (sender, receiver, true)
+            (
+                Some(ArtFetchGuard {
+                    lib,
+                    key: key.clone(),
+                    sender,
+                    finished: false,
+                }),
+                None,
+            )
         }
     };
-    if !winner {
+    if let Some(mut waiter) = waiter {
         loop {
             if let Some(result) = waiter.borrow().clone() {
                 return result;
@@ -843,6 +851,7 @@ async fn fetch_art(lib: &LibraryState, art_id: &str, size: u32) -> Result<Vec<u8
                 .map_err(|_| "art fetch cancelled".to_string())?;
         }
     }
+    let guard = guard.expect("winner path holds the in-flight guard");
 
     let result = async {
         let _permit = lib
@@ -879,9 +888,36 @@ async fn fetch_art(lib: &LibraryState, art_id: &str, size: u32) -> Result<Vec<u8
             .unwrap()
             .insert(key.clone(), Instant::now() + ART_NEGATIVE_TTL);
     }
-    let _ = sender.send(Some(result.clone()));
-    lib.art_inflight.lock().unwrap().remove(&key);
+    guard.finish(&result);
     result
+}
+
+/// Owns an in-flight art fetch. Dropping it without `finish` (the winning
+/// future was cancelled) releases waiters with an error and clears the
+/// in-flight key, so a cancelled winner can never strand later requests.
+struct ArtFetchGuard<'a> {
+    lib: &'a LibraryState,
+    key: String,
+    sender: watch::Sender<Option<ArtResult>>,
+    finished: bool,
+}
+
+impl ArtFetchGuard<'_> {
+    fn finish(mut self, result: &ArtResult) {
+        let _ = self.sender.send(Some(result.clone()));
+        self.finished = true;
+    }
+}
+
+impl Drop for ArtFetchGuard<'_> {
+    fn drop(&mut self) {
+        if !self.finished {
+            let _ = self
+                .sender
+                .send(Some(Err("art fetch cancelled".to_string())));
+        }
+        self.lib.art_inflight.lock().unwrap().remove(&self.key);
+    }
 }
 
 #[cfg(test)]
@@ -1281,5 +1317,65 @@ mod tests {
         });
         server.join().unwrap();
         assert!(peak.load(Ordering::SeqCst) <= 6);
+    }
+
+    #[test]
+    fn aborted_winner_releases_waiters_and_inflight_key() {
+        // A server that accepts but never answers keeps the winning fetch
+        // parked at its HTTP await point until the task is aborted.
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        thread::spawn(move || {
+            let mut held = Vec::new();
+            for stream in listener.incoming() {
+                held.push(stream);
+            }
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let state = Arc::new(test_state(dir.path(), format!("http://{address}"), 6));
+
+        tauri::async_runtime::block_on(async {
+            let winner = {
+                let state = Arc::clone(&state);
+                tauri::async_runtime::spawn(async move {
+                    let _ = fetch_art(&state, "img_wedge", 300).await;
+                })
+            };
+            for _ in 0..200 {
+                if state
+                    .art_inflight
+                    .lock()
+                    .unwrap()
+                    .contains_key("img_wedge@300")
+                {
+                    break;
+                }
+                tokio::time::sleep(Duration::from_millis(5)).await;
+            }
+            assert!(state
+                .art_inflight
+                .lock()
+                .unwrap()
+                .contains_key("img_wedge@300"));
+
+            let waiter = {
+                let state = Arc::clone(&state);
+                tauri::async_runtime::spawn(
+                    async move { fetch_art(&state, "img_wedge", 300).await },
+                )
+            };
+            tokio::time::sleep(Duration::from_millis(50)).await;
+            winner.abort();
+
+            let outcome = tokio::time::timeout(Duration::from_secs(2), waiter)
+                .await
+                .expect("waiter must not hang after the winner is aborted");
+            assert!(outcome.expect("waiter task must not panic").is_err());
+            assert!(!state
+                .art_inflight
+                .lock()
+                .unwrap()
+                .contains_key("img_wedge@300"));
+        });
     }
 }
