@@ -1,9 +1,10 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { X } from "lucide-react";
 import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
-import type { Client } from "../api/client";
+import type { ArtistCredit, Client } from "../api/client";
 import type { Player } from "../audio/player";
 import { AlbumArt } from "./AlbumArt";
+import { ArtistCredits } from "./ArtistCredits";
 import { projectQueueScrollOffset, QUEUE_ROW_HEIGHT } from "./queueScroll";
 import type { NavTarget } from "./TrackList";
 
@@ -65,7 +66,7 @@ export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: 
         {s.track && (
           <>
             <div className="px-2 py-1 text-[10.5px] font-semibold uppercase tracking-wider opacity-50">Now playing</div>
-            <Row client={client} title={s.track.title} artistId={s.track.artistId} artistName={s.track.artistName} artId={s.track.artId} active onClick={() => {}} onOpenArtist={onNavigate} />
+            <Row client={client} title={s.track.title} artistCredits={s.track.artistCredits} artId={s.track.artId} active onClick={() => {}} onOpenArtist={onNavigate} />
           </>
         )}
         {count > 0 && (
@@ -97,8 +98,7 @@ export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: 
                 <Row
                   client={client}
                   title={t.title}
-                  artistId={t.artistId}
-                  artistName={t.artistName}
+                  artistCredits={t.artistCredits}
                   artId={t.artId}
                   onClick={() => void player.jumpTo(queueIndex)}
                   onRemove={() => player.removeFromQueue(queueIndex)}
@@ -116,8 +116,7 @@ export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: 
 function Row({
   client,
   title,
-  artistId,
-  artistName,
+  artistCredits,
   artId,
   active,
   onClick,
@@ -126,8 +125,7 @@ function Row({
 }: {
   client: Client;
   title: string;
-  artistId: string;
-  artistName: string;
+  artistCredits: ArtistCredit[];
   artId?: string | null;
   active?: boolean;
   onClick: () => void;
@@ -144,7 +142,11 @@ function Row({
           <div className={`truncate text-sm ${active ? "font-semibold text-primary" : ""}`}>{title}</div>
         </div>
       </button>
-      <button type="button" className="max-w-24 truncate text-xs opacity-60 hover:text-primary hover:opacity-100" onClick={() => onOpenArtist({ name: "artist", artistId })}>{artistName}</button>
+      <ArtistCredits
+        credits={artistCredits}
+        className="max-w-24 truncate text-xs opacity-60"
+        onOpenArtist={(artistId) => onOpenArtist({ name: "artist", artistId })}
+      />
       {onRemove && (
         <button type="button" className="btn btn-ghost btn-xs btn-square opacity-0 group-hover:opacity-100" onClick={onRemove} aria-label="Remove">
           <X size={13} />

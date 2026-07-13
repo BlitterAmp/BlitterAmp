@@ -21,20 +21,20 @@ export function setShuffleMode(mode: ShuffleMode): void {
 export function spreadByArtist(tracks: Track[]): Track[] {
   const buckets = new Map<string, Track[]>();
   for (const t of tracks) {
-    const arr = buckets.get(t.artistId);
+    const arr = buckets.get(t.primaryArtist.artistId);
     if (arr) arr.push(t);
-    else buckets.set(t.artistId, [t]);
+    else buckets.set(t.primaryArtist.artistId, [t]);
   }
   const lists = [...buckets.values()];
   const out: Track[] = [];
   let last: string | null = null;
   while (out.length < tracks.length) {
     const avail = lists.filter((l) => l.length > 0).sort((a, b) => b.length - a.length);
-    const pick = avail.find((l) => l[0].artistId !== last) ?? avail[0];
+    const pick = avail.find((l) => l[0].primaryArtist.artistId !== last) ?? avail[0];
     const t = pick.shift();
     if (!t) break;
     out.push(t);
-    last = t.artistId;
+    last = t.primaryArtist.artistId;
   }
   return out;
 }

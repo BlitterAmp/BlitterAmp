@@ -4,6 +4,7 @@ import type { Client } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
+import { ArtistCredits } from "../ArtistCredits";
 import { PlayActions } from "../PlayActions";
 import { TrackList, type NavTarget } from "../TrackList";
 
@@ -20,14 +21,13 @@ export function AlbumView({
   onNavigate: (t: NavTarget) => void;
   onBack: () => void;
 }) {
-  const { tracksByAlbum } = useLibrary();
+  const { albumById, tracksByAlbum } = useLibrary();
+  const album = albumById.get(albumId);
   const tracks = useMemo(() => {
     const list = [...(tracksByAlbum.get(albumId) ?? [])];
     list.sort((a, b) => (a.discNumber ?? 0) - (b.discNumber ?? 0) || (a.index ?? 0) - (b.index ?? 0));
     return list;
   }, [tracksByAlbum, albumId]);
-
-  const first = tracks[0];
 
   return (
     <section>
@@ -35,21 +35,19 @@ export function AlbumView({
         <ArrowLeft size={14} /> Back
       </button>
 
-      {first && (
+      {album && (
         <div className="mb-6 flex gap-6">
           <div className="size-48 shrink-0 overflow-hidden rounded-box shadow-lg">
-            <AlbumArt artId={first.artId} size={600} alt={first.albumTitle} />
+            <AlbumArt artId={album.artId} size={600} alt={album.title} />
           </div>
           <div className="flex flex-col justify-end">
             <div className="text-xs uppercase tracking-wider opacity-50">Album</div>
-            <h1 className="text-3xl font-bold">{first.albumTitle}</h1>
-            <button
-              type="button"
-              className="mt-1 w-fit text-left opacity-70 hover:text-primary hover:underline"
-              onClick={() => onNavigate({ name: "artist", artistId: first.artistId })}
-            >
-              {first.artistName}
-            </button>
+            <h1 className="text-3xl font-bold">{album.title}</h1>
+            <ArtistCredits
+              credits={album.artistCredits}
+              className="mt-1 w-fit text-left opacity-70"
+              onOpenArtist={(artistId) => onNavigate({ name: "artist", artistId })}
+            />
             <div className="mt-4">
               <PlayActions player={player} tracks={tracks} />
             </div>

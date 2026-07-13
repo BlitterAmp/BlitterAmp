@@ -4,6 +4,7 @@ import type { Album, Client, HomeRails, Track } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibraryVersion } from "../../state/useLibrarySync";
 import { AlbumArt } from "../AlbumArt";
+import { ArtistCredits } from "../ArtistCredits";
 import { MosaicArt } from "../MosaicArt";
 import { TrackList, type NavTarget } from "../TrackList";
 
@@ -75,9 +76,7 @@ export function HomeView({
                     </div>
                     <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
                   </button>
-                  <button type="button" className="block max-w-full truncate text-xs opacity-60 hover:text-primary hover:opacity-100" onClick={() => onNavigate({ name: "artist", artistId: a.artistId })}>
-                    {a.artistName}
-                  </button>
+                  <ArtistCredits credits={a.artistCredits} className="block max-w-full truncate text-xs opacity-60" onOpenArtist={(artistId) => onNavigate({ name: "artist", artistId })} />
                 </div>
               ))}
             </div>

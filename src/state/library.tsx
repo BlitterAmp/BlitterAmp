@@ -42,6 +42,19 @@ function group<T>(items: T[], key: (t: T) => string): Map<string, T[]> {
   return m;
 }
 
+/** Indexes each track once under every distinct credited artist. */
+export function groupTracksByCreditedArtist(tracks: Track[]): Map<string, Track[]> {
+  const grouped = new Map<string, Track[]>();
+  for (const track of tracks) {
+    for (const artistId of new Set(track.artistCredits.map((credit) => credit.artistId))) {
+      const existing = grouped.get(artistId);
+      if (existing) existing.push(track);
+      else grouped.set(artistId, [track]);
+    }
+  }
+  return grouped;
+}
+
 export function LibraryProvider({
   connection,
   children,
@@ -91,9 +104,9 @@ export function LibraryProvider({
       ready,
       albumById: new Map(albums.map((a) => [a.albumId, a])),
       artistById: new Map(artists.map((a) => [a.artistId, a])),
-      albumsByArtist: group(albums, (a) => a.artistId),
+      albumsByArtist: group(albums, (a) => a.primaryArtist.artistId),
       tracksByAlbum: group(tracks, (t) => t.albumId),
-      tracksByArtist: group(tracks, (t) => t.artistId),
+      tracksByArtist: groupTracksByCreditedArtist(tracks),
       reload: load,
     };
   }, [snap, ready]);

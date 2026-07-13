@@ -19,9 +19,10 @@ afterEach(cleanup);
 
 describe("TrackList", () => {
   it("shows artwork instead of numbering and navigates from the artist name", () => {
-    const track = { trackId: "trk-1", title: "Song", artistId: "art-1", artistName: "Artist", albumId: "alb-1", albumTitle: "Album", artId: "cover-1", durationMs: 1000, media: { container: "flac", audioCodec: "flac" } } as Track;
+    const track = { trackId: "trk-1", title: "Song", primaryArtist: { artistId: "art-1", name: "Artist" }, artistCredits: [{ artistId: "art-1", name: "Artist", joinPhrase: " feat. " }, { artistId: "art-2", name: "Guest", joinPhrase: "" }], albumId: "alb-1", albumTitle: "Album", artId: "cover-1", durationMs: 1000, media: { container: "flac", audioCodec: "flac" } } as Track;
     const onNavigate = vi.fn();
-    const player = { canPlay: () => true, playQueue: vi.fn() } as never;
+    const playQueue = vi.fn();
+    const player = { canPlay: () => true, playQueue } as never;
     render(
       <ScrollContext.Provider value={null}>
         <TrackList client={{ setLove: vi.fn() } as unknown as Client} player={player} tracks={[track]} onNavigate={onNavigate} showAlbum showArtwork />
@@ -30,7 +31,11 @@ describe("TrackList", () => {
 
     expect(screen.getByTestId("track-art").textContent).toBe("cover-1");
     expect(screen.queryByText("1")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Artist" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Artist" })[0]);
     expect(onNavigate).toHaveBeenCalledWith({ name: "artist", artistId: "art-1" });
+    fireEvent.click(screen.getAllByRole("button", { name: "Guest" })[0]);
+    expect(onNavigate).toHaveBeenCalledWith({ name: "artist", artistId: "art-2" });
+    expect(screen.getByText("feat.")).toBeTruthy();
+    expect(playQueue).not.toHaveBeenCalled();
   });
 });

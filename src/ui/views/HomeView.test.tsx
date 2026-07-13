@@ -17,7 +17,7 @@ describe("HomeView", () => {
   it("uses mix collage art and navigates album artists independently", async () => {
     const home: HomeRails = { rails: [
       { kind: "mixes", title: "Made For You", mixes: [{ mixId: "mix-1", title: "Daily", collageArtIds: ["art-1", "art-2"] }] },
-      { kind: "albums", title: "Albums", albums: [{ albumId: "alb-1", title: "Record", artistId: "art-1", artistName: "Artist", durationMs: 1, trackCount: 1 }] },
+      { kind: "albums", title: "Albums", albums: [{ albumId: "alb-1", title: "Record", primaryArtist: { artistId: "art-1", name: "Artist" }, artistCredits: [{ artistId: "art-1", name: "Artist", joinPhrase: "" }], durationMs: 1, trackCount: 1 }] },
     ] } as HomeRails;
     const client = { home: vi.fn().mockResolvedValue(home) } as unknown as Client;
     const onNavigate = vi.fn();

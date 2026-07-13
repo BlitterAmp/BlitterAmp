@@ -23,7 +23,7 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager};
 
-const READ_MODEL_VERSION: &str = "2";
+const READ_MODEL_VERSION: &str = "3";
 
 #[derive(Clone)]
 struct Conn {
@@ -632,6 +632,50 @@ mod tests {
         let snap = m.snapshot("album");
         assert_eq!(snap.len(), 1);
         assert_eq!(snap[0]["title"], "A2");
+    }
+
+    #[test]
+    fn structured_artist_credits_roundtrip_unchanged() {
+        let m = mem();
+        let track = serde_json::json!({
+            "trackId": "trk_1",
+            "primaryArtist": { "artistId": "art_1", "name": "Primary" },
+            "artistCredits": [
+                { "artistId": "art_1", "name": "Primary", "joinPhrase": " feat. " },
+                { "artistId": "art_2", "name": "Credited Name", "joinPhrase": "" }
+            ]
+        });
+
+        m.upsert("track", "trk_1", &track.to_string());
+
+        assert_eq!(m.snapshot("track"), vec![track]);
+    }
+
+    #[test]
+    fn delta_upsert_preserves_replaced_structured_artist_credits() {
+        let m = mem();
+        m.upsert(
+            "track",
+            "trk_1",
+            &serde_json::json!({
+                "trackId": "trk_1",
+                "primaryArtist": { "artistId": "art_1", "name": "Primary" },
+                "artistCredits": [{ "artistId": "art_1", "name": "Primary", "joinPhrase": "" }]
+            })
+            .to_string(),
+        );
+        let changed = serde_json::json!({
+            "trackId": "trk_1",
+            "primaryArtist": { "artistId": "art_1", "name": "Primary" },
+            "artistCredits": [
+                { "artistId": "art_1", "name": "Primary", "joinPhrase": " with " },
+                { "artistId": "art_2", "name": "Guest", "joinPhrase": "" }
+            ]
+        });
+
+        m.upsert("track", "trk_1", &changed.to_string());
+
+        assert_eq!(m.snapshot("track"), vec![changed]);
     }
 
     #[test]

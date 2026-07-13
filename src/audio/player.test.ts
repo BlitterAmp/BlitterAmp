@@ -10,8 +10,8 @@ function track(id: string, container = "flac"): Track {
   return {
     trackId: id,
     title: id,
-    artistId: "art_x",
-    artistName: "A",
+    primaryArtist: { artistId: "art_x", name: "A" },
+    artistCredits: [{ artistId: "art_x", name: "A", joinPhrase: "" }],
     albumId: "alb_x",
     albumTitle: "Al",
     durationMs: 2000,

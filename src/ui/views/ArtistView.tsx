@@ -21,7 +21,7 @@ export function ArtistView({
   onNavigate: (t: NavTarget) => void;
   onBack: () => void;
 }) {
-  const { albumsByArtist, tracksByArtist } = useLibrary();
+  const { albumsByArtist, artistById, tracksByArtist } = useLibrary();
   const albums = useMemo(() => {
     const list = [...(albumsByArtist.get(artistId) ?? [])];
     list.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
@@ -40,7 +40,7 @@ export function ArtistView({
       .catch(() => {});
   }, [client, artistId]);
 
-  const name = artist?.name ?? albums[0]?.artistName ?? tracks[0]?.artistName ?? "";
+  const name = artist?.name ?? artistById.get(artistId)?.name ?? "";
   const artId = artist?.artId ?? albums[0]?.artId ?? tracks[0]?.artId;
 
   return (

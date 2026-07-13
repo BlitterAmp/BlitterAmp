@@ -45,8 +45,8 @@ function track(index: number): Track {
   return {
     trackId: `track-${index}`,
     title: `Track ${index}`,
-    artistId: `artist-${index}`,
-    artistName: `Artist ${index}`,
+    primaryArtist: { artistId: `artist-${index}`, name: `Artist ${index}` },
+    artistCredits: [{ artistId: `artist-${index}`, name: `Artist ${index}`, joinPhrase: "" }],
     albumId: `album-${index}`,
     albumTitle: `Album ${index}`,
     artId: `art-${index}`,

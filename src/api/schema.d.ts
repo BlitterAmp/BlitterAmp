@@ -1742,6 +1742,8 @@ export interface components {
             /** @example art_9f3kq2 */
             artistId: string;
             name: string;
+            musicBrainzId?: string | null;
+            aliases?: string[];
             /** @example img_4c5d6e */
             artId?: string | null;
             genres?: string[];
@@ -1764,9 +1766,10 @@ export interface components {
             /** @example alb_7xm1pd */
             albumId: string;
             title: string;
-            /** @example art_9f3kq2 */
-            artistId: string;
-            artistName: string;
+            primaryArtist: components["schemas"]["ArtistReference"];
+            artistCredits: components["schemas"]["ArtistCredit"][];
+            musicBrainzReleaseId?: string | null;
+            musicBrainzReleaseGroupId?: string | null;
             year?: number | null;
             /** @example img_4c5d6e */
             artId?: string | null;
@@ -1786,9 +1789,9 @@ export interface components {
             title: string;
             index?: number | null;
             discNumber?: number | null;
-            /** @example art_9f3kq2 */
-            artistId: string;
-            artistName: string;
+            primaryArtist: components["schemas"]["ArtistReference"];
+            artistCredits: components["schemas"]["ArtistCredit"][];
+            musicBrainzRecordingId?: string | null;
             /** @example alb_7xm1pd */
             albumId: string;
             albumTitle: string;
@@ -1800,6 +1803,18 @@ export interface components {
             genres?: string[];
             media: components["schemas"]["MediaInfo"];
             loveState?: components["schemas"]["LoveState"];
+        };
+        ArtistReference: {
+            /** @example art_9f3kq2 */
+            artistId: string;
+            name: string;
+        };
+        ArtistCredit: {
+            /** @example art_9f3kq2 */
+            artistId: string;
+            name: string;
+            /** @description Text following this credited artist; empty for the final credit */
+            joinPhrase: string;
         };
         MediaInfo: {
             /** @example flac */

@@ -8,6 +8,7 @@ export type Schemas = components["schemas"];
 export type Artist = Schemas["Artist"];
 export type Album = Schemas["Album"];
 export type Track = Schemas["Track"];
+export type ArtistCredit = Schemas["ArtistCredit"];
 export type Playlist = Schemas["Playlist"];
 export type Profile = Schemas["Profile"];
 export type ArtistDetail = Schemas["ArtistDetail"];
