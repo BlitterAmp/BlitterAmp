@@ -5,7 +5,7 @@
 // and render everything — no "Load more", and on a remote server nothing is
 // re-fetched when the library is unchanged.
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { Album, Artist, Playlist, Track } from "../api/client";
 import type { Connection } from "./connection";
@@ -30,6 +30,23 @@ export interface Library extends Snapshot {
 const empty: Snapshot = { artists: [], albums: [], tracks: [], playlists: [] };
 
 const LibraryContext = createContext<Library | null>(null);
+
+/** Installs the change listener before starting sync so no mirror update is lost. */
+export async function beginLibrarySync(connection: Connection, load: () => Promise<void>): Promise<UnlistenFn> {
+  const unlisten = await listen("library:changed", () => void load());
+  const identity = connection.kind === "local" ? "local" : (connection.remoteUrl ?? "remote");
+  try {
+    await invoke("library_configure", {
+      baseUrl: connection.client.baseUrl,
+      token: connection.client.authToken ?? "",
+      identity,
+    });
+  } catch {
+    // Read the existing mirror even when the background sync cannot start.
+  }
+  await load();
+  return unlisten;
+}
 
 function group<T>(items: T[], key: (t: T) => string): Map<string, T[]> {
   const m = new Map<string, T[]>();
@@ -77,16 +94,11 @@ export function LibraryProvider({
   useEffect(() => {
     setReady(false);
     setSnap(empty);
-    const identity = connection.kind === "local" ? "local" : (connection.remoteUrl ?? "remote");
-    void invoke("library_configure", {
-      baseUrl: connection.client.baseUrl,
-      token: connection.client.authToken ?? "",
-      identity,
-    })
-      .then(load)
-      .catch(() => load());
-    const unlisten = listen("library:changed", () => void load());
-    return () => void unlisten.then((f) => f());
+    const started = beginLibrarySync(connection, load);
+    void started.catch(() => {});
+    return () => {
+      void started.then((unlisten) => unlisten()).catch(() => {});
+    };
   }, [connection]);
 
   const value = useMemo<Library>(() => {
