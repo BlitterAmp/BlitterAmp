@@ -216,7 +216,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/lastfm/callback": {
+    "/v1/lastfm/callback/{state}": {
         parameters: {
             query?: never;
             header?: never;
@@ -225,7 +225,7 @@ export interface paths {
         };
         /**
          * Complete browser-based last.fm authorization
-         * @description Single-use callback bound to the initiating profile by an opaque, 15-minute state value. State is consumed only after successful encrypted connection persistence. Returns minimal non-cacheable HTML and never exposes the session key.
+         * @description Single-use callback bound to the initiating profile by an opaque, 15-minute state value carried in the path. The callback URL must stay query-free — last.fm appends its token as `?token=`, which corrupts any pre-existing query string (a query-borne state parameter therefore never matches). State is consumed only after successful encrypted connection persistence. Returns minimal non-cacheable HTML and never exposes the session key.
          */
         get: operations["completeLastfmAuth"];
         put?: never;
@@ -318,7 +318,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List artists (paged) */
+        /**
+         * List artists (paged)
+         * @description Lists primary artists that own a present album or hold a position-0 credit on a present album or track. Guest-only credited artists remain available through artist detail and search.
+         */
         get: operations["listArtists"];
         put?: never;
         post?: never;
@@ -817,7 +820,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Artwork with server-side resize + cache */
+        /**
+         * Artwork with server-side resize + cache
+         * @description Requested dimensions are rounded up independently to 96, 320, 640, or 1280 pixels while preserving aspect ratio. Requests at or above 1280 pixels, or requests without dimensions, return the original image.
+         */
         get: operations["getArt"];
         put?: never;
         post?: never;
@@ -1700,7 +1706,10 @@ export interface components {
             expiresAt: string;
         };
         Library: {
-            /** @example lib_0m1n2b */
+            /**
+             * @description Stable for the lifetime of this database; changes when the database is recreated.
+             * @example lib_0m1n2b
+             */
             libraryId: string;
             title: string;
             /**
@@ -2626,12 +2635,13 @@ export interface operations {
     };
     completeLastfmAuth: {
         parameters: {
-            query: {
-                state: string;
-                token: string;
+            query?: {
+                token?: string;
             };
             header?: never;
-            path?: never;
+            path: {
+                state: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
