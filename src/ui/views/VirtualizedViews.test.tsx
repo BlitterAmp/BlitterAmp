@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Album, Artist } from "../../api/client";
 
 const library = vi.hoisted(() => ({ albums: [] as Album[], artists: [] as Artist[], ready: true }));
@@ -53,9 +53,26 @@ afterEach(() => {
   cleanup();
   library.albums = [];
   library.artists = [];
+  vi.restoreAllMocks();
 });
 
 describe("virtualized library grids", () => {
+  beforeEach(() => {
+    // Zero-width (hidden) grids are deliberately inert; these tests exercise
+    // the sized, visible state.
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+      width: 640,
+      height: 480,
+      top: 0,
+      left: 0,
+      right: 640,
+      bottom: 480,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    } as DOMRect);
+  });
+
   it("mounts only a bounded window of a large album library", () => {
     library.albums = Array.from({ length: 800 }, (_, index) => album(index));
     const onOpen = vi.fn();

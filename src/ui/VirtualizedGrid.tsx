@@ -65,8 +65,14 @@ export function VirtualizedGrid<T>({
   // A stable estimate keeps the virtualizer from remeasuring every render.
   const rowEstimate = Math.round(tileWidth + estimatedCaptionHeight + gap);
   const estimateSize = useCallback(() => rowEstimate, [rowEstimate]);
+  // Grid views stay mounted while display:none (instant tab switches). A
+  // hidden grid measures every row at zero height, which convinces the
+  // virtualizer that ever more rows fit — hundreds of nested measurement
+  // updates blow React's update-depth ceiling. Zero width ⇒ fully inert;
+  // the ResizeObserver wakes the grid when it gains real dimensions.
+  const active = containerWidth > 0;
   const virtualizer = useVirtualizer({
-    count: rows.length,
+    count: active ? rows.length : 0,
     getScrollElement: () => scrollRef?.current ?? null,
     estimateSize,
     // The library sync reshapes the item list continuously during bootstrap;

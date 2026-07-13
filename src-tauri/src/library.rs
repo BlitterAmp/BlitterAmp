@@ -674,9 +674,27 @@ async fn stream_events(
         // Reads until the stream ends/errors, then falls through to reconnect.
         while let Ok(Some(bytes)) = resp.chunk().await {
             buf.push_str(&String::from_utf8_lossy(&bytes));
+            // Coalesce: a chunk can carry many frames (replays, bursts), and
+            // one delta sync brings the mirror fully current — syncing per
+            // frame turned event backlogs into request storms.
+            let mut needs_sync = false;
+            let mut pending_id = last_id.clone();
             while let Some(idx) = buf.find("\n\n") {
                 let frame: String = buf.drain(..idx + 2).collect();
-                handle_frame(app, lib, conn, &frame, &mut last_id, notifier).await;
+                needs_sync |= handle_frame(lib, conn, &frame, &mut pending_id, notifier).await;
+            }
+            if needs_sync {
+                let notify = || notifier.notify();
+                // On failure keep the old cursor: the reconnect replays this
+                // batch instead of silently skipping a failed sync.
+                if let Ok(pruned) = lib.sync_once(conn, &notify).await {
+                    if let Some(pruned) = pruned {
+                        log_art_prune(app, pruned);
+                    }
+                    last_id = pending_id;
+                }
+            } else {
+                last_id = pending_id;
             }
         }
         tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
@@ -684,13 +702,12 @@ async fn stream_events(
 }
 
 async fn handle_frame(
-    app: &AppHandle,
     lib: &LibraryState,
     conn: &Conn,
     frame: &str,
     last_id: &mut String,
     notifier: &DebouncedNotifier,
-) {
+) -> bool {
     let mut data = String::new();
     for line in frame.lines() {
         if let Some(v) = line.strip_prefix("id:") {
@@ -700,21 +717,17 @@ async fn handle_frame(
         }
     }
     if data.is_empty() {
-        return; // heartbeat / comment
+        return false; // heartbeat / comment
     }
     let Ok(env) = serde_json::from_str::<Value>(&data) else {
-        return;
+        return false;
     };
     let typ = env.get("type").and_then(|v| v.as_str()).unwrap_or("");
     let payload = env.get("data").cloned().unwrap_or(Value::Null);
     let changed = match typ {
-        "library.changed" => {
-            let notify = || notifier.notify();
-            if let Ok(Some(pruned)) = lib.sync_once(conn, &notify).await {
-                log_art_prune(app, pruned);
-            }
-            false
-        }
+        // Library syncs are coalesced by the caller: report the need, one
+        // sync per chunk covers any number of these frames.
+        "library.changed" => return true,
         "playlist.changed" => {
             if let Some(id) = payload.get("playlistId").and_then(|v| v.as_str()) {
                 let _ = lib.refetch_playlist(conn, id).await;
@@ -753,6 +766,7 @@ async fn handle_frame(
     if changed {
         notifier.notify();
     }
+    false
 }
 
 #[tauri::command]

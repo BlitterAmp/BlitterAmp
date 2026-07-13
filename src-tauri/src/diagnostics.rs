@@ -186,6 +186,10 @@ impl Diagnostics {
         input: &str,
     ) -> Option<Record> {
         let message = redact(input, self.home.as_deref());
+        // Dev builds mirror diagnostics to stderr so webview crashes are
+        // debuggable from the terminal; release keeps the encrypted store only.
+        #[cfg(debug_assertions)]
+        eprintln!("[diag {level:?} {source:?}] {message}");
         if message.is_empty() {
             return None;
         }
