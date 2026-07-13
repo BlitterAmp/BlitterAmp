@@ -1,14 +1,14 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { X } from "lucide-react";
 import { useLayoutEffect, useRef, useSyncExternalStore } from "react";
-import type { ArtistCredit, Client } from "../api/client";
+import type { ArtistCredit } from "../api/client";
 import type { Player } from "../audio/player";
 import { AlbumArt } from "./AlbumArt";
 import { ArtistCredits } from "./ArtistCredits";
 import { projectQueueScrollOffset, QUEUE_ROW_HEIGHT } from "./queueScroll";
 import type { NavTarget } from "./TrackList";
 
-export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: { client: Client; player: Player; onClose: () => void; onNavigate?: (target: NavTarget) => void }) {
+export function QueueDrawer({ player, onClose, onNavigate = () => {} }: { player: Player; onClose: () => void; onNavigate?: (target: NavTarget) => void }) {
   const s = useSyncExternalStore(
     (notify) => player.subscribeQueue(notify),
     () => player.currentQueueState(),
@@ -66,7 +66,7 @@ export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: 
         {s.track && (
           <>
             <div className="px-2 py-1 text-[10.5px] font-semibold uppercase tracking-wider opacity-50">Now playing</div>
-            <Row client={client} title={s.track.title} artistCredits={s.track.artistCredits} artId={s.track.artId} active onClick={() => {}} onOpenArtist={onNavigate} />
+            <Row title={s.track.title} artistCredits={s.track.artistCredits} artId={s.track.artId} active onClick={() => {}} onOpenArtist={onNavigate} />
           </>
         )}
         {count > 0 && (
@@ -96,7 +96,6 @@ export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: 
                 style={{ height: virtualRow.size, transform: `translateY(${virtualRow.start}px)` }}
               >
                 <Row
-                  client={client}
                   title={t.title}
                   artistCredits={t.artistCredits}
                   artId={t.artId}
@@ -114,7 +113,6 @@ export function QueueDrawer({ client, player, onClose, onNavigate = () => {} }: 
 }
 
 function Row({
-  client,
   title,
   artistCredits,
   artId,
@@ -123,7 +121,6 @@ function Row({
   onRemove,
   onOpenArtist,
 }: {
-  client: Client;
   title: string;
   artistCredits: ArtistCredit[];
   artId?: string | null;
@@ -136,7 +133,7 @@ function Row({
     <div className={`group flex h-12 items-center gap-2 rounded-lg px-2 ${active ? "bg-base-300" : "hover:bg-base-200"}`}>
       <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={onClick}>
         <div className="size-9 shrink-0 overflow-hidden rounded">
-          <AlbumArt client={client} artId={artId} size={72} alt="" />
+          <AlbumArt artId={artId} size={72} alt="" />
         </div>
         <div className="min-w-0">
           <div className={`truncate text-sm ${active ? "font-semibold text-primary" : ""}`}>{title}</div>

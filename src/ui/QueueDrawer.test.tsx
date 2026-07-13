@@ -74,8 +74,8 @@ afterEach(() => {
 
 describe("QueueDrawer", () => {
   it("renders a bounded React DOM window from a mocked 10,000-row virtual range", async () => {
-    const { client, player } = setup();
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    const { player } = setup();
+    render(<QueueDrawer player={player} onClose={() => {}} />);
 
     expect(screen.getByText("Now playing")).toBeTruthy();
     expect(screen.getByText("Up next")).toBeTruthy();
@@ -86,8 +86,8 @@ describe("QueueDrawer", () => {
   });
 
   it("exposes the mounted up-next rows as a partial accessible list", async () => {
-    const { client, player } = setup(100);
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    const { player } = setup(100);
+    render(<QueueDrawer player={player} onClose={() => {}} />);
 
     const list = await screen.findByRole("list", { name: "99 tracks up next" });
     const items = screen.getAllByRole("listitem");
@@ -99,8 +99,8 @@ describe("QueueDrawer", () => {
   });
 
   it("does not rerender queue rows for position, volume, or playing updates, but does for queue changes", async () => {
-    const { backend, client, player } = setup(100);
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    const { backend, player } = setup(100);
+    render(<QueueDrawer player={player} onClose={() => {}} />);
     await waitFor(() => expect(queueRows().length).toBeGreaterThan(0));
     const firstRow = queueRows()[0];
 
@@ -114,8 +114,8 @@ describe("QueueDrawer", () => {
   });
 
   it("applies the projected scroll origin when playback advances or jumps", async () => {
-    const { client, player } = setup(100);
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    const { player } = setup(100);
+    render(<QueueDrawer player={player} onClose={() => {}} />);
     const scroller = (await screen.findByRole("list")).parentElement as HTMLElement;
     scroller.scrollTop = 240;
 
@@ -128,9 +128,9 @@ describe("QueueDrawer", () => {
   });
 
   it("jumps using the projected absolute queue index", async () => {
-    const { client, player } = setup(20);
+    const { player } = setup(20);
     const jump = vi.spyOn(player, "jumpTo");
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    render(<QueueDrawer player={player} onClose={() => {}} />);
     await waitFor(() => expect(queueRows().length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByText("Track 4"));
@@ -140,10 +140,10 @@ describe("QueueDrawer", () => {
   });
 
   it("navigates from an artist without jumping the queue", async () => {
-    const { client, player } = setup(3);
+    const { player } = setup(3);
     const navigate = vi.fn();
     const jump = vi.spyOn(player, "jumpTo");
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} onNavigate={navigate} />);
+    render(<QueueDrawer player={player} onClose={() => {}} onNavigate={navigate} />);
 
     fireEvent.click((await screen.findAllByRole("button", { name: "Artist 1" }))[0]);
     expect(navigate).toHaveBeenCalledWith({ name: "artist", artistId: "artist-1" });
@@ -151,10 +151,10 @@ describe("QueueDrawer", () => {
   });
 
   it("removes the intended duplicate occurrence and updates absolute indices", async () => {
-    const { client, player } = setup(6);
+    const { player } = setup(6);
     const duplicate = { ...track(2), trackId: "track-1", title: "Track 1 duplicate" };
     player.addToQueue([duplicate]);
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    render(<QueueDrawer player={player} onClose={() => {}} />);
 
     fireEvent.click(await screen.findByText("Track 1 duplicate"));
     expect(player.currentState().queueIndex).toBe(6);
@@ -166,9 +166,9 @@ describe("QueueDrawer", () => {
   });
 
   it("clears up next and closes", async () => {
-    const { client, player } = setup(20);
+    const { player } = setup(20);
     const close = vi.fn();
-    render(<QueueDrawer client={client} player={player} onClose={close} />);
+    render(<QueueDrawer player={player} onClose={close} />);
     await waitFor(() => expect(queueRows().length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getAllByLabelText("Remove")[0]);
@@ -180,8 +180,8 @@ describe("QueueDrawer", () => {
   });
 
   it("shows the empty state", () => {
-    const { client, player } = setup(0);
-    render(<QueueDrawer client={client} player={player} onClose={() => {}} />);
+    const { player } = setup(0);
+    render(<QueueDrawer player={player} onClose={() => {}} />);
     expect(screen.getByText("The queue is empty.")).toBeTruthy();
   });
 });

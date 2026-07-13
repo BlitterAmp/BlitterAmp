@@ -58,7 +58,7 @@ export function HomeView({
               {rail.playlists.map((p) => (
                 <button key={p.playlistId} type="button" className="group text-left" onClick={() => onOpenPlaylist(p.playlistId)}>
                   <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-                    <AlbumArt client={client} artId={p.artId} alt={p.title} />
+                    <AlbumArt artId={p.artId} alt={p.title} />
                   </div>
                   <div className="mt-2 truncate text-sm font-medium">{p.title}</div>
                 </button>
@@ -72,7 +72,7 @@ export function HomeView({
                 <div key={a.albumId} className="group min-w-0 text-left">
                   <button type="button" className="block w-full text-left" onClick={() => onNavigate({ name: "album", albumId: a.albumId })}>
                     <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-                      <AlbumArt client={client} artId={a.artId} alt={a.title} />
+                      <AlbumArt artId={a.artId} alt={a.title} />
                     </div>
                     <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
                   </button>

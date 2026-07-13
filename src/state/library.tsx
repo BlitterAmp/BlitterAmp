@@ -30,10 +30,20 @@ export interface Library extends Snapshot {
 const empty: Snapshot = { artists: [], albums: [], tracks: [], playlists: [] };
 
 const LibraryContext = createContext<Library | null>(null);
+const changeSubscribers = new Set<() => void>();
+
+/** Subscribes non-React caches to mirror changes. */
+export function subscribeLibraryChanges(subscriber: () => void): () => void {
+  changeSubscribers.add(subscriber);
+  return () => changeSubscribers.delete(subscriber);
+}
 
 /** Installs the change listener before starting sync so no mirror update is lost. */
 export async function beginLibrarySync(connection: Connection, load: () => Promise<void>): Promise<UnlistenFn> {
-  const unlisten = await listen("library:changed", () => void load());
+  const unlisten = await listen("library:changed", () => {
+    for (const subscriber of changeSubscribers) subscriber();
+    void load();
+  });
   const identity = connection.kind === "local" ? "local" : (connection.remoteUrl ?? "remote");
   try {
     await invoke("library_configure", {

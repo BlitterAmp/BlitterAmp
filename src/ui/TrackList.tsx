@@ -137,7 +137,7 @@ export function TrackList({
           >
             {showArtwork ? (
               <button type="button" className="size-10 shrink-0 overflow-hidden rounded" onClick={() => void player.playQueue(tracks, i)} aria-label={`Play ${t.title}`}>
-                <AlbumArt client={client} artId={t.artId} size={80} alt="" />
+                <AlbumArt artId={t.artId} size={80} alt="" />
               </button>
             ) : (
               <div className="w-8 shrink-0 text-right tabular-nums opacity-50" onClick={() => void player.playQueue(tracks, i)}>

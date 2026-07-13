@@ -58,7 +58,7 @@ export function NowPlayingBar({
         {t ? (
           <>
             <div className="size-12 overflow-hidden rounded-md">
-              <AlbumArt client={client} artId={t.artId} size={96} alt={t.albumTitle} />
+              <AlbumArt artId={t.artId} size={96} alt={t.albumTitle} />
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold">{t.title}</div>

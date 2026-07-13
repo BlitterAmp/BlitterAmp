@@ -215,7 +215,7 @@ function ShellInner({
           )}
         </main>
         </ScrollContext.Provider>
-        {queueOpen && <QueueDrawer client={client} player={player} onClose={() => setQueueOpen(false)} onNavigate={navigate} />}
+        {queueOpen && <QueueDrawer player={player} onClose={() => setQueueOpen(false)} onNavigate={navigate} />}
       </div>
 
       <NowPlayingBar client={client} player={player} queueOpen={queueOpen} onToggleQueue={() => setQueueOpen((o) => !o)} onNavigate={navigate} />
