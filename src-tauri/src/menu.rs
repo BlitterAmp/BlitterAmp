@@ -17,7 +17,7 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     #[cfg(target_os = "linux")]
     {
         let _ = app;
-        return Ok(());
+        Ok(())
     }
 
     #[cfg(not(target_os = "linux"))]
