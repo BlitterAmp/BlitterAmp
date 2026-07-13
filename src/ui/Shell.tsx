@@ -8,6 +8,7 @@ import type { Connection } from "../state/connection";
 import { NowPlayingBar } from "./NowPlayingBar";
 import { QueueDrawer } from "./QueueDrawer";
 import { PlaylistsProvider, usePlaylists } from "../state/playlists";
+import { ErrorBoundary } from "./ErrorBoundary";
 import { PlaylistView } from "./views/PlaylistView";
 import { HomeView } from "./views/HomeView";
 import { SearchView } from "./views/SearchView";
@@ -169,6 +170,7 @@ function ShellInner({
 
         <ScrollContext.Provider value={mainRef}>
         <main ref={mainRef} className="min-w-0 flex-1 overflow-y-auto p-6">
+          <ErrorBoundary>
           {/* Grid views stay mounted (hidden when inactive) so switching back is
               instant and their art doesn't re-flash. */}
           <div hidden={view.name !== "albums"}>
@@ -213,6 +215,7 @@ function ShellInner({
           {view.name === "mix" && (
             <MixView client={client} player={player} mixId={view.mixId} title={view.title} onNavigate={navigate} onBack={() => setView({ name: "home" })} />
           )}
+          </ErrorBoundary>
         </main>
         </ScrollContext.Provider>
         {queueOpen && <QueueDrawer player={player} onClose={() => setQueueOpen(false)} onNavigate={navigate} />}
