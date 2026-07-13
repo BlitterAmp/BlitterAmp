@@ -15,7 +15,7 @@
 //! whenever the mirror moves so the webview re-reads.
 
 use std::collections::HashSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use rusqlite::Connection;
@@ -74,12 +74,6 @@ impl Mirror {
         let _ = self.db.execute("DELETE FROM meta", []);
     }
 
-    fn wipe_kind(&self, kind: &str) {
-        let _ = self
-            .db
-            .execute("DELETE FROM entities WHERE kind = ?1", [kind]);
-    }
-
     fn prepare(&self, identity: &str) {
         let identity_changed = self.meta("identity").as_deref() != Some(identity);
         let model_changed = self.meta("read_model_version").as_deref() != Some(READ_MODEL_VERSION);
@@ -103,6 +97,60 @@ impl Mirror {
             "DELETE FROM entities WHERE kind = ?1 AND id = ?2",
             [kind, id],
         );
+    }
+
+    fn apply_bootstrap_page(
+        &self,
+        kind: &str,
+        id_field: &str,
+        items: &[Value],
+        seen: &mut HashSet<String>,
+        final_page: bool,
+    ) -> rusqlite::Result<bool> {
+        let tx = self.db.unchecked_transaction()?;
+        let mut changed = false;
+        for item in items {
+            if let Some(id) = item.get(id_field).and_then(Value::as_str) {
+                seen.insert(id.to_string());
+                let json = item.to_string();
+                let existing = tx
+                    .query_row(
+                        "SELECT json FROM entities WHERE kind = ?1 AND id = ?2",
+                        [kind, id],
+                        |row| row.get::<_, String>(0),
+                    )
+                    .ok();
+                if existing.as_deref() != Some(json.as_str()) {
+                    tx.execute(
+                        "INSERT INTO entities (kind, id, json) VALUES (?1, ?2, ?3)
+                         ON CONFLICT(kind, id) DO UPDATE SET json = excluded.json",
+                        [kind, id, &json],
+                    )?;
+                    changed = true;
+                }
+            }
+        }
+        if final_page {
+            let stale = {
+                let mut stmt = tx.prepare("SELECT id FROM entities WHERE kind = ?1")?;
+                let stale = stmt
+                    .query_map([kind], |row| row.get::<_, String>(0))?
+                    .collect::<rusqlite::Result<Vec<_>>>()?
+                    .into_iter()
+                    .filter(|id| !seen.contains(id))
+                    .collect::<Vec<_>>();
+                stale
+            };
+            for id in stale {
+                tx.execute(
+                    "DELETE FROM entities WHERE kind = ?1 AND id = ?2",
+                    [kind, id.as_str()],
+                )?;
+                changed = true;
+            }
+        }
+        tx.commit()?;
+        Ok(changed)
     }
 
     fn snapshot(&self, kind: &str) -> Vec<Value> {
@@ -138,6 +186,77 @@ impl Mirror {
             }
         }
     }
+}
+
+fn sanitized_art_id(art_id: &str) -> String {
+    art_id
+        .chars()
+        .filter(|character| character.is_ascii_alphanumeric() || *character == '_')
+        .collect()
+}
+
+fn collect_art_ids(value: &Value, art_ids: &mut HashSet<String>) {
+    match value {
+        Value::Object(object) => {
+            if let Some(art_id) = object.get("artId").and_then(Value::as_str) {
+                art_ids.insert(sanitized_art_id(art_id));
+            }
+            for child in object.values() {
+                collect_art_ids(child, art_ids);
+            }
+        }
+        Value::Array(values) => {
+            for child in values {
+                collect_art_ids(child, art_ids);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn prune_art_cache(mirror: &Mirror, art_dir: &Path) -> std::io::Result<usize> {
+    let mut referenced = HashSet::new();
+    for kind in ["artist", "album", "track", "playlist"] {
+        for entity in mirror.snapshot(kind) {
+            collect_art_ids(&entity, &mut referenced);
+        }
+    }
+
+    let mut removed = 0;
+    for entry in std::fs::read_dir(art_dir)? {
+        let entry = entry?;
+        if !entry.file_type()?.is_file() {
+            continue;
+        }
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        let Some((art_id, size)) = name.rsplit_once('_') else {
+            continue;
+        };
+        if art_id.is_empty()
+            || !art_id
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || character == '_')
+            || size.is_empty()
+            || !size.chars().all(|character| character.is_ascii_digit())
+            || referenced.contains(art_id)
+        {
+            continue;
+        }
+        std::fs::remove_file(entry.path())?;
+        removed += 1;
+    }
+    Ok(removed)
+}
+
+fn log_art_prune(app: &AppHandle, pruned: usize) {
+    crate::diagnostics::log(
+        app,
+        crate::diagnostics::Level::Info,
+        crate::diagnostics::Source::Desktop,
+        format!("library bootstrap pruned {pruned} stale art files"),
+    );
 }
 
 // ── the managed sync engine ─────────────────────────────────────
@@ -197,11 +316,10 @@ impl LibraryState {
         kind: &str,
         path: &str,
         id_field: &str,
+        notify: &impl Fn(),
     ) -> Result<(), String> {
-        {
-            self.mirror.lock().unwrap().wipe_kind(kind);
-        }
         let mut cursor = String::new();
+        let mut seen = HashSet::new();
         loop {
             let sep = if path.contains('?') { '&' } else { '?' };
             let url = format!(
@@ -220,16 +338,21 @@ impl LibraryState {
                 .and_then(|v| v.as_array())
                 .cloned()
                 .unwrap_or_default();
-            {
+            let next_cursor = page
+                .get("nextCursor")
+                .and_then(Value::as_str)
+                .filter(|value| !value.is_empty())
+                .map(str::to_owned);
+            let changed = {
                 let m = self.mirror.lock().unwrap();
-                for it in &items {
-                    if let Some(id) = it.get(id_field).and_then(|v| v.as_str()) {
-                        m.upsert(kind, id, &it.to_string());
-                    }
-                }
+                m.apply_bootstrap_page(kind, id_field, &items, &mut seen, next_cursor.is_none())
+                    .map_err(|e| e.to_string())?
+            };
+            if changed {
+                notify();
             }
-            match page.get("nextCursor").and_then(|v| v.as_str()) {
-                Some(c) if !c.is_empty() => cursor = c.to_string(),
+            match next_cursor {
+                Some(c) => cursor = c,
                 _ => break,
             }
         }
@@ -242,40 +365,57 @@ impl LibraryState {
         kind: &str,
         path: &str,
         id_field: &str,
+        notify: &impl Fn(),
     ) -> Result<(), String> {
         let arr = self.get_json(conn, path).await?;
-        let m = self.mirror.lock().unwrap();
-        m.wipe_kind(kind);
-        if let Some(items) = arr.as_array() {
-            for it in items {
-                if let Some(id) = it.get(id_field).and_then(|v| v.as_str()) {
-                    m.upsert(kind, id, &it.to_string());
-                }
-            }
+        let items = arr.as_array().map(Vec::as_slice).unwrap_or_default();
+        let mut seen = HashSet::new();
+        let changed = self
+            .mirror
+            .lock()
+            .unwrap()
+            .apply_bootstrap_page(kind, id_field, items, &mut seen, true)
+            .map_err(|e| e.to_string())?;
+        if changed {
+            notify();
         }
         Ok(())
     }
 
-    async fn bootstrap(&self, conn: &Conn) -> Result<(), String> {
-        self.bootstrap_list(conn, "artist", "/v1/artists", "artistId")
+    async fn bootstrap(
+        &self,
+        conn: &Conn,
+        version: i64,
+        notify: &impl Fn(),
+    ) -> Result<usize, String> {
+        self.bootstrap_list(conn, "artist", "/v1/artists", "artistId", notify)
             .await?;
-        self.bootstrap_list(conn, "album", "/v1/albums", "albumId")
+        self.bootstrap_list(conn, "album", "/v1/albums", "albumId", notify)
             .await?;
-        self.bootstrap_list(conn, "track", "/v1/tracks", "trackId")
+        self.bootstrap_list(conn, "track", "/v1/tracks", "trackId", notify)
             .await?;
-        self.bootstrap_bare(conn, "playlist", "/v1/playlists", "playlistId")
+        self.bootstrap_bare(conn, "playlist", "/v1/playlists", "playlistId", notify)
             .await?;
-        let lib = self.get_json(conn, "/v1/library").await?;
-        let version = lib.get("version").and_then(|v| v.as_i64()).unwrap_or(0);
         self.mirror
             .lock()
             .unwrap()
             .set_meta("version", &version.to_string());
-        Ok(())
+        let mirror = self.mirror.lock().unwrap();
+        prune_art_cache(&mirror, &self.art_dir).map_err(|error| error.to_string())
+    }
+
+    async fn sync_once(&self, conn: &Conn, notify: &impl Fn()) -> Result<Option<usize>, String> {
+        let library = self.get_json(conn, "/v1/library").await?;
+        let server_version = library.get("version").and_then(Value::as_i64).unwrap_or(0);
+        let mirror_version = self.mirror.lock().unwrap().version();
+        if mirror_version == 0 || server_version < mirror_version {
+            return self.bootstrap(conn, server_version, notify).await.map(Some);
+        }
+        self.delta(conn, notify).await.map(|_| None)
     }
 
     /// Pull /v1/changes from the mirror's version until drained.
-    async fn delta(&self, conn: &Conn) -> Result<bool, String> {
+    async fn delta(&self, conn: &Conn, notify: &impl Fn()) -> Result<bool, String> {
         let mut since = self.mirror.lock().unwrap().version();
         let mut cursor = String::new();
         let mut changed = false;
@@ -289,8 +429,9 @@ impl LibraryState {
                 }
             );
             let d = self.get_json(conn, &url).await?;
-            {
+            let page_changed = {
                 let m = self.mirror.lock().unwrap();
+                let mut page_changed = false;
                 for (arr, kind, idf) in [
                     ("artists", "artist", "artistId"),
                     ("albums", "album", "albumId"),
@@ -299,8 +440,18 @@ impl LibraryState {
                     if let Some(items) = d.get(arr).and_then(|v| v.as_array()) {
                         for it in items {
                             if let Some(id) = it.get(idf).and_then(|v| v.as_str()) {
-                                m.upsert(kind, id, &it.to_string());
-                                changed = true;
+                                let json = it.to_string();
+                                let existing =
+                                    m.db.query_row(
+                                        "SELECT json FROM entities WHERE kind = ?1 AND id = ?2",
+                                        [kind, id],
+                                        |row| row.get::<_, String>(0),
+                                    )
+                                    .ok();
+                                if existing.as_deref() != Some(json.as_str()) {
+                                    m.upsert(kind, id, &json);
+                                    page_changed = true;
+                                }
                             }
                         }
                     }
@@ -312,11 +463,24 @@ impl LibraryState {
                 ] {
                     if let Some(ids) = d.get(arr).and_then(|v| v.as_array()) {
                         for id in ids.iter().filter_map(|v| v.as_str()) {
-                            m.delete(kind, id);
-                            changed = true;
+                            if m.db
+                                .execute(
+                                    "DELETE FROM entities WHERE kind = ?1 AND id = ?2",
+                                    [kind, id],
+                                )
+                                .unwrap_or(0)
+                                > 0
+                            {
+                                page_changed = true;
+                            }
                         }
                     }
                 }
+                page_changed
+            };
+            if page_changed {
+                changed = true;
+                notify();
             }
             match d.get("nextCursor").and_then(|v| v.as_str()) {
                 Some(c) if !c.is_empty() => cursor = c.to_string(),
@@ -401,13 +565,11 @@ pub async fn library_configure(
 
 async fn run_sync(app: &AppHandle, lib: &LibraryState) {
     let Some(conn) = lib.conn() else { return };
-    let version = lib.mirror.lock().unwrap().version();
-    let result = if version == 0 {
-        lib.bootstrap(&conn).await
-    } else {
-        lib.delta(&conn).await.map(|_| ())
+    let notify = || {
+        let _ = app.emit("library:changed", ());
     };
-    if let Err(e) = result {
+    let result = lib.sync_once(&conn, &notify).await;
+    if let Err(e) = &result {
         crate::diagnostics::log(
             app,
             crate::diagnostics::Level::Error,
@@ -416,7 +578,9 @@ async fn run_sync(app: &AppHandle, lib: &LibraryState) {
         );
         return;
     }
-    let _ = app.emit("library:changed", ());
+    if let Ok(Some(pruned)) = result {
+        log_art_prune(app, pruned);
+    }
     stream_events(app, lib, &conn).await;
 }
 
@@ -480,7 +644,15 @@ async fn handle_frame(
     let typ = env.get("type").and_then(|v| v.as_str()).unwrap_or("");
     let payload = env.get("data").cloned().unwrap_or(Value::Null);
     let changed = match typ {
-        "library.changed" => lib.delta(conn).await.unwrap_or(false),
+        "library.changed" => {
+            let notify = || {
+                let _ = app.emit("library:changed", ());
+            };
+            if let Ok(Some(pruned)) = lib.sync_once(conn, &notify).await {
+                log_art_prune(app, pruned);
+            }
+            false
+        }
         "playlist.changed" => {
             if let Some(id) = payload.get("playlistId").and_then(|v| v.as_str()) {
                 let _ = lib.refetch_playlist(conn, id).await;
@@ -546,8 +718,12 @@ pub fn library_resync(app: AppHandle, lib: tauri::State<'_, LibraryState>) {
     tauri::async_runtime::spawn(async move {
         let state = app2.state::<LibraryState>();
         if let Some(conn) = state.conn() {
-            let _ = state.delta(&conn).await;
-            let _ = app2.emit("library:changed", ());
+            let notify = || {
+                let _ = app2.emit("library:changed", ());
+            };
+            if let Ok(Some(pruned)) = state.sync_once(&conn, &notify).await {
+                log_art_prune(&app2, pruned);
+            }
         }
         *state.running.lock().unwrap() = false;
     });
@@ -608,6 +784,11 @@ pub async fn library_art(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+    use std::thread;
 
     fn mem() -> Mirror {
         let db = Connection::open_in_memory().unwrap();
@@ -718,5 +899,129 @@ mod tests {
             m.meta("read_model_version").as_deref(),
             Some(READ_MODEL_VERSION)
         );
+    }
+
+    #[test]
+    fn bootstrap_pages_keep_old_rows_until_final_page_and_report_changes() {
+        let m = mem();
+        m.set_meta("version", "42");
+        m.upsert("artist", "art_old", r#"{"artistId":"art_old"}"#);
+        m.upsert("artist", "art_keep", r#"{"artistId":"art_keep"}"#);
+        let first = vec![serde_json::json!({"artistId": "art_new"})];
+        let second = vec![serde_json::json!({"artistId": "art_keep"})];
+        let mut seen = HashSet::new();
+
+        assert!(m
+            .apply_bootstrap_page("artist", "artistId", &first, &mut seen, false)
+            .unwrap());
+        assert_eq!(m.snapshot("artist").len(), 3);
+        assert!(m
+            .apply_bootstrap_page("artist", "artistId", &second, &mut seen, true)
+            .unwrap());
+        let snapshot = m.snapshot("artist");
+        assert_eq!(snapshot.len(), 2);
+        assert!(snapshot.iter().any(|item| item["artistId"] == "art_new"));
+        assert!(snapshot.iter().any(|item| item["artistId"] == "art_keep"));
+        assert_eq!(m.version(), 42);
+
+        let mut seen = HashSet::new();
+        assert!(!m
+            .apply_bootstrap_page("artist", "artistId", &first, &mut seen, false)
+            .unwrap());
+        assert!(!m
+            .apply_bootstrap_page("artist", "artistId", &second, &mut seen, true)
+            .unwrap());
+    }
+
+    #[test]
+    fn version_regression_runs_full_bootstrap() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let requests = Arc::new(AtomicUsize::new(0));
+        let request_count = Arc::clone(&requests);
+        let server = thread::spawn(move || {
+            for stream in listener.incoming().take(5) {
+                let mut stream = stream.unwrap();
+                let mut request = [0_u8; 2048];
+                let len = stream.read(&mut request).unwrap();
+                let request = String::from_utf8_lossy(&request[..len]);
+                let path = request.split_whitespace().nth(1).unwrap();
+                request_count.fetch_add(1, Ordering::SeqCst);
+                let body = match path.split('?').next().unwrap() {
+                    "/v1/library" => r#"{"version":1}"#,
+                    "/v1/artists" => r#"{"items":[{"artistId":"art_new"}],"nextCursor":null}"#,
+                    "/v1/albums" => r#"{"items":[],"nextCursor":null}"#,
+                    "/v1/tracks" => r#"{"items":[],"nextCursor":null}"#,
+                    "/v1/playlists" => "[]",
+                    other => panic!("unexpected request: {other}"),
+                };
+                write!(
+                    stream,
+                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                    body.len(),
+                    body
+                )
+                .unwrap();
+            }
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let state = LibraryState {
+            mirror: Mutex::new(mem()),
+            conn: Mutex::new(None),
+            http: reqwest::Client::new(),
+            art_dir: dir.path().to_path_buf(),
+            art_inflight: Mutex::new(HashSet::new()),
+            running: Mutex::new(false),
+        };
+        state.mirror.lock().unwrap().set_meta("version", "9");
+        state
+            .mirror
+            .lock()
+            .unwrap()
+            .upsert("artist", "art_old", r#"{"artistId":"art_old"}"#);
+        let conn = Conn {
+            base_url: format!("http://{address}"),
+            token: "token".into(),
+            identity: "local".into(),
+        };
+
+        tauri::async_runtime::block_on(state.sync_once(&conn, &|| {})).unwrap();
+        server.join().unwrap();
+
+        assert_eq!(requests.load(Ordering::SeqCst), 5);
+        assert_eq!(state.mirror.lock().unwrap().version(), 1);
+        assert_eq!(
+            state.mirror.lock().unwrap().snapshot("artist"),
+            vec![serde_json::json!({"artistId": "art_new"})]
+        );
+    }
+
+    #[test]
+    fn art_prune_removes_only_unreferenced_cache_files() {
+        let m = mem();
+        m.upsert(
+            "album",
+            "alb_1",
+            r#"{"albumId":"alb_1","artId":"cover_keep"}"#,
+        );
+        let dir = tempfile::tempdir().unwrap();
+        for name in [
+            "cover_keep_300",
+            "cover_stale_300",
+            "cover_stale_large",
+            "cover-stale_300",
+            "cover_stale_300.tmp",
+            "README",
+        ] {
+            std::fs::write(dir.path().join(name), name).unwrap();
+        }
+
+        assert_eq!(prune_art_cache(&m, dir.path()).unwrap(), 1);
+        assert!(dir.path().join("cover_keep_300").exists());
+        assert!(!dir.path().join("cover_stale_300").exists());
+        assert!(dir.path().join("cover_stale_large").exists());
+        assert!(dir.path().join("cover-stale_300").exists());
+        assert!(dir.path().join("cover_stale_300.tmp").exists());
+        assert!(dir.path().join("README").exists());
     }
 }
