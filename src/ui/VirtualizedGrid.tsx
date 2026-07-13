@@ -1,7 +1,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useScrollParent } from "./ScrollContext";
-import { chunkIntoRows, columnCountForWidth } from "./virtualGrid";
+import { chunkIntoRows, columnCountForWidth, settleMeasurement } from "./virtualGrid";
 
 /** A responsive CSS grid virtualized by rows against the app's main scroller. */
 export function VirtualizedGrid<T>({
@@ -35,25 +35,40 @@ export function VirtualizedGrid<T>({
     const grid = gridRef.current;
     if (!grid) return;
     const scroll = scrollRef?.current;
+    // The grid's own height depends on these measurements, so the observer
+    // refires after every render. Round to whole pixels and bail on equal
+    // values or the feedback loop runs until React aborts the tree
+    // ("maximum update depth exceeded" — seen live on WebKitGTK; jsdom never
+    // fires ResizeObserver, so only integer-stable updates are safe here).
     const measure = () => {
       const width = grid.getBoundingClientRect().width;
-      if (width > 0) setContainerWidth(width);
+      if (width > 0) {
+        setContainerWidth((previous) => settleMeasurement(previous, width));
+      }
       if (scroll) {
-        setScrollMargin(grid.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop);
+        // Offset of the grid within the scroller's content: scroll-position
+        // independent, so it only moves when layout above the grid changes.
+        const margin =
+          grid.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
+        setScrollMargin((previous) => settleMeasurement(previous, margin));
       }
     };
     measure();
     if (typeof ResizeObserver === "undefined") return;
+    // Observe only the grid: its width already tracks the scroller's, and
+    // observing the scroller retriggers on every content-height change.
     const observer = new ResizeObserver(measure);
     observer.observe(grid);
-    if (scroll) observer.observe(scroll);
     return () => observer.disconnect();
   }, [scrollRef, items.length]);
 
+  // A stable estimate keeps the virtualizer from remeasuring every render.
+  const rowEstimate = Math.round(tileWidth + estimatedCaptionHeight + gap);
+  const estimateSize = useCallback(() => rowEstimate, [rowEstimate]);
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef?.current ?? null,
-    estimateSize: () => tileWidth + estimatedCaptionHeight + gap,
+    estimateSize,
     // The library sync reshapes the item list continuously during bootstrap;
     // the virtualizer can hand back indexes from a stale measurement pass, so
     // every row lookup must tolerate a vanished row instead of throwing.
