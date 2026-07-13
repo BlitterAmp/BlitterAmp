@@ -6,6 +6,7 @@ import { AlbumArt } from "../AlbumArt";
 import { ArtistCredits } from "../ArtistCredits";
 import { pickFolder } from "../Settings";
 import { setEngineSource } from "../../state/engine";
+import { VirtualizedGrid } from "../VirtualizedGrid";
 
 export function AlbumsView({
   client,
@@ -51,8 +52,14 @@ export function AlbumsView({
       </div>
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">
-        {albums.map((a) => (
+      <VirtualizedGrid
+        items={albums}
+        minimumItemWidth={160}
+        gap={20}
+        estimatedCaptionHeight={44}
+        gridClassName="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5"
+        getItemKey={(a) => a.albumId}
+        renderItem={(a) => (
           <div key={a.albumId} className="group min-w-0 text-left">
             <button type="button" className="block w-full text-left" onClick={() => onOpen(a.albumId)}>
               <div className="aspect-square overflow-hidden rounded-box shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
@@ -65,8 +72,8 @@ export function AlbumsView({
               {a.year ? <span className="shrink-0"> · {a.year}</span> : null}
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       {ready && albums.length === 0 && !error && (
         <div className="hero mt-10">
