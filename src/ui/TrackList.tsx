@@ -5,6 +5,7 @@ import type { Client, LoveState, Track } from "../api/client";
 import type { Player } from "../audio/player";
 import { usePlaylists } from "../state/playlists";
 import { AlbumArt } from "./AlbumArt";
+import { ArtistCredits } from "./ArtistCredits";
 import { LoveControl } from "./LoveControl";
 import { usePrompt } from "./PromptProvider";
 import { useScrollParent } from "./ScrollContext";
@@ -148,9 +149,11 @@ export function TrackList({
               {showAlbum && <div className="truncate text-xs opacity-60">{t.albumTitle}</div>}
               {!player.canPlay(t) && <span className="text-xs opacity-50">({t.media.container} — unsupported)</span>}
             </div>
-            <button type="button" className="w-32 shrink-0 truncate text-left text-xs opacity-60 hover:text-primary hover:opacity-100" onClick={() => onNavigate({ name: "artist", artistId: t.artistId })}>
-              {t.artistName}
-            </button>
+            <ArtistCredits
+              credits={t.artistCredits}
+              className="w-32 shrink-0 truncate text-left text-xs opacity-60"
+              onOpenArtist={(artistId) => onNavigate({ name: "artist", artistId })}
+            />
             <div className="flex shrink-0 items-center justify-end">
               <LoveControl state={loves[t.trackId]} onChange={(s) => void love(t, s)} label={`Taste for ${t.title}`} />
             </div>
@@ -166,7 +169,20 @@ export function TrackList({
                   <li><button type="button" onClick={() => { closeMenus(); player.addToQueue([t]); }}>Add to queue</button></li>
                   <li><button type="button" onClick={() => void startRadio(t)}>Start radio</button></li>
                   <li><button type="button" onClick={() => { closeMenus(); onNavigate({ name: "album", albumId: t.albumId }); }}>Go to album</button></li>
-                  <li><button type="button" onClick={() => { closeMenus(); onNavigate({ name: "artist", artistId: t.artistId }); }}>Go to artist</button></li>
+                  <li>
+                    <details>
+                      <summary>Go to artist</summary>
+                      <ul>
+                        {t.artistCredits.filter((credit, index, credits) => credits.findIndex((candidate) => candidate.artistId === credit.artistId) === index).map((credit) => (
+                          <li key={credit.artistId}>
+                            <button type="button" onClick={() => { closeMenus(); onNavigate({ name: "artist", artistId: credit.artistId }); }}>
+                              {credit.name}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
                   <li>
                     <details>
                       <summary>Add to playlist</summary>

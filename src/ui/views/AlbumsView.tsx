@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Client } from "../../api/client";
 import { resyncLibrary, useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
+import { ArtistCredits } from "../ArtistCredits";
 import { pickFolder } from "../Settings";
 import { setEngineSource } from "../../state/engine";
 
@@ -60,7 +61,7 @@ export function AlbumsView({
               <div className="mt-2 truncate text-sm font-medium">{a.title}</div>
             </button>
             <div className="flex min-w-0 text-xs opacity-60">
-              <button type="button" className="truncate hover:text-primary" onClick={() => onOpenArtist(a.artistId)}>{a.artistName}</button>
+              <ArtistCredits credits={a.artistCredits} className="truncate" onOpenArtist={onOpenArtist} />
               {a.year ? <span className="shrink-0"> · {a.year}</span> : null}
             </div>
           </div>

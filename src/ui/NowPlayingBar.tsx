@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Client, LoveState } from "../api/client";
 import type { Player, PlayerState } from "../audio/player";
 import { AlbumArt } from "./AlbumArt";
+import { ArtistCredits } from "./ArtistCredits";
 import { LoveControl } from "./LoveControl";
 import type { NavTarget } from "./TrackList";
 
@@ -62,7 +63,7 @@ export function NowPlayingBar({
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold">{t.title}</div>
               <div className="flex min-w-0 items-center text-xs opacity-60">
-                <button type="button" className="truncate hover:text-primary" onClick={() => onNavigate({ name: "artist", artistId: t.artistId })}>{t.artistName}</button>
+                <ArtistCredits credits={t.artistCredits} className="truncate" onOpenArtist={(artistId) => onNavigate({ name: "artist", artistId })} />
                 <span className="shrink-0"> — </span>
                 <button type="button" className="truncate hover:text-primary" onClick={() => onNavigate({ name: "album", albumId: t.albumId })}>{t.albumTitle}</button>
               </div>
