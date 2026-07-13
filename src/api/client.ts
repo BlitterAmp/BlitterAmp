@@ -227,24 +227,4 @@ export class Client {
     return this.post<{ url: string; expiresAt: string }>("/v1/stream-grants", { trackId });
   }
 
-  private artCache = new Map<string, Promise<string>>();
-
-  /** Fetches artwork with the bearer header (an <img> tag can't carry one)
-   * and returns a cached object URL. */
-  loadArt(artId: string, size = 300): Promise<string> {
-    const key = `${artId}@${size}`;
-    let cached = this.artCache.get(key);
-    if (!cached) {
-      cached = (async () => {
-        const resp = await tauriFetch(this.url(`/v1/art/${artId}?w=${size}&h=${size}`), {
-          headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
-        });
-        if (!resp.ok) throw new ApiError(resp.status, "art_unavailable");
-        return URL.createObjectURL(await resp.blob());
-      })();
-      cached.catch(() => this.artCache.delete(key));
-      this.artCache.set(key, cached);
-    }
-    return cached;
-  }
 }

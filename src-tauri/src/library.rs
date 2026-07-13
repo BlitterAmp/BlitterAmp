@@ -14,16 +14,24 @@
 //! them via library_snapshot and sorts/filters in JS. We emit `library:changed`
 //! whenever the mirror moves so the webview re-reads.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use rusqlite::Connection;
 use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager};
+use tokio::sync::{watch, Semaphore};
 
 const READ_MODEL_VERSION: &str = "3";
+const ART_FETCH_CONCURRENCY: usize = 6;
+const ART_NEGATIVE_TTL: Duration = Duration::from_secs(120);
+const NOTIFY_DEBOUNCE: Duration = Duration::from_millis(250);
+
+type ArtResult = Result<Vec<u8>, String>;
+type ArtInflight = HashMap<String, watch::Sender<Option<ArtResult>>>;
 
 #[derive(Clone)]
 struct Conn {
@@ -266,7 +274,9 @@ pub struct LibraryState {
     conn: Mutex<Option<Conn>>,
     http: reqwest::Client,
     art_dir: PathBuf,
-    art_inflight: Mutex<HashSet<String>>,
+    art_inflight: Mutex<ArtInflight>,
+    art_negative: Mutex<HashMap<String, Instant>>,
+    art_fetches: Semaphore,
     running: Mutex<bool>,
 }
 
@@ -286,13 +296,19 @@ impl LibraryState {
             conn: Mutex::new(None),
             http: reqwest::Client::builder().build().unwrap_or_default(),
             art_dir,
-            art_inflight: Mutex::new(HashSet::new()),
+            art_inflight: Mutex::new(HashMap::new()),
+            art_negative: Mutex::new(HashMap::new()),
+            art_fetches: Semaphore::new(ART_FETCH_CONCURRENCY),
             running: Mutex::new(false),
         }
     }
 
     fn conn(&self) -> Option<Conn> {
         self.conn.lock().unwrap().clone()
+    }
+
+    fn invalidate_negative_art(&self) {
+        self.art_negative.lock().unwrap().clear();
     }
 
     async fn get_json(&self, conn: &Conn, path: &str) -> Result<Value, String> {
@@ -406,6 +422,14 @@ impl LibraryState {
 
     async fn sync_once(&self, conn: &Conn, notify: &impl Fn()) -> Result<Option<usize>, String> {
         let library = self.get_json(conn, "/v1/library").await?;
+        let library_id = library
+            .get("libraryId")
+            .and_then(Value::as_str)
+            .unwrap_or("lib_local");
+        self.mirror
+            .lock()
+            .unwrap()
+            .prepare(&library_identity(&conn.identity, library_id));
         let server_version = library.get("version").and_then(Value::as_i64).unwrap_or(0);
         let mirror_version = self.mirror.lock().unwrap().version();
         if mirror_version == 0 || server_version < mirror_version {
@@ -517,6 +541,47 @@ impl LibraryState {
     }
 }
 
+fn library_identity(connection_identity: &str, library_id: &str) -> String {
+    format!("{connection_identity}:{library_id}")
+}
+
+struct DebouncedNotifier {
+    delay: Duration,
+    callback: Arc<dyn Fn() + Send + Sync>,
+    pending: Mutex<Option<tauri::async_runtime::JoinHandle<()>>>,
+}
+
+impl DebouncedNotifier {
+    fn new(delay: Duration, callback: impl Fn() + Send + Sync + 'static) -> Self {
+        Self {
+            delay,
+            callback: Arc::new(callback),
+            pending: Mutex::new(None),
+        }
+    }
+
+    fn notify(&self) {
+        let mut pending = self.pending.lock().unwrap();
+        if let Some(task) = pending.take() {
+            task.abort();
+        }
+        let delay = self.delay;
+        let callback = Arc::clone(&self.callback);
+        *pending = Some(tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(delay).await;
+            callback();
+        }));
+    }
+}
+
+fn app_notifier(app: &AppHandle) -> Arc<DebouncedNotifier> {
+    let app = app.clone();
+    Arc::new(DebouncedNotifier::new(NOTIFY_DEBOUNCE, move || {
+        app.state::<LibraryState>().invalidate_negative_art();
+        let _ = app.emit("library:changed", ());
+    }))
+}
+
 #[derive(Serialize)]
 pub struct Snapshot {
     artists: Vec<Value>,
@@ -535,12 +600,6 @@ pub async fn library_configure(
     token: String,
     identity: String,
 ) -> Result<(), String> {
-    // A different server or read-model contract means a full bootstrap. The
-    // latter refreshes derived fields whose source rows did not change version.
-    {
-        let m = lib.mirror.lock().unwrap();
-        m.prepare(&identity);
-    }
     *lib.conn.lock().unwrap() = Some(Conn {
         base_url,
         token,
@@ -565,9 +624,8 @@ pub async fn library_configure(
 
 async fn run_sync(app: &AppHandle, lib: &LibraryState) {
     let Some(conn) = lib.conn() else { return };
-    let notify = || {
-        let _ = app.emit("library:changed", ());
-    };
+    let notifier = app_notifier(app);
+    let notify = || notifier.notify();
     let result = lib.sync_once(&conn, &notify).await;
     if let Err(e) = &result {
         crate::diagnostics::log(
@@ -581,11 +639,16 @@ async fn run_sync(app: &AppHandle, lib: &LibraryState) {
     if let Ok(Some(pruned)) = result {
         log_art_prune(app, pruned);
     }
-    stream_events(app, lib, &conn).await;
+    stream_events(app, lib, &conn, &notifier).await;
 }
 
 /// SSE loop over /v1/events, reconnecting with Last-Event-ID.
-async fn stream_events(app: &AppHandle, lib: &LibraryState, conn: &Conn) {
+async fn stream_events(
+    app: &AppHandle,
+    lib: &LibraryState,
+    conn: &Conn,
+    notifier: &DebouncedNotifier,
+) {
     let mut last_id = String::new();
     loop {
         // Bail if the connection changed under us (switched servers).
@@ -613,7 +676,7 @@ async fn stream_events(app: &AppHandle, lib: &LibraryState, conn: &Conn) {
             buf.push_str(&String::from_utf8_lossy(&bytes));
             while let Some(idx) = buf.find("\n\n") {
                 let frame: String = buf.drain(..idx + 2).collect();
-                handle_frame(app, lib, conn, &frame, &mut last_id).await;
+                handle_frame(app, lib, conn, &frame, &mut last_id, notifier).await;
             }
         }
         tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
@@ -626,6 +689,7 @@ async fn handle_frame(
     conn: &Conn,
     frame: &str,
     last_id: &mut String,
+    notifier: &DebouncedNotifier,
 ) {
     let mut data = String::new();
     for line in frame.lines() {
@@ -645,9 +709,7 @@ async fn handle_frame(
     let payload = env.get("data").cloned().unwrap_or(Value::Null);
     let changed = match typ {
         "library.changed" => {
-            let notify = || {
-                let _ = app.emit("library:changed", ());
-            };
+            let notify = || notifier.notify();
             if let Ok(Some(pruned)) = lib.sync_once(conn, &notify).await {
                 log_art_prune(app, pruned);
             }
@@ -689,7 +751,7 @@ async fn handle_frame(
         _ => false,
     };
     if changed {
-        let _ = app.emit("library:changed", ());
+        notifier.notify();
     }
 }
 
@@ -718,9 +780,8 @@ pub fn library_resync(app: AppHandle, lib: tauri::State<'_, LibraryState>) {
     tauri::async_runtime::spawn(async move {
         let state = app2.state::<LibraryState>();
         if let Some(conn) = state.conn() {
-            let notify = || {
-                let _ = app2.emit("library:changed", ());
-            };
+            let notifier = app_notifier(&app2);
+            let notify = || notifier.notify();
             if let Ok(Some(pruned)) = state.sync_once(&conn, &notify).await {
                 log_art_prune(&app2, pruned);
             }
@@ -736,6 +797,10 @@ pub async fn library_art(
     art_id: String,
     size: u32,
 ) -> Result<Vec<u8>, String> {
+    fetch_art(&lib, &art_id, size).await
+}
+
+async fn fetch_art(lib: &LibraryState, art_id: &str, size: u32) -> Result<Vec<u8>, String> {
     let safe: String = art_id
         .chars()
         .filter(|c| c.is_ascii_alphanumeric() || *c == '_')
@@ -745,40 +810,78 @@ pub async fn library_art(
         return Ok(bytes);
     }
     let conn = lib.conn().ok_or("library not configured")?;
-    // Dedupe concurrent fetches of the same art.
-    let ours = lib
-        .art_inflight
-        .lock()
-        .unwrap()
-        .insert(path.to_string_lossy().to_string());
-    if !ours {
-        for _ in 0..100 {
-            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-            if let Ok(bytes) = std::fs::read(&path) {
-                return Ok(bytes);
+    let key = format!("{safe}@{size}");
+    {
+        let mut negative = lib.art_negative.lock().unwrap();
+        if negative
+            .get(&key)
+            .is_some_and(|expires| *expires > Instant::now())
+        {
+            return Err("art unavailable (cached)".into());
+        }
+        negative.remove(&key);
+    }
+
+    let (sender, mut waiter, winner) = {
+        let mut inflight = lib.art_inflight.lock().unwrap();
+        if let Some(sender) = inflight.get(&key) {
+            (sender.clone(), sender.subscribe(), false)
+        } else {
+            let (sender, receiver) = watch::channel(None);
+            inflight.insert(key.clone(), sender.clone());
+            (sender, receiver, true)
+        }
+    };
+    if !winner {
+        loop {
+            if let Some(result) = waiter.borrow().clone() {
+                return result;
             }
+            waiter
+                .changed()
+                .await
+                .map_err(|_| "art fetch cancelled".to_string())?;
         }
     }
-    let result = lib
-        .http
-        .get(format!(
-            "{}/v1/art/{art_id}?w={size}&h={size}",
-            conn.base_url.trim_end_matches('/')
-        ))
-        .bearer_auth(&conn.token)
-        .send()
-        .await
-        .map_err(|e| e.to_string())
-        .and_then(|r| r.error_for_status().map_err(|e| e.to_string()));
-    lib.art_inflight
-        .lock()
-        .unwrap()
-        .remove(&path.to_string_lossy().to_string());
-    let bytes = result?.bytes().await.map_err(|e| e.to_string())?.to_vec();
-    let tmp = path.with_extension("tmp");
-    std::fs::write(&tmp, &bytes).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())?;
-    Ok(bytes)
+
+    let result = async {
+        let _permit = lib
+            .art_fetches
+            .acquire()
+            .await
+            .map_err(|_| "art fetch queue closed".to_string())?;
+        let response = lib
+            .http
+            .get(format!(
+                "{}/v1/art/{art_id}?w={size}&h={size}",
+                conn.base_url.trim_end_matches('/')
+            ))
+            .bearer_auth(&conn.token)
+            .send()
+            .await
+            .map_err(|error| error.to_string())?
+            .error_for_status()
+            .map_err(|error| error.to_string())?;
+        let bytes = response
+            .bytes()
+            .await
+            .map_err(|error| error.to_string())?
+            .to_vec();
+        let tmp = path.with_extension("tmp");
+        std::fs::write(&tmp, &bytes).map_err(|error| error.to_string())?;
+        std::fs::rename(&tmp, &path).map_err(|error| error.to_string())?;
+        Ok(bytes)
+    }
+    .await;
+    if result.is_err() {
+        lib.art_negative
+            .lock()
+            .unwrap()
+            .insert(key.clone(), Instant::now() + ART_NEGATIVE_TTL);
+    }
+    let _ = sender.send(Some(result.clone()));
+    lib.art_inflight.lock().unwrap().remove(&key);
+    result
 }
 
 #[cfg(test)]
@@ -798,6 +901,23 @@ mod tests {
         )
         .unwrap();
         Mirror { db }
+    }
+
+    fn test_state(path: &Path, base_url: String, concurrency: usize) -> LibraryState {
+        LibraryState {
+            mirror: Mutex::new(mem()),
+            conn: Mutex::new(Some(Conn {
+                base_url,
+                token: "token".into(),
+                identity: "local".into(),
+            })),
+            http: reqwest::Client::new(),
+            art_dir: path.to_path_buf(),
+            art_inflight: Mutex::new(HashMap::new()),
+            art_negative: Mutex::new(HashMap::new()),
+            art_fetches: Semaphore::new(concurrency),
+            running: Mutex::new(false),
+        }
     }
 
     #[test]
@@ -970,7 +1090,9 @@ mod tests {
             conn: Mutex::new(None),
             http: reqwest::Client::new(),
             art_dir: dir.path().to_path_buf(),
-            art_inflight: Mutex::new(HashSet::new()),
+            art_inflight: Mutex::new(HashMap::new()),
+            art_negative: Mutex::new(HashMap::new()),
+            art_fetches: Semaphore::new(ART_FETCH_CONCURRENCY),
             running: Mutex::new(false),
         };
         state.mirror.lock().unwrap().set_meta("version", "9");
@@ -1023,5 +1145,141 @@ mod tests {
         assert!(dir.path().join("cover-stale_300").exists());
         assert!(dir.path().join("cover_stale_300.tmp").exists());
         assert!(dir.path().join("README").exists());
+    }
+
+    #[test]
+    fn library_identity_supports_legacy_and_stable_ids() {
+        assert_eq!(library_identity("local", "lib_local"), "local:lib_local");
+        assert_eq!(
+            library_identity("local", "lib_01JSTABLE"),
+            "local:lib_01JSTABLE"
+        );
+
+        let mirror = mem();
+        mirror.prepare(&library_identity("local", "lib_local"));
+        mirror.upsert("track", "trk_1", r#"{"trackId":"trk_1"}"#);
+        mirror.prepare(&library_identity("local", "lib_local"));
+        assert_eq!(mirror.snapshot("track").len(), 1);
+        mirror.prepare(&library_identity("local", "lib_01JSTABLE"));
+        assert!(mirror.snapshot("track").is_empty());
+    }
+
+    #[test]
+    fn rapid_notifications_are_trailing_edge_debounced() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let observed = Arc::clone(&calls);
+        let debouncer = Arc::new(DebouncedNotifier::new(
+            std::time::Duration::from_millis(40),
+            move || {
+                observed.fetch_add(1, Ordering::SeqCst);
+            },
+        ));
+
+        tauri::async_runtime::block_on(async {
+            for _ in 0..10 {
+                debouncer.notify();
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+            assert_eq!(calls.load(Ordering::SeqCst), 0);
+            debouncer.notify();
+            tokio::time::sleep(std::time::Duration::from_millis(60)).await;
+        });
+
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn concurrent_art_waiters_share_failure_and_negative_cache() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let requests = Arc::new(AtomicUsize::new(0));
+        let request_count = Arc::clone(&requests);
+        let server = thread::spawn(move || {
+            for stream in listener.incoming().take(2) {
+                let mut stream = stream.unwrap();
+                let mut request = [0_u8; 2048];
+                stream.read(&mut request).unwrap();
+                request_count.fetch_add(1, Ordering::SeqCst);
+                thread::sleep(std::time::Duration::from_millis(50));
+                write!(
+                    stream,
+                    "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                )
+                .unwrap();
+            }
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let state = Arc::new(test_state(dir.path(), format!("http://{address}"), 6));
+
+        tauri::async_runtime::block_on(async {
+            let first = fetch_art(&state, "missing", 300);
+            let second = fetch_art(&state, "missing", 300);
+            let (a, b) = tokio::join!(first, second);
+            assert!(a.is_err());
+            assert!(b.is_err());
+            assert!(fetch_art(&state, "missing", 300).await.is_err());
+            state.art_negative.lock().unwrap().insert(
+                "missing@300".into(),
+                Instant::now() - Duration::from_secs(1),
+            );
+            assert!(fetch_art(&state, "missing", 300).await.is_err());
+        });
+        server.join().unwrap();
+        assert_eq!(requests.load(Ordering::SeqCst), 2);
+
+        state.invalidate_negative_art();
+        assert!(state.art_negative.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn art_fetches_obey_global_concurrency_limit() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let active = Arc::new(AtomicUsize::new(0));
+        let peak = Arc::new(AtomicUsize::new(0));
+        let server_active = Arc::clone(&active);
+        let server_peak = Arc::clone(&peak);
+        let server = thread::spawn(move || {
+            let mut workers = Vec::new();
+            for stream in listener.incoming().take(12) {
+                let server_active = Arc::clone(&server_active);
+                let server_peak = Arc::clone(&server_peak);
+                workers.push(thread::spawn(move || {
+                    let mut stream = stream.unwrap();
+                    let mut request = [0_u8; 2048];
+                    stream.read(&mut request).unwrap();
+                    let now = server_active.fetch_add(1, Ordering::SeqCst) + 1;
+                    server_peak.fetch_max(now, Ordering::SeqCst);
+                    thread::sleep(std::time::Duration::from_millis(30));
+                    server_active.fetch_sub(1, Ordering::SeqCst);
+                    write!(
+                        stream,
+                        "HTTP/1.1 200 OK\r\nContent-Length: 1\r\nConnection: close\r\n\r\nx"
+                    )
+                    .unwrap();
+                }));
+            }
+            for worker in workers {
+                worker.join().unwrap();
+            }
+        });
+        let dir = tempfile::tempdir().unwrap();
+        let state = Arc::new(test_state(dir.path(), format!("http://{address}"), 6));
+
+        tauri::async_runtime::block_on(async {
+            let tasks = (0..12)
+                .map(|i| {
+                    let state = Arc::clone(&state);
+                    tauri::async_runtime::spawn(async move {
+                        fetch_art(&state, &format!("art_{i}"), 300).await
+                    })
+                })
+                .collect::<Vec<_>>();
+            for task in tasks {
+                assert!(task.await.unwrap().is_ok());
+            }
+        });
+        server.join().unwrap();
+        assert!(peak.load(Ordering::SeqCst) <= 6);
     }
 }

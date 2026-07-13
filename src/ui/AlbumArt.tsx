@@ -1,34 +1,31 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Music } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { subscribeLibraryChanges } from "../state/library";
+import { ArtUrlCache } from "./artUrlCache";
 
 // Cover art from the Rust host's persistent on-disk cache (keyed by art id,
 // fetched once from the server then served locally forever). Loads only when
 // scrolled into view (IntersectionObserver) so kept-alive/off-screen grids
 // don't fetch thousands of images up front. Object URLs are memoized per
 // art+size so re-renders don't re-decode.
-const urls = new Map<string, Promise<string>>();
+const urls = new ArtUrlCache(400, 120_000, (url) => URL.revokeObjectURL(url));
+subscribeLibraryChanges(() => urls.invalidateNegatives());
 
 function artUrl(artId: string, size: number): Promise<string> {
   const key = `${artId}@${size}`;
-  let p = urls.get(key);
-  if (!p) {
-    p = invoke<number[]>("library_art", { artId, size }).then(
+  return urls.get(key, () =>
+    invoke<number[]>("library_art", { artId, size }).then(
       (bytes) => URL.createObjectURL(new Blob([new Uint8Array(bytes)])),
-    );
-    p.catch(() => urls.delete(key));
-    urls.set(key, p);
-  }
-  return p;
+    ),
+  );
 }
 
-// `client` is accepted but unused — art no longer goes through the HTTP client.
 export function AlbumArt({
   artId,
   size = 300,
   alt = "",
 }: {
-  client?: unknown;
   artId?: string | null;
   size?: number;
   alt?: string;
