@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chunkIntoRows, columnCountForWidth } from "./virtualGrid";
+import { chunkIntoRows, columnCountForWidth, settleMeasurement } from "./virtualGrid";
 
 describe("chunkIntoRows", () => {
   it.each([
@@ -30,5 +30,23 @@ describe("columnCountForWidth", () => {
     { width: 700, minimumWidth: 160, gap: 20, expected: 4 },
   ])("returns $expected columns for a $width px container", ({ width, minimumWidth, gap, expected }) => {
     expect(columnCountForWidth(width, minimumWidth, gap)).toBe(expected);
+  });
+});
+
+describe("settleMeasurement", () => {
+  it("absorbs sub-pixel wobble so feedback loops settle", () => {
+    let value = settleMeasurement(0, 640.1);
+    expect(value).toBe(640);
+    // Wobbling raw measurements from repeated observer fires must be
+    // identity-stable once rounded, or React re-renders indefinitely.
+    for (const raw of [640.4, 640.1, 640.4, 639.8, 640.2]) {
+      const next = settleMeasurement(value, raw);
+      expect(next).toBe(value);
+      value = next;
+    }
+  });
+
+  it("moves on real changes", () => {
+    expect(settleMeasurement(640, 320.2)).toBe(320);
   });
 });
