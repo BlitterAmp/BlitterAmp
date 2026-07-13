@@ -54,27 +54,37 @@ export function VirtualizedGrid<T>({
     count: rows.length,
     getScrollElement: () => scrollRef?.current ?? null,
     estimateSize: () => tileWidth + estimatedCaptionHeight + gap,
-    getItemKey: (index) => getItemKey(rows[index][0]),
+    // The library sync reshapes the item list continuously during bootstrap;
+    // the virtualizer can hand back indexes from a stale measurement pass, so
+    // every row lookup must tolerate a vanished row instead of throwing.
+    getItemKey: (index) => {
+      const row = rows[index];
+      return row ? getItemKey(row[0]) : `missing-${index}`;
+    },
     overscan: 3,
     scrollMargin,
   });
 
   return (
     <div ref={gridRef} className="relative" style={{ height: virtualizer.getTotalSize() }}>
-      {virtualizer.getVirtualItems().map((virtualRow) => (
-        <div
-          key={virtualRow.key}
-          ref={virtualizer.measureElement}
-          data-index={virtualRow.index}
-          className={`${gridClassName} absolute left-0 top-0 w-full`}
-          style={{
-            paddingBottom: virtualRow.index < rows.length - 1 ? gap : 0,
-            transform: `translateY(${virtualRow.start - scrollMargin}px)`,
-          }}
-        >
-          {rows[virtualRow.index].map(renderItem)}
-        </div>
-      ))}
+      {virtualizer.getVirtualItems().map((virtualRow) => {
+        const row = rows[virtualRow.index];
+        if (!row) return null;
+        return (
+          <div
+            key={virtualRow.key}
+            ref={virtualizer.measureElement}
+            data-index={virtualRow.index}
+            className={`${gridClassName} absolute left-0 top-0 w-full`}
+            style={{
+              paddingBottom: virtualRow.index < rows.length - 1 ? gap : 0,
+              transform: `translateY(${virtualRow.start - scrollMargin}px)`,
+            }}
+          >
+            {row.map(renderItem)}
+          </div>
+        );
+      })}
     </div>
   );
 }
