@@ -15,8 +15,8 @@ subscribeLibraryChanges(() => urls.invalidateNegatives());
 function artUrl(artId: string, size: number): Promise<string> {
   const key = `${artId}@${size}`;
   return urls.get(key, () =>
-    invoke<number[]>("library_art", { artId, size }).then(
-      (bytes) => URL.createObjectURL(new Blob([new Uint8Array(bytes)])),
+    invoke<ArrayBuffer>("library_art", { artId, size }).then(
+      (bytes) => URL.createObjectURL(new Blob([bytes])),
     ),
   );
 }

@@ -796,8 +796,12 @@ pub async fn library_art(
     lib: tauri::State<'_, LibraryState>,
     art_id: String,
     size: u32,
-) -> Result<Vec<u8>, String> {
-    fetch_art(&lib, &art_id, size).await
+) -> Result<tauri::ipc::Response, String> {
+    // Raw IPC response: the webview receives an ArrayBuffer instead of a JSON
+    // number array, which cost 5-10x the bytes plus parse time per image.
+    fetch_art(&lib, &art_id, size)
+        .await
+        .map(tauri::ipc::Response::new)
 }
 
 async fn fetch_art(lib: &LibraryState, art_id: &str, size: u32) -> Result<Vec<u8>, String> {
