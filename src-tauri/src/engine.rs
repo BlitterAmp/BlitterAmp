@@ -127,6 +127,19 @@ fn random_password() -> String {
         .collect()
 }
 
+/// The managed engine's data is a disposable mirror of the music files plus
+/// durable caches that survive resets, so the sidecar opts in to moving a
+/// schema-mismatched database aside instead of failing every scan.
+fn engine_args(listen: &str, data_dir: &str) -> Vec<String> {
+    vec![
+        "--listen".into(),
+        listen.into(),
+        "--data-dir".into(),
+        data_dir.into(),
+        "--reset-db-on-schema-mismatch".into(),
+    ]
+}
+
 /// Spawns the sidecar, waits until it answers, and provisions it on first run.
 /// Idempotent: on later launches it restarts the process and reuses (or
 /// re-mints) the profile token.
@@ -154,12 +167,10 @@ pub async fn engine_start(
         .shell()
         .sidecar("blitterserver")
         .map_err(|e| format!("sidecar: {e}"))?
-        .args([
-            "--listen",
+        .args(engine_args(
             &format!("127.0.0.1:{port}"),
-            "--data-dir",
             &dir.to_string_lossy(),
-        ])
+        ))
         .spawn()
         .map_err(|e| format!("spawn engine: {e}"))?;
     crate::diagnostics::log(
@@ -644,6 +655,21 @@ fn status_ok(path: &str, status: reqwest::StatusCode) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn engine_args_request_managed_schema_mismatch_reset() {
+        let args = engine_args("127.0.0.1:43210", "/data/engine");
+        assert_eq!(
+            args,
+            [
+                "--listen",
+                "127.0.0.1:43210",
+                "--data-dir",
+                "/data/engine",
+                "--reset-db-on-schema-mismatch",
+            ]
+        );
+    }
 
     #[test]
     fn generation_transition_rejects_stale_or_uninstalled_children() {
