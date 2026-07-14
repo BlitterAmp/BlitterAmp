@@ -21,6 +21,8 @@ export type HomeRails = Schemas["HomeRails"];
 export type Mix = Schemas["Mix"];
 export type LibrarySummary = Schemas["Library"];
 export type PlaybackEvent = Schemas["PlaybackEvent"];
+export type ServerStatus = operations["getStatus"]["responses"][200]["content"]["application/json"];
+export type LibraryActivity = Schemas["LibraryActivity"];
 export type LastfmAccount = operations["getMyLastfm"]["responses"][200]["content"]["application/json"];
 export type LastfmConnect = operations["connectMyLastfm"]["responses"][201]["content"]["application/json"];
 export type FanartConfig = operations["adminGetFanart"]["responses"][200]["content"]["application/json"];
@@ -61,7 +63,7 @@ export class Client {
     return this.baseUrl.replace(/\/$/, "") + path;
   }
 
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private async request<T>(method: string, path: string, body?: unknown, signal?: AbortSignal): Promise<T> {
     const headers: Record<string, string> = {};
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
     if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -69,6 +71,7 @@ export class Client {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      ...(signal ? { signal } : {}),
     });
     if (resp.status === 204) return null as T;
     const isJSON = (resp.headers.get("Content-Type") ?? "").includes("json");
@@ -124,6 +127,10 @@ export class Client {
 
   library() {
     return this.get<LibrarySummary>("/v1/library");
+  }
+
+  status(signal?: AbortSignal): Promise<ServerStatus> {
+    return this.request<ServerStatus>("GET", "/v1/status", undefined, signal);
   }
 
   albums(cursor?: string) {
