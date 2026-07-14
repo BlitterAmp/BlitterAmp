@@ -24,6 +24,8 @@ import { ArtistsView } from "./views/ArtistsView";
 import { ArtistView } from "./views/ArtistView";
 import { TracksView } from "./views/TracksView";
 import type { NavTarget } from "./TrackList";
+import { ServerStatusProvider, useServerStatus } from "../state/serverStatus";
+import { LibraryActivityPill } from "./LibraryActivityPill";
 
 export type View =
   | { name: "albums" }
@@ -38,9 +40,11 @@ export type View =
 
 export function Shell(props: { connection: Connection; player: Player; onConnectionChange: (c: Connection) => void }) {
   return (
-    <PlaylistsProvider client={props.connection.client}>
-      <ShellInner {...props} />
-    </PlaylistsProvider>
+    <ServerStatusProvider client={props.connection.client}>
+      <PlaylistsProvider client={props.connection.client}>
+        <ShellInner {...props} />
+      </PlaylistsProvider>
+    </ServerStatusProvider>
   );
 }
 
@@ -63,6 +67,7 @@ function ShellInner({
   const { client } = connection;
   const mainRef = useRef<HTMLElement>(null);
   const prompt = usePrompt();
+  const serverStatus = useServerStatus();
   const isLinux = document.documentElement.dataset.platform === "linux";
 
   const navigate = (t: NavTarget) => setView(t);
@@ -97,6 +102,7 @@ function ShellInner({
         <div className="brand text-lg">
           Blitter<span>Amp</span>
         </div>
+        <LibraryActivityPill activity={serverStatus?.activity} />
         <div className="flex-1" />
         <label className="input input-sm input-bordered flex w-72 max-w-[40vw] items-center gap-2">
           <Search size={14} className="opacity-50" />

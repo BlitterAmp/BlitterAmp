@@ -34,6 +34,37 @@ describe("Client", () => {
     expect((opts.headers as Record<string, string>).Authorization).toBe("Bearer tok123");
   });
 
+  it("gets the authenticated server status payload", async () => {
+    const status = {
+      version: "1.2.3",
+      setupComplete: true,
+      source: { kind: "filesystem" as const, connected: true, libraryName: "Music" },
+      activity: null,
+    };
+    const fn = stubFetch(200, status);
+
+    await expect(new Client("https://music.example.net/", "status-token").status()).resolves.toEqual(status);
+    expect(fn).toHaveBeenCalledWith("https://music.example.net/v1/status", {
+      method: "GET",
+      headers: { Authorization: "Bearer status-token" },
+      body: undefined,
+    });
+  });
+
+  it("passes an AbortSignal to the status request", async () => {
+    const fn = stubFetch(200, {
+      version: "1",
+      setupComplete: true,
+      source: { kind: "none", connected: false },
+    });
+    const controller = new AbortController();
+
+    await new Client("http://s", "token").status(controller.signal);
+
+    const [, options] = fn.mock.calls[0] as unknown as [string, RequestInit];
+    expect(options.signal).toBe(controller.signal);
+  });
+
   it("raises ApiError with the problem code", async () => {
     stubFetch(401, { title: "Unauthorized", status: 401, code: "invalid_token" });
     const c = new Client("http://s", "bad");

@@ -1683,6 +1683,39 @@ export interface components {
                 /** @enum {string} */
                 lastfm?: "absent" | "configured" | "connected" | "error";
             };
+            /** @description Current library pipeline activity. Null or absent means idle; poll this status endpoint for authoritative state. */
+            activity?: components["schemas"]["LibraryActivity"] | null;
+        };
+        LibraryActivity: {
+            /** @enum {string} */
+            stage: "filesystem_scan" | "musicbrainz_resolution" | "musicbrainz_artist_metadata" | "album_artwork" | "artist_artwork";
+            /** @enum {string} */
+            state: "running" | "failed";
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            counts: components["schemas"]["LibraryActivityCounts"];
+            /** @enum {string|null} */
+            reason?: "operation_failed" | null;
+        };
+        LibraryActivityCounts: {
+            total?: number;
+            discovered?: number;
+            reused?: number;
+            probed?: number;
+            indexed?: number;
+            processed?: number;
+            attempted?: number;
+            changed?: number;
+            removed?: number;
+            succeeded?: number;
+            skipped?: number;
+            missed?: number;
+            transient?: number;
+            failed?: number;
+            terminal?: number;
+            remaining?: number;
         };
         Capabilities: {
             /** @description Love(artist) will acquire; Activity view available */
