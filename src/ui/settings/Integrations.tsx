@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import type { AdminClient } from "../../admin/adminClient";
-import type { Schemas } from "../../api/client";
+import type { DiscogsConfig, FanartConfig, Schemas } from "../../api/client";
 
 type LidarrConfig = Schemas["LidarrConfig"];
 type LastfmConfig = Schemas["LastfmConfig"];
-interface FanartConfig { configured: boolean; }
 type TestResult = Schemas["IntegrationTestResult"];
-type Integration = "lidarr" | "lastfm" | "fanart";
+type Integration = "lidarr" | "lastfm" | "fanart" | "discogs";
 
 export function Integrations({ admin }: { admin: AdminClient }) {
   const [lidarr, setLidarr] = useState<LidarrConfig | null>(null);
   const [lastfm, setLastfm] = useState<LastfmConfig | null>(null);
   const [fanart, setFanart] = useState<FanartConfig | null>(null);
+  const [discogs, setDiscogs] = useState<DiscogsConfig | null>(null);
   const [lidarrForm, setLidarrForm] = useState({ baseUrl: "", apiKey: "" });
   const [lastfmForm, setLastfmForm] = useState({ apiKey: "", sharedSecret: "" });
   const [fanartApiKey, setFanartApiKey] = useState("");
+  const [discogsPersonalToken, setDiscogsPersonalToken] = useState("");
   const [test, setTest] = useState<TestResult | null>(null);
   const [errors, setErrors] = useState<Partial<Record<Integration, string>>>({});
   const [busy, setBusy] = useState<Integration | null>(null);
@@ -37,6 +38,7 @@ export function Integrations({ admin }: { admin: AdminClient }) {
       }),
       load<LastfmConfig>("lastfm", "/admin/api/integrations/lastfm", setLastfm),
       load<FanartConfig>("fanart", "/admin/api/integrations/fanart", setFanart),
+      load<DiscogsConfig>("discogs", "/admin/api/integrations/discogs", setDiscogs),
     ]);
   }
 
@@ -96,6 +98,18 @@ export function Integrations({ admin }: { admin: AdminClient }) {
   };
   const removeFanart = wrap("fanart", async () => {
     await admin.del("/admin/api/integrations/fanart");
+    await refresh();
+  });
+  const saveDiscogs = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await wrap("discogs", async () => {
+      await admin.put("/admin/api/integrations/discogs", { personalToken: discogsPersonalToken });
+      setDiscogsPersonalToken("");
+      await refresh();
+    })();
+  };
+  const removeDiscogs = wrap("discogs", async () => {
+    await admin.del("/admin/api/integrations/discogs");
     await refresh();
   });
 
@@ -166,6 +180,33 @@ export function Integrations({ admin }: { admin: AdminClient }) {
           <button type="button" className="modal-backdrop" onClick={() => setConfirmLastfmRemoval(false)} aria-label="Cancel">close</button>
         </dialog>
       )}
+
+      <form className="mb-5 rounded-box bg-base-200 p-4" onSubmit={saveDiscogs}>
+        <div className="mb-2 flex items-center gap-2 font-medium">
+          Discogs
+          <span className={`badge badge-sm ${discogs?.configured ? "badge-success" : "badge-ghost"}`}>
+            {discogs?.configured ? "configured" : "off"}
+          </span>
+        </div>
+        {errors.discogs && <div className="alert alert-error mb-2 text-sm">Discogs: {errors.discogs}</div>}
+        <p className="mb-2 text-sm opacity-70">Supplies album and artist artwork as a fallback during library enrichment.</p>
+        <div className="mb-2 flex gap-2">
+          <input
+            className="input input-sm input-bordered flex-1"
+            type="password"
+            autoComplete="off"
+            placeholder="Discogs personal access token"
+            value={discogsPersonalToken}
+            onChange={(e) => setDiscogsPersonalToken(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <button type="submit" className="btn btn-sm btn-primary" disabled={busy !== null || !discogsPersonalToken} aria-label="Save Discogs">Save</button>
+          {discogs?.configured && (
+            <button type="button" className="btn btn-sm btn-error btn-outline" disabled={busy !== null} onClick={() => void removeDiscogs()} aria-label="Remove Discogs">Remove</button>
+          )}
+        </div>
+      </form>
 
       <form className="rounded-box bg-base-200 p-4" onSubmit={saveFanart}>
         <div className="mb-2 flex items-center gap-2 font-medium">

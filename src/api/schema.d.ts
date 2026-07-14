@@ -1179,7 +1179,10 @@ export interface paths {
          * Server-sent events — typed event stream
          * @description SSE (`text/event-stream`), authenticated with a profile token. Each
          *     message's `id:` field is a monotonic sequence number; reconnect with
-         *     `Last-Event-ID` to resume without loss. `data:` is an Event envelope
+         *     `Last-Event-ID` to resume without loss. Without `Last-Event-ID` the
+         *     stream is live-only from the moment of connection — bootstrap state
+         *     through `/v1/library` and `/v1/changes` instead of expecting history
+         *     replay. `data:` is an Event envelope
          *     (`{type, at, data}`). Clients MUST ignore unknown types.
          *
          *     | type | data | scope |
@@ -1443,6 +1446,28 @@ export interface paths {
         post?: never;
         /** Remove the fanart.tv API key */
         delete: operations["adminDeleteFanart"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/api/integrations/discogs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Discogs config state
+         * @description Discogs supplies album and artist artwork during enrichment.
+         */
+        get: operations["adminGetDiscogs"];
+        /** Set the Discogs personal access token */
+        put: operations["adminSetDiscogs"];
+        post?: never;
+        /** Remove the Discogs personal access token */
+        delete: operations["adminDeleteDiscogs"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4806,6 +4831,74 @@ export interface operations {
         };
     };
     adminDeleteFanart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    adminGetDiscogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Config */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        configured: boolean;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    adminSetDiscogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    personalToken: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Problem"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    adminDeleteDiscogs: {
         parameters: {
             query?: never;
             header?: never;

@@ -23,6 +23,8 @@ export type LibrarySummary = Schemas["Library"];
 export type PlaybackEvent = Schemas["PlaybackEvent"];
 export type LastfmAccount = operations["getMyLastfm"]["responses"][200]["content"]["application/json"];
 export type LastfmConnect = operations["connectMyLastfm"]["responses"][201]["content"]["application/json"];
+export type FanartConfig = operations["adminGetFanart"]["responses"][200]["content"]["application/json"];
+export type DiscogsConfig = operations["adminGetDiscogs"]["responses"][200]["content"]["application/json"];
 
 export class ApiError extends Error {
   constructor(
