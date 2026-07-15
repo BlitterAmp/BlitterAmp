@@ -1,6 +1,8 @@
 name: Sync BlitterServer engine
 
 on:
+  repository_dispatch:
+    types: [blitterserver-released]
   workflow_dispatch:
     inputs:
       tag:
@@ -20,6 +22,9 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    env:
+      SERVER_TAG: ${{ inputs.tag || github.event.client_payload.tag }}
+      SERVER_SHA: ${{ inputs.sha || github.event.client_payload.sha }}
     steps:
       - uses: actions/checkout@v4
         with: { path: blitteramp }
@@ -27,7 +32,7 @@ jobs:
         with:
           repository: BlitterAmp/BlitterServer
           path: blitterserver
-          ref: ${{ inputs.sha }}
+          ref: ${{ env.SERVER_SHA }}
           fetch-depth: 0
       - uses: pnpm/action-setup@v4
         with: { version: 11 }
@@ -39,8 +44,8 @@ jobs:
       - name: Verify published server release
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
-          TAG: ${{ inputs.tag }}
-          SHA: ${{ inputs.sha }}
+          TAG: ${{ env.SERVER_TAG }}
+          SHA: ${{ env.SERVER_SHA }}
         run: |
           test "$(git -C blitterserver rev-parse HEAD)" = "$SHA"
           test "$(git -C blitterserver rev-list -n 1 "$TAG")" = "$SHA"
@@ -48,8 +53,8 @@ jobs:
       - name: Update engine lock and generated contract
         working-directory: blitteramp
         env:
-          TAG: ${{ inputs.tag }}
-          SHA: ${{ inputs.sha }}
+          TAG: ${{ env.SERVER_TAG }}
+          SHA: ${{ env.SERVER_SHA }}
         run: |
           node --input-type=module -e '
             import fs from "node:fs";
@@ -62,9 +67,9 @@ jobs:
         with:
           token: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
           path: blitteramp
-          branch: chore/blitterserver-${{ inputs.tag }}
+          branch: chore/blitterserver-${{ env.SERVER_TAG }}
           delete-branch: true
-          commit-message: "chore: bundle BlitterServer ${{ inputs.tag }}"
-          title: "chore: bundle BlitterServer ${{ inputs.tag }}"
+          commit-message: "chore: bundle BlitterServer ${{ env.SERVER_TAG }}"
+          title: "chore: bundle BlitterServer ${{ env.SERVER_TAG }}"
           body: |
-            Pins the bundled engine to BlitterServer `${{ inputs.tag }}` at `${{ inputs.sha }}` and regenerates the desktop API contract from that immutable release.
+            Pins the bundled engine to BlitterServer `${{ env.SERVER_TAG }}` at `${{ env.SERVER_SHA }}` and regenerates the desktop API contract from that immutable release.
