@@ -15,6 +15,8 @@ an honest limitation for Opus. The local metadata/art cache stays current throug
 SSE. Personal last.fm connection and scrobbling work per profile; manage the library, profiles,
 devices, and server-wide integrations natively under Settings.
 
+<img width="1610" height="1160" alt="image" src="https://github.com/user-attachments/assets/0813cc53-11d8-4984-9b89-31c0697540ab" />
+
 ## Development
 
 BlitterAmp builds the bundled BlitterServer engine from a sibling checkout. Clone both repositories
