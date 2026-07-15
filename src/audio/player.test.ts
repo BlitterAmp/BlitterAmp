@@ -121,6 +121,22 @@ function expectOneTerminalPerSession(reported: { type: string; playSessionId: st
 }
 
 describe("Player", () => {
+  it("shuffles the initial track when starting a shuffled set", async () => {
+    const { p, backend, get } = setup();
+    const random = vi.spyOn(Math, "random").mockReturnValue(0);
+    vi.stubGlobal("localStorage", { getItem: () => "random" });
+    try {
+      await p.playShuffled([track("a"), track("b"), track("c")]);
+
+      expect(backend.played).toEqual(["b"]);
+      expect(get().queue.map((item) => item.trackId)).toEqual(["b", "c", "a"]);
+      expect(get().shuffle).toBe(true);
+    } finally {
+      random.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("plays the current track and stages the next on playQueue", async () => {
     const { p, backend, get } = setup();
     await p.playQueue([track("a"), track("b"), track("c")], 0);

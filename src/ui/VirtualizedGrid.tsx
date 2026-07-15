@@ -41,15 +41,17 @@ export function VirtualizedGrid<T>({
     // ("maximum update depth exceeded" — seen live on WebKitGTK; jsdom never
     // fires ResizeObserver, so only integer-stable updates are safe here).
     const measure = () => {
-      const width = grid.getBoundingClientRect().width;
-      if (width > 0) {
-        setContainerWidth((previous) => settleMeasurement(previous, width));
-      }
+      const gridRect = grid.getBoundingClientRect();
+      const width = gridRect.width;
+      setContainerWidth((previous) => settleMeasurement(previous, width));
+      // A kept-alive route is display:none. Deactivate it before measuring
+      // offsets so zero-height rows cannot poison the virtualizer's size cache.
+      if (width <= 0) return;
       if (scroll) {
         // Offset of the grid within the scroller's content: scroll-position
         // independent, so it only moves when layout above the grid changes.
         const margin =
-          grid.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop;
+          gridRect.top - scroll.getBoundingClientRect().top + scroll.scrollTop;
         setScrollMargin((previous) => settleMeasurement(previous, margin));
       }
     };
@@ -87,7 +89,7 @@ export function VirtualizedGrid<T>({
   });
 
   return (
-    <div ref={gridRef} className="relative" style={{ height: virtualizer.getTotalSize() }}>
+    <div ref={gridRef} className="relative min-w-0 w-full" style={{ height: virtualizer.getTotalSize() }}>
       {virtualizer.getVirtualItems().map((virtualRow) => {
         const row = rows[virtualRow.index];
         if (!row) return null;

@@ -57,7 +57,7 @@ export function AlbumsView({
         minimumItemWidth={160}
         gap={20}
         estimatedCaptionHeight={44}
-        gridClassName="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5"
+        gridClassName="grid grid-cols-[repeat(auto-fill,minmax(min(160px,100%),1fr))] gap-5"
         getItemKey={(a) => a.albumId}
         renderItem={(a) => (
           <div key={a.albumId} className="group min-w-0 text-left">

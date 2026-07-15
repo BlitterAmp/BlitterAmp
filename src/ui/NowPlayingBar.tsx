@@ -2,6 +2,7 @@ import { ListMusic, Pause, Play, Repeat, Repeat1, Shuffle, SkipBack, SkipForward
 import { useEffect, useState } from "react";
 import type { Client, LoveState } from "../api/client";
 import type { Player, PlayerState } from "../audio/player";
+import { useLibrary } from "../state/library";
 import { AlbumArt } from "./AlbumArt";
 import { ArtistCredits } from "./ArtistCredits";
 import { LoveControl } from "./LoveControl";
@@ -27,6 +28,7 @@ export function NowPlayingBar({
   onToggleQueue: () => void;
   onNavigate: (target: NavTarget) => void;
 }) {
+  const { albumById } = useLibrary();
   const [s, setS] = useState<PlayerState>(player.currentState());
   const [love, setLove] = useState<LoveState>(s.track?.loveState ?? "neutral");
   const [loveError, setLoveError] = useState("");
@@ -58,7 +60,7 @@ export function NowPlayingBar({
         {t ? (
           <>
             <div className="size-12 overflow-hidden rounded-md">
-              <AlbumArt artId={t.artId} size={96} alt={t.albumTitle} />
+              <AlbumArt artId={t.artId ?? albumById.get(t.albumId)?.artId} size={96} alt={t.albumTitle} />
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold">{t.title}</div>

@@ -1,12 +1,41 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { ArtistDetail, Client } from "../../api/client";
+import type { Album, ArtistDetail, Client, Track } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
 import { LoveControl } from "../LoveControl";
 import { PlayActions } from "../PlayActions";
 import { TrackList, type NavTarget } from "../TrackList";
+import { genreDisplayName } from "../genre";
+
+export function groupArtistTracks(albums: Album[], tracks: Track[]) {
+  const albumOrder = new Map(albums.map((album, index) => [album.albumId, index]));
+  const albumById = new Map(albums.map((album) => [album.albumId, album]));
+  const groups = new Map<string, { albumId: string; title: string; year?: number | null; tracks: Track[] }>();
+
+  for (const track of tracks) {
+    const album = albumById.get(track.albumId);
+    const group = groups.get(track.albumId) ?? {
+      albumId: track.albumId,
+      title: album?.title ?? track.albumTitle,
+      year: album?.year,
+      tracks: [],
+    };
+    group.tracks.push(track);
+    groups.set(track.albumId, group);
+  }
+
+  return [...groups.values()]
+    .sort((a, b) => (albumOrder.get(a.albumId) ?? Number.MAX_SAFE_INTEGER) - (albumOrder.get(b.albumId) ?? Number.MAX_SAFE_INTEGER) || a.title.localeCompare(b.title))
+    .map((group) => ({
+      ...group,
+      tracks: [...group.tracks].sort((a, b) =>
+        (a.discNumber ?? 1) - (b.discNumber ?? 1) ||
+        (a.index ?? Number.MAX_SAFE_INTEGER) - (b.index ?? Number.MAX_SAFE_INTEGER) ||
+        a.title.localeCompare(b.title)),
+    }));
+}
 
 export function ArtistView({
   client,
@@ -28,6 +57,8 @@ export function ArtistView({
     return list;
   }, [albumsByArtist, artistId]);
   const tracks = tracksByArtist.get(artistId) ?? [];
+  const trackGroups = useMemo(() => groupArtistTracks(albums, tracks), [albums, tracks]);
+  const orderedTracks = trackGroups.flatMap((group) => group.tracks);
 
   // Bio/stats aren't in the cached list shape — fetch the detail on open.
   const [artist, setArtist] = useState<ArtistDetail | null>(null);
@@ -40,7 +71,9 @@ export function ArtistView({
       .catch(() => {});
   }, [client, artistId]);
 
-  const name = artist?.name ?? artistById.get(artistId)?.name ?? "";
+  const cachedArtist = artistById.get(artistId);
+  const name = artist?.name ?? cachedArtist?.name ?? "";
+  const genres = artist?.genres ?? cachedArtist?.genres ?? [];
   const artId = artist?.artId ?? albums[0]?.artId ?? tracks[0]?.artId;
 
   return (
@@ -56,17 +89,22 @@ export function ArtistView({
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider opacity-50">Artist</div>
           <h1 className="text-3xl font-bold">{name}</h1>
-          {artist?.genres && artist.genres.length > 0 && (
+          {genres.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {artist.genres.map((g) => (
-                <span key={g} className="badge badge-ghost badge-sm">
-                  {g}
-                </span>
+              {genres.map((genre) => (
+                <button
+                  key={genre}
+                  type="button"
+                  className="badge badge-ghost badge-sm cursor-pointer hover:badge-primary"
+                  onClick={() => onNavigate({ name: "genre", genre: genre.trim() })}
+                >
+                  {genreDisplayName(genre)}
+                </button>
               ))}
             </div>
           )}
           <div className="mt-3 flex items-center gap-3">
-            <PlayActions player={player} tracks={tracks} size="sm" />
+            <PlayActions player={player} tracks={orderedTracks} size="sm" />
             {artist && (
               <LoveControl
                 state={artist.loveState}
@@ -114,7 +152,21 @@ export function ArtistView({
       {tracks.length > 0 && (
         <>
           <h2 className="mb-3 text-lg font-semibold">Tracks</h2>
-          <TrackList client={client} player={player} tracks={tracks} onNavigate={onNavigate} showAlbum />
+          <div className="space-y-8">
+            {trackGroups.map((group) => (
+              <div key={group.albumId}>
+                <button
+                  type="button"
+                  className="mb-2 flex items-baseline gap-2 text-left hover:text-primary"
+                  onClick={() => onNavigate({ name: "album", albumId: group.albumId })}
+                >
+                  <h3 className="text-base font-semibold">{group.title}</h3>
+                  {group.year && <span className="text-xs opacity-50">{group.year}</span>}
+                </button>
+                <TrackList client={client} player={player} tracks={group.tracks} onNavigate={onNavigate} />
+              </div>
+            ))}
+          </div>
         </>
       )}
     </section>
