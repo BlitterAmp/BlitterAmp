@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.6.0...v0.7.0) (2026-07-15)
+
+
+### Features
+
+* add personalized mixes and coordinated releases ([#57](https://github.com/BlitterAmp/BlitterAmp/issues/57)) ([bf89d57](https://github.com/BlitterAmp/BlitterAmp/commit/bf89d57d95f681b3829fd82decb73f33326892ce))
+
+
+### Bug Fixes
+
+* dispatch releases across repositories ([#59](https://github.com/BlitterAmp/BlitterAmp/issues/59)) ([9e846ba](https://github.com/BlitterAmp/BlitterAmp/commit/9e846ba04f92be9d1655264a4a385b3f1b579bd8))
+
 ## [0.6.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.5.0...v0.6.0) (2026-07-15)
 
 
