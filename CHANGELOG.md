@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.6.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.5.0...v0.6.0) (2026-07-15)
+
+
+### Features
+
+* add combined diagnostic log viewer ([#29](https://github.com/BlitterAmp/BlitterAmp/issues/29)) ([ffb88bb](https://github.com/BlitterAmp/BlitterAmp/commit/ffb88bb74caad3a3d5c03c3b8e64e7c1fc88e682))
+* add genre browsing and refine playback ([#55](https://github.com/BlitterAmp/BlitterAmp/issues/55)) ([16c793b](https://github.com/BlitterAmp/BlitterAmp/commit/16c793bd05e3b596adc037053534ca6c617d3f4b))
+* add Linux-native window chrome ([#38](https://github.com/BlitterAmp/BlitterAmp/issues/38)) ([a33e0c7](https://github.com/BlitterAmp/BlitterAmp/commit/a33e0c7324c69ce70ba5f350f84e99296ae496aa))
+* configure Discogs artwork enrichment ([#53](https://github.com/BlitterAmp/BlitterAmp/issues/53)) ([bede899](https://github.com/BlitterAmp/BlitterAmp/commit/bede899c846de7e0a742f8f973122a274faa7e9a))
+* play sound from About logo ([#37](https://github.com/BlitterAmp/BlitterAmp/issues/37)) ([487b546](https://github.com/BlitterAmp/BlitterAmp/commit/487b5469a5d1b35909c8fde83264220e64c42b08))
+* polish artwork and taste controls ([#41](https://github.com/BlitterAmp/BlitterAmp/issues/41)) ([1015ae1](https://github.com/BlitterAmp/BlitterAmp/commit/1015ae19cfe922da7578d13b1297e0e14209baf9))
+* restore player session after restart ([#56](https://github.com/BlitterAmp/BlitterAmp/issues/56)) ([7839bf4](https://github.com/BlitterAmp/BlitterAmp/commit/7839bf4e2ab304927d5d61457586c975b3b48450))
+* ship artwork bytes as binary IPC responses ([#49](https://github.com/BlitterAmp/BlitterAmp/issues/49)) ([c3e7b5b](https://github.com/BlitterAmp/BlitterAmp/commit/c3e7b5b4c60f10dbbbf6ced58f08d146fb62cd28))
+* show current library activity ([#54](https://github.com/BlitterAmp/BlitterAmp/issues/54)) ([5afd2ea](https://github.com/BlitterAmp/BlitterAmp/commit/5afd2ea1a23699ddddbe95c51ebf2330d168fafe))
+* support structured artist credits ([#42](https://github.com/BlitterAmp/BlitterAmp/issues/42)) ([8c0aae4](https://github.com/BlitterAmp/BlitterAmp/commit/8c0aae4a42e430d54e00b8bad6a8699caf04e8a0))
+* virtualize album and artist grids ([#48](https://github.com/BlitterAmp/BlitterAmp/issues/48)) ([69b9527](https://github.com/BlitterAmp/BlitterAmp/commit/69b9527f3e4c9649acc47478c68f524f05303094))
+
+
+### Bug Fixes
+
+* center macOS titlebar controls ([#32](https://github.com/BlitterAmp/BlitterAmp/issues/32)) ([df7d925](https://github.com/BlitterAmp/BlitterAmp/commit/df7d9250d5f438be1fcc97cdebb9254c09ebf355))
+* coalesce event syncs and keep hidden grids inert ([#52](https://github.com/BlitterAmp/BlitterAmp/issues/52)) ([51c5274](https://github.com/BlitterAmp/BlitterAmp/commit/51c5274a36dd2c602faa2612b186e0db6c50d2fb))
+* configure WebKit for NVIDIA Wayland ([#36](https://github.com/BlitterAmp/BlitterAmp/issues/36)) ([a64204a](https://github.com/BlitterAmp/BlitterAmp/commit/a64204ac479758fea6fcf12c3d7b2e32f31105af))
+* correct Tauri traffic-light geometry ([#34](https://github.com/BlitterAmp/BlitterAmp/issues/34)) ([34c1e6b](https://github.com/BlitterAmp/BlitterAmp/commit/34c1e6b328dacf2653ce9f23de0e1e3d5951fa6f))
+* make mirror bootstrap transactional and reset-aware ([#44](https://github.com/BlitterAmp/BlitterAmp/issues/44)) ([71c8b50](https://github.com/BlitterAmp/BlitterAmp/commit/71c8b50d8d4266eb26adaf72a87c54e8cebfa725))
+* preserve smooth NVIDIA Wayland rendering ([#39](https://github.com/BlitterAmp/BlitterAmp/issues/39)) ([cfcb3b8](https://github.com/BlitterAmp/BlitterAmp/commit/cfcb3b866c0c0c30830c358799b5c8f3d7b5858b))
+* refresh managed engine callback URL ([#40](https://github.com/BlitterAmp/BlitterAmp/issues/40)) ([b2a6081](https://github.com/BlitterAmp/BlitterAmp/commit/b2a6081778724885e37adc739eeb2a94d6c48064))
+* reset managed engine database on schema drift ([#46](https://github.com/BlitterAmp/BlitterAmp/issues/46)) ([2f347b5](https://github.com/BlitterAmp/BlitterAmp/commit/2f347b504dd752f7af871a7646c71a114d353f40))
+* settle grid measurements to whole pixels ([#51](https://github.com/BlitterAmp/BlitterAmp/issues/51)) ([5d654d7](https://github.com/BlitterAmp/BlitterAmp/commit/5d654d796676e641ebf2dc3621f87ea855cea1e9))
+* stop art fetch failure amplification and leaks ([#45](https://github.com/BlitterAmp/BlitterAmp/issues/45)) ([aa128d3](https://github.com/BlitterAmp/BlitterAmp/commit/aa128d3625b731337428329a33d910cdbfd24906))
+* subscribe before syncing library ([#43](https://github.com/BlitterAmp/BlitterAmp/issues/43)) ([5358c9b](https://github.com/BlitterAmp/BlitterAmp/commit/5358c9b743c0d0c8631bce66d8ec6c02c47efc4c))
+* survive stale virtual rows and view render crashes ([#50](https://github.com/BlitterAmp/BlitterAmp/issues/50)) ([44c640c](https://github.com/BlitterAmp/BlitterAmp/commit/44c640c5938f3fcabe906a360ce4e14354899e2b))
+
+
+### Performance Improvements
+
+* virtualize large play queues ([#31](https://github.com/BlitterAmp/BlitterAmp/issues/31)) ([4787e94](https://github.com/BlitterAmp/BlitterAmp/commit/4787e94a50df3c60fcfb7610f55d152cdf416cf3))
+
 ## [0.5.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.4.0...v0.5.0) (2026-07-12)
 
 
