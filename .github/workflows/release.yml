@@ -183,4 +183,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
-        run: gh workflow run release.yml --repo BlitterAmp/BlitterServer --ref main -f requested_by=BlitterAmp/BlitterAmp -f requested_tag="$TAG"
+        run: |
+          gh api --method POST repos/BlitterAmp/BlitterServer/dispatches \
+            -f event_type=blitteramp-released \
+            -f "client_payload[requested_by]=BlitterAmp/BlitterAmp" \
+            -f "client_payload[requested_tag]=$TAG"
