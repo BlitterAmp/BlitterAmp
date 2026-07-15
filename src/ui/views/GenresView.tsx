@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
-import { useMemo } from "react";
-import type { Album, Artist, Client, Track } from "../../api/client";
+import { useEffect, useMemo, useState } from "react";
+import type { Album, Artist, Client, LoveState, Track } from "../../api/client";
 import type { Player } from "../../audio/player";
 import { useLibrary } from "../../state/library";
 import { AlbumArt } from "../AlbumArt";
@@ -8,6 +8,7 @@ import { ArtistGrid } from "../ArtistGrid";
 import { genreDisplayName } from "../genre";
 import { MosaicArt } from "../MosaicArt";
 import { PlayActions } from "../PlayActions";
+import { LoveControl } from "../LoveControl";
 import { TrackList, type NavTarget } from "../TrackList";
 import { groupArtistTracks } from "./ArtistView";
 
@@ -84,12 +85,14 @@ export function GenreView({
   player,
   genre,
   onNavigate,
+  onTasteChanged,
   onBack,
 }: {
   client: Client;
   player: Player;
   genre: string;
   onNavigate: (target: NavTarget) => void;
+  onTasteChanged?: () => void;
   onBack: () => void;
 }) {
   const { artistsByGenre, albumsByArtist, tracksByArtist } = useLibrary();
@@ -102,6 +105,14 @@ export function GenreView({
   const orderedTracks = trackGroups.flatMap((group) => group.tracks);
   const displayName = genreDisplayName(genre);
   const artIds = genreArtIds(artists, albumsByArtist);
+  const [love, setLove] = useState<LoveState>("neutral");
+  const [loveError, setLoveError] = useState("");
+
+  useEffect(() => {
+    client.loves("genre").then((page) => {
+      setLove(page.items.find((item) => item.ref.toLocaleLowerCase() === `genre:${genre}`.toLocaleLowerCase())?.state ?? "neutral");
+    }).catch(() => {});
+  }, [client, genre]);
 
   return (
     <section>
@@ -119,8 +130,24 @@ export function GenreView({
             {artists.length} {artists.length === 1 ? "artist" : "artists"} · {albums.length} {albums.length === 1 ? "album" : "albums"} · {orderedTracks.length} {orderedTracks.length === 1 ? "track" : "tracks"}
           </div>
           <div className="mt-4">
-            <PlayActions player={player} tracks={orderedTracks} />
+            <div className="flex items-center gap-3">
+              <PlayActions player={player} tracks={orderedTracks} />
+              <LoveControl
+                state={love}
+                label={`Taste for ${displayName}`}
+                onChange={(state) => {
+                  const previous = love;
+                  setLove(state);
+                  setLoveError("");
+                  void client.setLove(`genre:${genre}`, state).then(() => onTasteChanged?.()).catch(() => {
+                    setLove(previous);
+                    setLoveError("Could not update genre taste.");
+                  });
+                }}
+              />
+            </div>
           </div>
+          {loveError && <div role="alert" className="mt-2 text-xs text-error">{loveError}</div>}
         </div>
       </div>
 

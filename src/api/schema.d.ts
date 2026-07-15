@@ -922,8 +922,8 @@ export interface paths {
         get?: never;
         /**
          * Set the tri-state love for an item (idempotent, per profile)
-         * @description `ref` is a canonical id (`art_`/`alb_`/`trk_` — the kind derives from
-         *     the prefix). External artists surfaced by search/similar/discover carry
+         * @description `ref` is a canonical id (`art_`/`alb_`/`trk_`) or canonical MusicBrainz
+         *     genre key (`genre:<name>`). External artists surfaced by search/similar/discover carry
          *     canonical ids too, so they are lovable before they are owned.
          *
          *     `loved` on an artist → Lidarr ensure + monitor + back-catalog search;
@@ -1975,7 +1975,7 @@ export interface components {
             /** @example mood:driving */
             mixId: string;
             /** @enum {string} */
-            kind: "forYou" | "topRated" | "heavyRotation" | "rediscover" | "mood" | "genre";
+            kind: "dailyMix" | "discoverWeekly" | "releaseRadar" | "forYou" | "topRated" | "heavyRotation" | "rediscover" | "mood" | "genre";
             title: string;
             collageArtIds?: string[];
             trackCount?: number | null;
@@ -2068,7 +2068,7 @@ export interface components {
              */
             ref: string;
             /** @enum {string} */
-            kind: "artist" | "album" | "track";
+            kind: "artist" | "album" | "track" | "genre";
             state: components["schemas"]["LoveState"];
             name: string;
             /** @description For album/track loves */
@@ -3889,7 +3889,7 @@ export interface operations {
                  */
                 cursor?: components["parameters"]["cursor"];
                 limit?: components["parameters"]["limit"];
-                kind?: "artist" | "album" | "track";
+                kind?: "artist" | "album" | "track" | "genre";
                 state?: "loved" | "not_for_me";
             };
             header?: never;

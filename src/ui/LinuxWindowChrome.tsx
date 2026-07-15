@@ -29,8 +29,8 @@ export function LinuxAppMenu({
         <Menu size={18} />
       </button>
       <ul tabIndex={-1} className="menu dropdown-content z-50 mt-1 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl">
-        <li><button type="button" onClick={action(onSettings)}>Settings</button></li>
         <li><button type="button" onClick={action(onAbout)}>About BlitterAmp</button></li>
+        <li><button type="button" onClick={action(onSettings)}>Settings</button></li>
         <li><button type="button" onClick={action(onLogs)}>Logs</button></li>
         <li className="my-1 border-t border-base-300" />
         <li><button type="button" onClick={action(() => void openUrl(REPO))}>GitHub</button></li>

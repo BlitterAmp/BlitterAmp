@@ -7,8 +7,34 @@ fn should_force_shm(
     is_wayland && is_nvidia && !has_override && !force_enable
 }
 
+fn should_prefer_wayland_for_appimage(
+    is_appimage: bool,
+    has_wayland_display: bool,
+    backend_is_x11: bool,
+    force_x11: bool,
+) -> bool {
+    is_appimage && has_wayland_display && backend_is_x11 && !force_x11
+}
+
 #[cfg(target_os = "linux")]
 pub fn configure_display_environment() {
+    let has_wayland_display = std::env::var_os("WAYLAND_DISPLAY").is_some();
+    let backend_is_x11 =
+        std::env::var("GDK_BACKEND").is_ok_and(|backend| backend.eq_ignore_ascii_case("x11"));
+    let force_x11 = std::env::var("BLITTERAMP_FORCE_X11")
+        .is_ok_and(|value| value == "1" || value.eq_ignore_ascii_case("true"));
+
+    // Tauri's AppImage GTK hook forces X11 before the application starts.
+    // Prefer native Wayland while retaining GTK's X11 fallback.
+    if should_prefer_wayland_for_appimage(
+        std::env::var_os("APPIMAGE").is_some(),
+        has_wayland_display,
+        backend_is_x11,
+        force_x11,
+    ) {
+        std::env::set_var("GDK_BACKEND", "wayland,x11");
+    }
+
     let is_wayland = std::env::var_os("WAYLAND_DISPLAY").is_some()
         && !std::env::var("GDK_BACKEND").is_ok_and(|backend| backend.eq_ignore_ascii_case("x11"));
     let is_nvidia = [
@@ -39,7 +65,23 @@ pub fn configure_display_environment() {}
 
 #[cfg(test)]
 mod tests {
-    use super::should_force_shm;
+    use super::{should_force_shm, should_prefer_wayland_for_appimage};
+
+    #[test]
+    fn appimage_prefers_wayland_over_injected_x11() {
+        assert!(should_prefer_wayland_for_appimage(true, true, true, false));
+    }
+
+    #[test]
+    fn appimage_preserves_explicit_or_required_x11() {
+        assert!(!should_prefer_wayland_for_appimage(true, true, true, true));
+        assert!(!should_prefer_wayland_for_appimage(
+            true, false, true, false
+        ));
+        assert!(!should_prefer_wayland_for_appimage(
+            false, true, true, false
+        ));
+    }
 
     #[test]
     fn forces_shm_for_nvidia_wayland() {

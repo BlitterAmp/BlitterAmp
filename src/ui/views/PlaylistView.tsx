@@ -112,6 +112,7 @@ export function PlaylistView({
         tracks={items}
         onNavigate={onNavigate}
         showAlbum
+        showArtwork
         onRemove={owned ? (t) => void removeItem((t as PlaylistTrack).itemId) : undefined}
       />
     </section>

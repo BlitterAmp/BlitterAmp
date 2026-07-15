@@ -9,11 +9,16 @@ on:
     inputs:
       tag:
         description: "Existing release tag to (re)build and upload bundles for"
-        required: true
+        required: false
+      requested_by:
+        description: "Repository requesting a release check"
+        required: false
+      requested_tag:
+        description: "Counterpart release that requested this check"
+        required: false
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   # release-please opens/maintains a release PR from conventional commits; when
@@ -21,13 +26,18 @@ jobs:
   # tauri.conf.json and Cargo.toml. We immediately mark the release a draft so
   # users don't see it until every platform bundle is attached.
   release-please:
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ github.event_name == 'push' || inputs.tag == '' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      sha: ${{ steps.release.outputs.sha }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           # A PAT (not the default GITHUB_TOKEN) so the release PR it opens
@@ -45,7 +55,7 @@ jobs:
     # Fires on a fresh release-please release, or a manual dispatch for an
     # existing tag (release-please is skipped then — always() lets this job
     # evaluate its own condition rather than being skipped along with it).
-    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || inputs.tag != '') }}
     strategy:
       fail-fast: false
       # Serialized: the three platforms share one updater manifest (latest.json)
@@ -61,12 +71,26 @@ jobs:
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-        with: { path: blitteramp }
-      # The engine sidecar is cross-built from the sibling BlitterServer repo.
+        with:
+          path: blitteramp
+          ref: ${{ needs.release-please.outputs.sha || inputs.tag }}
+          fetch-depth: 0
+      - name: Read pinned engine revision
+        id: engine
+        shell: bash
+        run: |
+          echo "sha=$(node -p "require('./blitteramp/src-tauri/blitterserver-version.json').sha")" >> "$GITHUB_OUTPUT"
+          echo "tag=$(node -p "require('./blitteramp/src-tauri/blitterserver-version.json').tag")" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
-        with: { repository: BlitterAmp/BlitterServer, path: blitterserver }
+        with:
+          repository: BlitterAmp/BlitterServer
+          path: blitterserver
+          ref: ${{ steps.engine.outputs.sha }}
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with: { version: 11 }
@@ -90,7 +114,14 @@ jobs:
       - name: Build engine sidecar
         working-directory: blitteramp
         shell: bash
-        run: BLITTERSERVER_DIR="$GITHUB_WORKSPACE/blitterserver" bash scripts/build-engine.sh ${{ matrix.target }}
+        env:
+          BLITTERSERVER_DIR: ${{ github.workspace }}/blitterserver
+          BLITTERSERVER_SHA: ${{ steps.engine.outputs.sha }}
+          BLITTERSERVER_VERSION: ${{ steps.engine.outputs.tag }}
+        run: |
+          test -n "$BLITTERSERVER_VERSION"
+          test "$(git -C "$BLITTERSERVER_DIR" rev-list -n 1 "$BLITTERSERVER_VERSION")" = "$BLITTERSERVER_SHA"
+          bash scripts/build-engine.sh ${{ matrix.target }}
 
       - name: Install frontend deps
         working-directory: blitteramp
@@ -128,6 +159,8 @@ jobs:
     needs: [release-please, build]
     if: ${{ always() && needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Publish release (all bundles built)
         if: ${{ needs.build.result == 'success' }}
@@ -135,9 +168,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: gh release edit "$TAG" --repo BlitterAmp/BlitterAmp --draft=false
-      - name: Delete draft (a bundle failed)
+      - name: Retain draft for repair
         if: ${{ needs.build.result != 'success' }}
+        run: exit 1
+
+  request-server-release:
+    needs: [release-please, finalize]
+    if: needs.finalize.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request a BlitterServer release check
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
-        run: gh release delete "$TAG" --repo BlitterAmp/BlitterAmp --yes --cleanup-tag
+        run: gh workflow run release.yml --repo BlitterAmp/BlitterServer --ref main -f requested_by=BlitterAmp/BlitterAmp -f requested_tag="$TAG"
