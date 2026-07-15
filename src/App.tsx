@@ -3,6 +3,7 @@ import { Player } from "./audio/player";
 import { TauriAudioBackend } from "./audio/tauriBackend";
 import { type Connection, resolveConnection } from "./state/connection";
 import { LibraryProvider } from "./state/library";
+import { PlayerSessionSync } from "./state/PlayerSessionSync";
 import { PromptProvider } from "./ui/PromptProvider";
 import { Shell } from "./ui/Shell";
 
@@ -82,6 +83,7 @@ export default function App() {
   return (
     <PromptProvider>
       <LibraryProvider connection={phase.connection}>
+        <PlayerSessionSync player={player as Player} scope={phase.connection.kind === "local" ? "local" : `remote:${phase.connection.remoteUrl ?? phase.connection.client.baseUrl}`} />
         <Shell
           connection={phase.connection}
           player={player as Player}

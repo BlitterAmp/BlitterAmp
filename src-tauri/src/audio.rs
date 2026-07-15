@@ -370,6 +370,7 @@ pub fn audio_configure(engine: tauri::State<'_, AudioEngine>, base_url: String, 
 pub async fn audio_play_track(
     engine: tauri::State<'_, AudioEngine>,
     track_id: String,
+    position_sec: f64,
 ) -> Result<(), String> {
     let conn = engine
         .conn
@@ -409,6 +410,9 @@ pub async fn audio_play_track(
     player.clear();
     player.append(faded);
     player.set_volume(volume);
+    if position_sec > 0.0 {
+        let _ = player.try_seek(Duration::from_secs_f64(position_sec));
+    }
     player.play();
     g.current_dur = dur;
     g.current = Some(track_id);

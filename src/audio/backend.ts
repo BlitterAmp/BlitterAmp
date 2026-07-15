@@ -27,8 +27,8 @@ export interface AudioErrorEvent {
 export interface AudioBackend {
   /** Point the backend at a server so it can mint stream grants + download. */
   configure(baseUrl: string, token: string): void;
-  /** Hard-cut: clear the queue, load this track, and play from the start. */
-  playTrack(trackId: string): Promise<void>;
+  /** Hard-cut: clear the queue, load this track, seek, then start output. */
+  playTrack(trackId: string, positionSec?: number): Promise<void>;
   /** Stage the gapless next track (or null to clear the staged slot). */
   stageNext(trackId: string | null): void;
   /** Ensure these tracks are downloaded to the temp cache (fire-and-forget). */
