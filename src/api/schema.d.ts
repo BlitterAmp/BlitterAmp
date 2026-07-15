@@ -1813,6 +1813,7 @@ export interface components {
             aliases?: string[];
             /** @example img_4c5d6e */
             artId?: string | null;
+            /** @description MusicBrainz genres for the canonical artist; empty when no MusicBrainz genre metadata is available. Never inferred from track tags. */
             genres?: string[];
             albumCount?: number | null;
             userRating10?: number | null;

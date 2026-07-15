@@ -116,4 +116,52 @@ describe("VirtualizedGrid hidden-state inertness", () => {
     // virtualizer must be ENGAGED: total size reflects all 60 items again.
     expect(gridHeight()).toBeGreaterThan(0);
   });
+
+  it("becomes inert while hidden and remeasures when shown again", () => {
+    const observerCallbacks: ResizeObserverCallback[] = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          observerCallbacks.push(callback);
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    let width = 640;
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+      () =>
+        ({
+          width,
+          height: width > 0 ? 400 : 0,
+          top: 0,
+          left: 0,
+          right: width,
+          bottom: width > 0 ? 400 : 0,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        }) as DOMRect,
+    );
+    const { container } = harness(Array.from({ length: 60 }, (_, i) => `a-${i}`));
+    const gridHeight = () => {
+      const grid = container.querySelector("div.relative") as HTMLElement;
+      return Number.parseFloat(grid.style.height || "0");
+    };
+    expect(gridHeight()).toBeGreaterThan(0);
+
+    width = 0;
+    act(() => {
+      for (const callback of [...observerCallbacks]) callback([], {} as ResizeObserver);
+    });
+    expect(gridHeight()).toBe(0);
+
+    width = 320;
+    act(() => {
+      for (const callback of [...observerCallbacks]) callback([], {} as ResizeObserver);
+    });
+    expect(gridHeight()).toBeGreaterThan(0);
+  });
 });

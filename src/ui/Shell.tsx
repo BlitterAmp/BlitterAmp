@@ -1,5 +1,5 @@
 import { listen } from "@tauri-apps/api/event";
-import { Disc3, Home, ListMusic, Mic2, Music, Plus, Search, Settings as SettingsIcon } from "lucide-react";
+import { Disc3, Home, ListMusic, Mic2, Music, Plus, Search, Settings as SettingsIcon, Tags } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Player } from "../audio/player";
 import { ScrollContext } from "./ScrollContext";
@@ -26,13 +26,16 @@ import { TracksView } from "./views/TracksView";
 import type { NavTarget } from "./TrackList";
 import { ServerStatusProvider, useServerStatus } from "../state/serverStatus";
 import { LibraryActivityPill } from "./LibraryActivityPill";
+import { GenresView, GenreView } from "./views/GenresView";
 
 export type View =
   | { name: "albums" }
   | { name: "artists" }
+  | { name: "genres" }
+  | { name: "genre"; genre: string }
   | { name: "tracks" }
   | { name: "album"; albumId: string }
-  | { name: "artist"; artistId: string }
+  | { name: "artist"; artistId: string; fromGenre?: string }
   | { name: "playlist"; playlistId: string }
   | { name: "home" }
   | { name: "search" }
@@ -70,7 +73,7 @@ function ShellInner({
   const serverStatus = useServerStatus();
   const isLinux = document.documentElement.dataset.platform === "linux";
 
-  const navigate = (t: NavTarget) => setView(t);
+  const navigate = (target: NavTarget) => setView(target);
 
   // Preferences… (⌘,) from the native app menu.
   useEffect(() => {
@@ -137,8 +140,15 @@ function ShellInner({
           <button type="button" className={navItem(view.name === "albums" || view.name === "album")} onClick={() => setView({ name: "albums" })}>
             <Disc3 size={15} /> Albums
           </button>
-          <button type="button" className={navItem(view.name === "artists" || view.name === "artist")} onClick={() => setView({ name: "artists" })}>
+          <button type="button" className={navItem(view.name === "artists" || (view.name === "artist" && !view.fromGenre))} onClick={() => setView({ name: "artists" })}>
             <Mic2 size={15} /> Artists
+          </button>
+          <button
+            type="button"
+            className={navItem(view.name === "genres" || view.name === "genre" || (view.name === "artist" && !!view.fromGenre))}
+            onClick={() => setView({ name: "genres" })}
+          >
+            <Tags size={15} /> Genres
           </button>
           <button type="button" className={navItem(view.name === "tracks")} onClick={() => setView({ name: "tracks" })}>
             <Music size={15} /> Tracks
@@ -191,12 +201,30 @@ function ShellInner({
           <div hidden={view.name !== "artists"}>
             <ArtistsView client={client} onOpen={(artistId) => setView({ name: "artist", artistId })} />
           </div>
+          <div hidden={view.name !== "genres"}>
+            <GenresView onOpen={(genre) => setView({ name: "genre", genre })} />
+          </div>
+          {view.name === "genre" && (
+            <GenreView
+              client={client}
+              player={player}
+              genre={view.genre}
+              onNavigate={(target) => setView(target.name === "artist" ? { ...target, fromGenre: view.genre } : target)}
+              onBack={() => setView({ name: "genres" })}
+            />
+          )}
           {view.name === "tracks" && <TracksView client={client} player={player} onNavigate={navigate} />}
           {view.name === "album" && (
             <AlbumView client={client} player={player} albumId={view.albumId} onNavigate={navigate} onBack={() => setView({ name: "albums" })} />
           )}
           {view.name === "artist" && (
-            <ArtistView client={client} player={player} artistId={view.artistId} onNavigate={navigate} onBack={() => setView({ name: "artists" })} />
+            <ArtistView
+              client={client}
+              player={player}
+              artistId={view.artistId}
+              onNavigate={navigate}
+              onBack={() => setView(view.fromGenre ? { name: "genre", genre: view.fromGenre } : { name: "artists" })}
+            />
           )}
           {view.name === "playlist" && (
             <PlaylistView

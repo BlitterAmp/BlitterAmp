@@ -3,6 +3,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Client, LoveState, Track } from "../api/client";
 import type { Player } from "../audio/player";
+import { useLibrary } from "../state/library";
 import { usePlaylists } from "../state/playlists";
 import { AlbumArt } from "./AlbumArt";
 import { ArtistCredits } from "./ArtistCredits";
@@ -10,7 +11,10 @@ import { LoveControl } from "./LoveControl";
 import { usePrompt } from "./PromptProvider";
 import { useScrollParent } from "./ScrollContext";
 
-export type NavTarget = { name: "album"; albumId: string } | { name: "artist"; artistId: string };
+export type NavTarget =
+  | { name: "album"; albumId: string }
+  | { name: "artist"; artistId: string }
+  | { name: "genre"; genre: string };
 
 function fmt(ms: number): string {
   const sec = Math.round(ms / 1000);
@@ -31,6 +35,7 @@ export function TrackList({
   onNavigate,
   showAlbum = false,
   showArtwork = false,
+  showAlbumHeaders = false,
   onRemove,
 }: {
   client: Client;
@@ -39,10 +44,12 @@ export function TrackList({
   onNavigate: (t: NavTarget) => void;
   showAlbum?: boolean;
   showArtwork?: boolean;
+  showAlbumHeaders?: boolean;
   /** When set, adds a "Remove from this playlist" menu item. */
   onRemove?: (track: Track) => void;
 }) {
   const { playlists, create, append } = usePlaylists();
+  const { albumById } = useLibrary();
   const prompt = usePrompt();
 
   async function addToPlaylist(t: Track, playlistId: string) {
@@ -99,6 +106,7 @@ export function TrackList({
   const scrollRef = useScrollParent();
   const listRef = useRef<HTMLDivElement>(null);
   const rowH = showAlbum ? 56 : 44;
+  const hasAlbumHeader = (index: number) => showAlbumHeaders && (index === 0 || tracks[index - 1]?.albumId !== tracks[index]?.albumId);
   const [scrollMargin, setScrollMargin] = useState(0);
 
   useLayoutEffect(() => {
@@ -117,7 +125,8 @@ export function TrackList({
   const virtualizer = useVirtualizer({
     count: tracks.length,
     getScrollElement: () => scrollRef?.current ?? null,
-    estimateSize: () => rowH,
+    estimateSize: (index) => rowH + (hasAlbumHeader(index) ? 36 : 0),
+    getItemKey: (index) => tracks[index]?.trackId ?? `missing-${index}`,
     overscan: 12,
     scrollMargin,
   });
@@ -128,16 +137,28 @@ export function TrackList({
       {virtualizer.getVirtualItems().map((vi) => {
         const t = tracks[vi.index];
         const i = vi.index;
+        const albumHeader = hasAlbumHeader(i);
+        const album = albumById.get(t.albumId);
         return (
           <div
             key={t.trackId}
-            className="group absolute left-0 flex w-full cursor-pointer items-center gap-2 border-b border-base-200/40 px-2 hover:bg-base-200/40"
-            style={{ top: 0, height: rowH, transform: `translateY(${vi.start - scrollMargin}px)` }}
-            onDoubleClick={() => void player.playQueue(tracks, i)}
+            className="absolute left-0 w-full"
+            style={{ top: 0, height: rowH + (albumHeader ? 36 : 0), transform: `translateY(${vi.start - scrollMargin}px)` }}
           >
+            {albumHeader && (
+              <button type="button" className="flex h-9 items-center gap-2 text-left hover:text-primary" onClick={() => onNavigate({ name: "album", albumId: t.albumId })}>
+                <span className="font-semibold">{album?.title ?? t.albumTitle}</span>
+                {album?.year && <span className="text-xs opacity-50">{album.year}</span>}
+              </button>
+            )}
+            <div
+              className="group flex w-full cursor-pointer items-center gap-2 border-b border-base-200/40 px-2 hover:bg-base-200/40"
+              style={{ height: rowH }}
+              onDoubleClick={() => void player.playQueue(tracks, i)}
+            >
             {showArtwork ? (
               <button type="button" className="size-10 shrink-0 overflow-hidden rounded" onClick={() => void player.playQueue(tracks, i)} aria-label={`Play ${t.title}`}>
-                <AlbumArt artId={t.artId} size={80} alt="" />
+                <AlbumArt artId={t.artId ?? albumById.get(t.albumId)?.artId} size={80} alt="" />
               </button>
             ) : (
               <div className="w-8 shrink-0 text-right tabular-nums opacity-50" onClick={() => void player.playQueue(tracks, i)}>
@@ -203,6 +224,7 @@ export function TrackList({
                   )}
                 </ul>
               </div>
+            </div>
             </div>
           </div>
         );

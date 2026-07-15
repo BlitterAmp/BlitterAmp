@@ -4,9 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Client, Track } from "../api/client";
 import { NowPlayingBar } from "./NowPlayingBar";
 
-vi.mock("./AlbumArt", () => ({ AlbumArt: () => <span /> }));
+const library = vi.hoisted(() => ({ albumById: new Map<string, { artId?: string | null }>() }));
 
-afterEach(cleanup);
+vi.mock("./AlbumArt", () => ({ AlbumArt: ({ artId }: { artId?: string | null }) => <span data-testid="now-playing-art">{artId}</span> }));
+vi.mock("../state/library", () => ({ useLibrary: () => library }));
+
+afterEach(() => {
+  cleanup();
+  library.albumById.clear();
+});
 
 describe("NowPlayingBar", () => {
   it("updates love state optimistically and navigates to the artist", async () => {
@@ -27,5 +33,14 @@ describe("NowPlayingBar", () => {
     expect(onNavigate).toHaveBeenCalledWith({ name: "artist", artistId: "art-2" });
     resolve();
     await waitFor(() => expect(setLove).toHaveBeenCalledOnce());
+  });
+
+  it("uses live album artwork for a stale playing track", () => {
+    library.albumById.set("alb-1", { artId: "album-cover" });
+    const track = { trackId: "trk-1", title: "Song", primaryArtist: { artistId: "art-1", name: "Artist" }, artistCredits: [], albumId: "alb-1", albumTitle: "Album", durationMs: 1000, media: { container: "flac", audioCodec: "flac" } } as Track;
+    const state = { track, playing: false, shuffle: false, repeat: "off", positionSec: 0, durationSec: 100, volume: 1 };
+    const player = { currentState: () => state, subscribe: () => () => {}, toggleShuffle() {}, previous() {}, toggle() {}, next() {}, cycleRepeat() {}, seek() {}, setVolume() {} } as never;
+    render(<NowPlayingBar client={{} as Client} player={player} queueOpen={false} onToggleQueue={() => {}} onNavigate={() => {}} />);
+    expect(screen.getByTestId("now-playing-art").textContent).toBe("album-cover");
   });
 });

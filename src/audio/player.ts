@@ -156,14 +156,8 @@ export class Player {
     return keepFirst ? [keepFirst, ...ordered] : ordered;
   }
 
-  async playQueue(tracks: Track[], startIndex = 0): Promise<void> {
+  private beginQueue(tracks: Track[], queue: Track[], index: number): void {
     this.ordered = [...tracks];
-    let queue = [...tracks];
-    let index = startIndex;
-    if (this.state.shuffle) {
-      queue = this.shuffled(tracks, tracks[startIndex]);
-      index = 0;
-    }
     const first = this.firstPlayableFrom(queue, index);
     if (first < 0) {
       this.setQueue(queue, -1);
@@ -174,10 +168,20 @@ export class Player {
     this.start(queue[first]);
   }
 
+  async playQueue(tracks: Track[], startIndex = 0): Promise<void> {
+    let queue = [...tracks];
+    let index = startIndex;
+    if (this.state.shuffle) {
+      queue = this.shuffled(tracks, tracks[startIndex]);
+      index = 0;
+    }
+    this.beginQueue(tracks, queue, index);
+  }
+
   /** Turn shuffle on (if off) and play the set from a random order. */
   async playShuffled(tracks: Track[]): Promise<void> {
     if (!this.state.shuffle) this.patch({ shuffle: true });
-    await this.playQueue(tracks);
+    this.beginQueue(tracks, this.shuffled(tracks), 0);
   }
 
   playNext(tracks: Track[]): void {

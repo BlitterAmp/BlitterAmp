@@ -24,6 +24,8 @@ export interface Library extends Snapshot {
   albumsByArtist: Map<string, Album[]>;
   tracksByAlbum: Map<string, Track[]>;
   tracksByArtist: Map<string, Track[]>;
+  genres: string[];
+  artistsByGenre: Map<string, Artist[]>;
   reload: () => void;
 }
 
@@ -82,6 +84,18 @@ export function groupTracksByCreditedArtist(tracks: Track[]): Map<string, Track[
   return grouped;
 }
 
+export function groupArtistsByGenre(artists: Artist[]): Map<string, Artist[]> {
+  const grouped = new Map<string, Artist[]>();
+  for (const artist of artists) {
+    for (const genre of new Set((artist.genres ?? []).map((value) => value.trim()).filter(Boolean))) {
+      const existing = grouped.get(genre);
+      if (existing) existing.push(artist);
+      else grouped.set(genre, [artist]);
+    }
+  }
+  return new Map([...grouped].sort(([a], [b]) => a.localeCompare(b)));
+}
+
 export function LibraryProvider({
   connection,
   children,
@@ -118,6 +132,7 @@ export function LibraryProvider({
     const artists = [...snap.artists].sort(bySortedTitle);
     const tracks = [...snap.tracks].sort(bySortedTitle);
     const playlists = [...snap.playlists].sort(bySortedTitle);
+    const artistsByGenre = groupArtistsByGenre(artists);
     return {
       artists,
       albums,
@@ -129,6 +144,8 @@ export function LibraryProvider({
       albumsByArtist: group(albums, (a) => a.primaryArtist.artistId),
       tracksByAlbum: group(tracks, (t) => t.albumId),
       tracksByArtist: groupTracksByCreditedArtist(tracks),
+      genres: [...artistsByGenre.keys()],
+      artistsByGenre,
       reload: load,
     };
   }, [snap, ready]);

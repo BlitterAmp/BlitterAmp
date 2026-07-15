@@ -1,11 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Track } from "../api/client";
+import type { Artist, Track } from "../api/client";
 
 const { invoke, listen } = vi.hoisted(() => ({ invoke: vi.fn(), listen: vi.fn() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke }));
 vi.mock("@tauri-apps/api/event", () => ({ listen }));
 
-import { beginLibrarySync, groupTracksByCreditedArtist } from "./library";
+import { beginLibrarySync, groupArtistsByGenre, groupTracksByCreditedArtist } from "./library";
+
+describe("groupArtistsByGenre", () => {
+  it("indexes, deduplicates, and sorts existing artist tags", () => {
+    const ambient = { artistId: "ambient", name: "Ambient", genres: ["Electronic", "Ambient", "Ambient"] } as Artist;
+    const techno = { artistId: "techno", name: "Techno", genres: ["Electronic", "  Techno  "] } as Artist;
+    const untagged = { artistId: "untagged", name: "Untagged" } as Artist;
+
+    const genres = groupArtistsByGenre([ambient, techno, untagged]);
+
+    expect([...genres.keys()]).toEqual(["Ambient", "Electronic", "Techno"]);
+    expect(genres.get("Electronic")).toEqual([ambient, techno]);
+    expect(genres.get("Ambient")).toEqual([ambient]);
+  });
+});
 
 describe("groupTracksByCreditedArtist", () => {
   it("includes guest appearances and deduplicates repeated artist credits", () => {
