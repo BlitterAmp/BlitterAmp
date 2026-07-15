@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/BlitterAmp/BlitterAmp/compare/v0.7.0...v0.7.1) (2026-07-15)
+
+
+### Bug Fixes
+
+* publish desktop compatibility metadata ([#61](https://github.com/BlitterAmp/BlitterAmp/issues/61)) ([8016d35](https://github.com/BlitterAmp/BlitterAmp/commit/8016d3549d091de39867187cabbae778e88e5cd5))
+
 ## [0.7.0](https://github.com/BlitterAmp/BlitterAmp/compare/v0.6.0...v0.7.0) (2026-07-15)
 
 
