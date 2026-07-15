@@ -27,6 +27,17 @@ type Listener = (s: PlayerState) => void;
 export type QueueState = Pick<PlayerState, "track" | "queue" | "queueIndex">;
 type QueueListener = () => void;
 
+export interface SavedPlayerState {
+  version: 1;
+  queueTrackIds: string[];
+  orderedTrackIds: string[];
+  queueIndex: number;
+  positionSec: number;
+  volume: number;
+  shuffle: boolean;
+  repeat: Repeat;
+}
+
 /** How many upcoming tracks Rust keeps downloaded to the temp cache. */
 export const PRELOAD_COUNT = 3;
 
@@ -70,6 +81,7 @@ export class Player {
   private ordered: Track[] = [];
   private lastReportedProgress = 0;
   private playSessionId: string | null = null;
+  private restoredPositionPending = false;
 
   constructor(
     private client: Client,
@@ -91,6 +103,63 @@ export class Player {
 
   currentState(): PlayerState {
     return this.state;
+  }
+
+  savedState(): SavedPlayerState {
+    return {
+      version: 1,
+      queueTrackIds: this.state.queue.map((track) => track.trackId),
+      orderedTrackIds: this.ordered.map((track) => track.trackId),
+      queueIndex: this.state.queueIndex,
+      positionSec: this.state.positionSec,
+      volume: this.state.volume,
+      shuffle: this.state.shuffle,
+      repeat: this.state.repeat,
+    };
+  }
+
+  restore(saved: SavedPlayerState, trackById: ReadonlyMap<string, Track>): void {
+    const entries = saved.queueTrackIds.flatMap((trackId, originalIndex) => {
+      const track = trackById.get(trackId);
+      return track ? [{ track, originalIndex }] : [];
+    });
+    const queue = entries.map((entry) => entry.track);
+    let index = entries.findIndex((entry) => entry.originalIndex === saved.queueIndex && this.canPlay(entry.track));
+    if (index < 0) index = entries.findIndex((entry) => entry.originalIndex >= saved.queueIndex && this.canPlay(entry.track));
+    if (index < 0) {
+      for (let i = entries.length - 1; i >= 0; i--) {
+        if (entries[i].originalIndex < saved.queueIndex && this.canPlay(entries[i].track)) {
+          index = i;
+          break;
+        }
+      }
+    }
+    const ordered = saved.orderedTrackIds.flatMap((trackId) => {
+      const track = trackById.get(trackId);
+      return track ? [track] : [];
+    });
+    this.ordered = ordered.length > 0 ? ordered : [...queue];
+    const track = index >= 0 ? queue[index] : null;
+    const positionSec = track && entries[index].originalIndex === saved.queueIndex
+      ? Math.max(0, Math.min(saved.positionSec, Math.max(0, track.durationMs / 1000 - 0.25)))
+      : 0;
+    this.restoredPositionPending = track !== null;
+    this.lastReportedProgress = positionSec;
+    this.playSessionId = null;
+    this.backend.stop();
+    this.backend.setVolume(saved.volume);
+    this.patch({
+      track,
+      playing: false,
+      positionSec,
+      durationSec: track ? track.durationMs / 1000 : 0,
+      volume: saved.volume,
+      shuffle: saved.shuffle,
+      repeat: saved.repeat,
+      queue,
+      queueIndex: index,
+      error: "",
+    });
   }
 
   currentQueueState(): QueueState {
@@ -248,6 +317,7 @@ export class Player {
 
   /** Hard-cut playback to a track (user action): clear, load, play from 0. */
   private start(track: Track): void {
+    this.restoredPositionPending = false;
     this.finishSession("skipped");
     this.lastReportedProgress = 0;
     this.playSessionId = uuid();
@@ -329,6 +399,7 @@ export class Player {
   }
 
   private stop(): void {
+    this.restoredPositionPending = false;
     this.finishSession("skipped");
     this.backend.stop();
     this.patch({ track: null, playing: false, positionSec: 0, durationSec: 0, queueIndex: -1 });
@@ -359,6 +430,22 @@ export class Player {
       this.patch({ playing: false });
       this.report("paused", this.state.track, this.state.positionSec);
     } else {
+      if (this.restoredPositionPending) {
+        this.restoredPositionPending = false;
+        this.playSessionId = uuid();
+        this.lastReportedProgress = this.state.positionSec;
+        this.patch({ playing: true, error: "" });
+        const track = this.state.track;
+        const positionSec = this.state.positionSec;
+        this.backend.playTrack(track.trackId, positionSec)
+          .then(() => this.stageUpcoming())
+          .catch((err) => {
+            const message = typeof err === "string" ? err : err instanceof Error ? err.message : "Playback failed.";
+            this.onError({ trackId: track.trackId, message });
+          });
+        this.report("started", track, positionSec);
+        return;
+      }
       this.backend.resume();
       this.patch({ playing: true });
       this.report("resumed", this.state.track, this.state.positionSec);
@@ -366,8 +453,9 @@ export class Player {
   }
 
   seek(sec: number): void {
-    this.backend.seek(sec);
-    this.patch({ positionSec: sec });
+    const positionSec = Math.max(0, Math.min(sec, this.state.durationSec || sec));
+    if (!this.restoredPositionPending) this.backend.seek(positionSec);
+    this.patch({ positionSec });
   }
 
   setVolume(v: number): void {

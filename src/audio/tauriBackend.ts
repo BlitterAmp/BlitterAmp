@@ -9,8 +9,8 @@ export class TauriAudioBackend implements AudioBackend {
   configure(baseUrl: string, token: string): void {
     void invoke("audio_configure", { baseUrl, token });
   }
-  playTrack(trackId: string): Promise<void> {
-    return invoke("audio_play_track", { trackId });
+  playTrack(trackId: string, positionSec = 0): Promise<void> {
+    return invoke("audio_play_track", { trackId, positionSec });
   }
   stageNext(trackId: string | null): void {
     void invoke("audio_stage_next", { trackId });

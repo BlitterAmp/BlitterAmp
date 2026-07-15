@@ -22,6 +22,7 @@ function track(id: string, container = "flac"): Track {
 /** Records backend calls and lets a test fire Rust-side events by hand. */
 class FakeBackend implements AudioBackend {
   played: string[] = [];
+  playedPositions: number[] = [];
   staged: (string | null)[] = [];
   preloaded: string[][] = [];
   paused = 0;
@@ -33,8 +34,9 @@ class FakeBackend implements AudioBackend {
   private err?: (e: AudioErrorEvent) => void;
 
   configure() {}
-  async playTrack(id: string) {
+  async playTrack(id: string, positionSec = 0) {
     this.played.push(id);
+    this.playedPositions.push(positionSec);
   }
   stageNext(id: string | null) {
     this.staged.push(id);
@@ -121,6 +123,55 @@ function expectOneTerminalPerSession(reported: { type: string; playSessionId: st
 }
 
 describe("Player", () => {
+  it("restores a duplicate queue paused and resumes from its saved position", () => {
+    const { p, backend, events, get } = setup();
+    const a = track("a");
+    const b = track("b");
+
+    p.restore({
+      version: 1,
+      queueTrackIds: ["a", "b", "a"],
+      orderedTrackIds: ["a", "b", "a"],
+      queueIndex: 2,
+      positionSec: 1.25,
+      volume: 0.4,
+      shuffle: true,
+      repeat: "all",
+    }, new Map([["a", a], ["b", b]]));
+
+    expect(get()).toMatchObject({ track: a, queueIndex: 2, positionSec: 1.25, volume: 0.4, playing: false, shuffle: true, repeat: "all" });
+    expect(get().queue.map((item) => item.trackId)).toEqual(["a", "b", "a"]);
+    expect(backend.played).toEqual([]);
+    expect(events).toEqual([]);
+
+    p.toggle();
+    expect(backend.played).toEqual(["a"]);
+    expect(backend.playedPositions).toEqual([1.25]);
+    expect(events).toEqual(["started"]);
+    expect(get().playing).toBe(true);
+  });
+
+  it("uses the next surviving playable track when the saved current track is stale", () => {
+    const { p, backend, get } = setup();
+    const a = track("a");
+    const c = track("c");
+
+    p.restore({
+      version: 1,
+      queueTrackIds: ["a", "missing", "c"],
+      orderedTrackIds: ["a", "missing", "c"],
+      queueIndex: 1,
+      positionSec: 20,
+      volume: 0.7,
+      shuffle: false,
+      repeat: "off",
+    }, new Map([["a", a], ["c", c]]));
+
+    expect(get()).toMatchObject({ track: c, queueIndex: 1, positionSec: 0, playing: false });
+    expect(get().queue.map((item) => item.trackId)).toEqual(["a", "c"]);
+    expect(backend.played).toEqual([]);
+  });
+
   it("shuffles the initial track when starting a shuffled set", async () => {
     const { p, backend, get } = setup();
     const random = vi.spyOn(Math, "random").mockReturnValue(0);
