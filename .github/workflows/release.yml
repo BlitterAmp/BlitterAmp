@@ -119,8 +119,6 @@ jobs:
           BLITTERSERVER_SHA: ${{ steps.engine.outputs.sha }}
           BLITTERSERVER_VERSION: ${{ steps.engine.outputs.tag }}
         run: |
-          test -n "$BLITTERSERVER_VERSION"
-          test "$(git -C "$BLITTERSERVER_DIR" rev-list -n 1 "$BLITTERSERVER_VERSION")" = "$BLITTERSERVER_SHA"
           bash scripts/build-engine.sh ${{ matrix.target }}
 
       - name: Install frontend deps
@@ -148,7 +146,11 @@ jobs:
           # and merges this platform's bundles + latest.json.
           tagName: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
           releaseName: BlitterAmp v__VERSION__
-          releaseBody: See the assets below to download and install this version.
+          releaseBody: |
+            See the assets below to download and install this version.
+
+            Bundled BlitterServer commit: `${{ steps.engine.outputs.sha }}`.
+            Compatible standalone BlitterServer release: `${{ steps.engine.outputs.tag || 'see the bundled commit' }}`.
           releaseDraft: true
           args: --target ${{ matrix.target }}
 
