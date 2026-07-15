@@ -146,17 +146,12 @@ jobs:
           # and merges this platform's bundles + latest.json.
           tagName: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
           releaseName: BlitterAmp v__VERSION__
-          releaseBody: |
-            See the assets below to download and install this version.
-
-            Bundled BlitterServer commit: `${{ steps.engine.outputs.sha }}`.
-            Compatible standalone BlitterServer release: `${{ steps.engine.outputs.tag || 'see the bundled commit' }}`.
+          releaseBody: See the assets below to download and install this version.
           releaseDraft: true
           args: --target ${{ matrix.target }}
 
-  # Publish the draft once every bundle is attached; delete it (and the tag) if
-  # any platform failed, so the next fix commit recreates a clean release.
-  # Skipped on workflow_dispatch (rebuilding an existing published release).
+  # Publish the draft once every bundle is attached. Failed drafts and tags are
+  # retained for repair instead of rewriting release provenance.
   finalize:
     needs: [release-please, build]
     if: ${{ always() && needs.release-please.outputs.release_created == 'true' }}
@@ -164,12 +159,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        if: ${{ needs.build.result == 'success' }}
+        with:
+          ref: ${{ needs.release-please.outputs.sha }}
       - name: Publish release (all bundles built)
         if: ${{ needs.build.result == 'success' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
-        run: gh release edit "$TAG" --repo BlitterAmp/BlitterAmp --draft=false
+        run: |
+          body="$(gh release view "$TAG" --repo BlitterAmp/BlitterAmp --json body --jq .body)"
+          server_sha="$(node -p "require('./src-tauri/blitterserver-version.json').sha")"
+          server_tag="$(node -p "require('./src-tauri/blitterserver-version.json').tag")"
+          notes="$(printf '%s\n\n## Compatibility\n\nBundled BlitterServer commit: `%s`.\nCompatible standalone BlitterServer release: `%s`.\n' "$body" "$server_sha" "${server_tag:-see the bundled commit}")"
+          gh release edit "$TAG" --repo BlitterAmp/BlitterAmp --notes "$notes" --draft=false
       - name: Retain draft for repair
         if: ${{ needs.build.result != 'success' }}
         run: exit 1
