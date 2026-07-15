@@ -164,9 +164,17 @@ export class Client {
     return this.get<Page<Track>>(`/v1/tracks${q}`);
   }
 
-  /** Sets the calling profile's love state for a canonical ref (art_/alb_/trk_). */
+  loves(kind?: "artist" | "album" | "track" | "genre", state?: "loved" | "not_for_me") {
+    const q = new URLSearchParams();
+    q.set("limit", "100");
+    if (kind) q.set("kind", kind);
+    if (state) q.set("state", state);
+    return this.get<Page<LoveRecord>>(`/v1/loves${q.size ? `?${q}` : ""}`);
+  }
+
+  /** Sets the calling profile's love state for a canonical resource or genre. */
   setLove(ref: string, state: LoveState) {
-    return this.put<LoveRecord>(`/v1/loves/${ref}`, { state });
+    return this.put<LoveRecord>(`/v1/loves/${encodeURIComponent(ref)}`, { state });
   }
 
   /** Rates an item 0–10 (or null to clear). */

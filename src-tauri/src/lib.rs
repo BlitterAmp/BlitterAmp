@@ -18,7 +18,7 @@ use tauri::Manager;
 pub fn run() {
     platform::configure_display_environment();
 
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_http::init())
@@ -67,6 +67,12 @@ pub fn run() {
                 engine::engine_stop(state);
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|app, event| {
+        if let tauri::RunEvent::Exit = event {
+            engine::stop_engine(&app.state::<EngineState>());
+        }
+    });
 }

@@ -7,6 +7,7 @@ import { AlbumArt } from "../AlbumArt";
 import { ArtistCredits } from "../ArtistCredits";
 import { MosaicArt } from "../MosaicArt";
 import { TrackList, type NavTarget } from "../TrackList";
+import { genreDisplayName } from "../genre";
 
 export function HomeView({
   client,
@@ -14,12 +15,14 @@ export function HomeView({
   onNavigate,
   onOpenMix,
   onOpenPlaylist,
+  refreshKey = 0,
 }: {
   client: Client;
   player: Player;
   onNavigate: (t: NavTarget) => void;
   onOpenMix: (mixId: string, title: string) => void;
   onOpenPlaylist: (playlistId: string) => void;
+  refreshKey?: number;
 }) {
   const [home, setHome] = useState<HomeRails | null>(null);
   const [error, setError] = useState("");
@@ -30,7 +33,7 @@ export function HomeView({
       .home()
       .then(setHome)
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load home."));
-  }, [client, libVersion]);
+  }, [client, libVersion, refreshKey]);
 
   return (
     <section className="space-y-8">
@@ -42,14 +45,17 @@ export function HomeView({
 
           {rail.mixes && (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
-              {rail.mixes.map((m) => (
-                <button key={m.mixId} type="button" className="group text-left" onClick={() => onOpenMix(m.mixId, m.title)}>
+              {rail.mixes.map((m) => {
+                const title = m.kind === "genre" ? genreDisplayName(m.title) : m.title;
+                return (
+                <button key={m.mixId} type="button" className="group text-left" onClick={() => onOpenMix(m.mixId, title)}>
                   <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-box bg-gradient-to-br from-primary/30 to-secondary/30 shadow-sm transition group-hover:ring-2 group-hover:ring-primary/60">
-                    <MosaicArt artIds={m.collageArtIds ?? []} alt={m.title} />
+                    <MosaicArt artIds={m.collageArtIds ?? []} alt={title} />
                   </div>
-                  <div className="mt-2 truncate text-sm font-medium">{m.title}</div>
+                  <div className="mt-2 truncate text-sm font-medium">{title}</div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
 

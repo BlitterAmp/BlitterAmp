@@ -67,6 +67,7 @@ function ShellInner({
   const [aboutOpen, setAboutOpen] = useState(false);
   const [logsOpen, setLogsOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
+  const [homeRevision, setHomeRevision] = useState(0);
   const { client } = connection;
   const mainRef = useRef<HTMLElement>(null);
   const prompt = usePrompt();
@@ -210,6 +211,7 @@ function ShellInner({
               player={player}
               genre={view.genre}
               onNavigate={(target) => setView(target.name === "artist" ? { ...target, fromGenre: view.genre } : target)}
+              onTasteChanged={() => setHomeRevision((revision) => revision + 1)}
               onBack={() => setView({ name: "genres" })}
             />
           )}
@@ -243,6 +245,7 @@ function ShellInner({
               onNavigate={navigate}
               onOpenMix={(mixId, title) => setView({ name: "mix", mixId, title })}
               onOpenPlaylist={(playlistId) => setView({ name: "playlist", playlistId })}
+              refreshKey={homeRevision}
             />
           </div>
           {view.name === "search" && <SearchView client={client} player={player} query={search} onNavigate={navigate} />}

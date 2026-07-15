@@ -26,15 +26,20 @@ describe("LinuxWindowChrome", () => {
     const onLogs = vi.fn();
     render(<LinuxAppMenu onSettings={onSettings} onAbout={onAbout} onLogs={onLogs} />);
 
+    const menuItems = screen.getByRole("list").querySelectorAll("button");
+    expect(menuItems[0].textContent).toBe("About BlitterAmp");
+
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     fireEvent.click(screen.getByRole("button", { name: "About BlitterAmp" }));
     fireEvent.click(screen.getByRole("button", { name: "Logs" }));
     fireEvent.click(screen.getByRole("button", { name: "GitHub" }));
+    fireEvent.click(screen.getByRole("button", { name: "Quit" }));
 
     expect(onSettings).toHaveBeenCalledOnce();
     expect(onAbout).toHaveBeenCalledOnce();
     expect(onLogs).toHaveBeenCalledOnce();
     expect(openUrl).toHaveBeenCalledWith("https://github.com/BlitterAmp/BlitterAmp");
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it("provides app-owned window controls", () => {

@@ -51,8 +51,10 @@ describe("Genres views", () => {
     library.albumsByArtist = new Map([["one", [albumOne]], ["two", [albumTwo]]]);
     library.tracksByArtist = new Map([["one", [shared]], ["two", [shared, second]]]);
     const onNavigate = vi.fn();
+    const setLove = vi.fn(async () => ({}));
+    const client = { loves: vi.fn(async () => ({ items: [] })), setLove };
 
-    render(<GenreView client={{} as never} player={{} as never} genre="electronica" onNavigate={onNavigate} onBack={() => {}} />);
+    render(<GenreView client={client as never} player={{} as never} genre="electronica" onNavigate={onNavigate} onBack={() => {}} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Two" }));
     expect(onNavigate).toHaveBeenCalledWith({ name: "artist", artistId: "two" });
@@ -61,6 +63,8 @@ describe("Genres views", () => {
     expect(screen.getByTestId("play-actions").textContent).toBe("shared,second");
     expect(screen.getByTestId("track-list").textContent).toBe("shared,second");
     expect(screen.getByText("2 artists · 2 albums · 2 tracks")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Love" }));
+    expect(setLove).toHaveBeenCalledWith("genre:electronica", "loved");
   });
 
   it("deduplicates art and caps mosaics at twelve covers", () => {

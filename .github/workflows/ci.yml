@@ -20,9 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { path: blitteramp }
-      # The engine sidecar is built from the sibling BlitterServer repo.
+      - name: Read pinned engine revision
+        id: engine
+        shell: bash
+        run: |
+          echo "sha=$(node -p "require('./blitteramp/src-tauri/blitterserver-version.json').sha")" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
-        with: { repository: BlitterAmp/BlitterServer, path: blitterserver }
+        with:
+          repository: BlitterAmp/BlitterServer
+          path: blitterserver
+          ref: ${{ steps.engine.outputs.sha }}
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-go@v5
         with: { go-version-file: blitterserver/go.mod }
@@ -33,5 +40,9 @@ jobs:
       - name: tauri linux deps
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf ffmpeg libasound2-dev
       - name: build engine sidecar
-        run: cd blitteramp && BLITTERSERVER_DIR=$GITHUB_WORKSPACE/blitterserver bash scripts/build-engine.sh
+        working-directory: blitteramp
+        env:
+          BLITTERSERVER_DIR: ${{ github.workspace }}/blitterserver
+          BLITTERSERVER_SHA: ${{ steps.engine.outputs.sha }}
+        run: bash scripts/build-engine.sh
       - run: cargo check --manifest-path blitteramp/src-tauri/Cargo.toml

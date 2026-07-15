@@ -15,6 +15,10 @@
         {
           "type": "generic",
           "path": "src-tauri/Cargo.toml"
+        },
+        {
+          "type": "generic",
+          "path": "src-tauri/Cargo.lock"
         }
       ]
     }

@@ -1,0 +1,70 @@
+name: Sync BlitterServer engine
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Published BlitterServer tag"
+        required: true
+      sha:
+        description: "Full BlitterServer release commit"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-blitterserver-engine
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { path: blitteramp }
+      - uses: actions/checkout@v4
+        with:
+          repository: BlitterAmp/BlitterServer
+          path: blitterserver
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: blitteramp/pnpm-lock.yaml
+      - name: Verify published server release
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          test "$(git -C blitterserver rev-parse HEAD)" = "$SHA"
+          test "$(git -C blitterserver rev-list -n 1 "$TAG")" = "$SHA"
+          test "$(gh release view "$TAG" --repo BlitterAmp/BlitterServer --json isDraft -q .isDraft)" = "false"
+      - name: Update engine lock and generated contract
+        working-directory: blitteramp
+        env:
+          TAG: ${{ inputs.tag }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const tag = process.env.TAG;
+            fs.writeFileSync("src-tauri/blitterserver-version.json", JSON.stringify({ version: tag.replace(/^v/, ""), tag, sha: process.env.SHA }, null, 2) + "\n");
+          '
+          pnpm install --frozen-lockfile
+          pnpm exec openapi-typescript ../blitterserver/api/openapi.yaml --output src/api/schema.d.ts
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GH_ACTIONS_PR_TOKEN }}
+          path: blitteramp
+          branch: chore/blitterserver-${{ inputs.tag }}
+          delete-branch: true
+          commit-message: "chore: bundle BlitterServer ${{ inputs.tag }}"
+          title: "chore: bundle BlitterServer ${{ inputs.tag }}"
+          body: |
+            Pins the bundled engine to BlitterServer `${{ inputs.tag }}` at `${{ inputs.sha }}` and regenerates the desktop API contract from that immutable release.

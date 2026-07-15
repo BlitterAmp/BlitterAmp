@@ -301,6 +301,10 @@ pub async fn engine_start(
 /// Stops the engine (called on app exit).
 #[tauri::command]
 pub fn engine_stop(state: State<'_, EngineState>) {
+    stop_engine(&state);
+}
+
+pub fn stop_engine(state: &EngineState) {
     if let Ok(mut inner) = state.inner.lock() {
         inner.generation = inner.generation.saturating_add(1);
         if let Some(child) = inner.child.take() {
