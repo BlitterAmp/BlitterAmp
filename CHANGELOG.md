@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/BlitterAmp/BlitterAmp/compare/v0.7.1...v0.7.2) (2026-07-16)
+
+
+### Bug Fixes
+
+* identify platforms in release filenames ([#63](https://github.com/BlitterAmp/BlitterAmp/issues/63)) ([7af9b4d](https://github.com/BlitterAmp/BlitterAmp/commit/7af9b4d15d011a6fb6ae077a1bbbebded89bbc10))
+
 ## [0.7.1](https://github.com/BlitterAmp/BlitterAmp/compare/v0.7.0...v0.7.1) (2026-07-15)
 
 
