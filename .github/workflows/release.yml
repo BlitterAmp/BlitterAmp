@@ -169,6 +169,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
+          bash scripts/name-release-assets.sh "$TAG"
           body="$(gh release view "$TAG" --repo BlitterAmp/BlitterAmp --json body --jq .body)"
           server_sha="$(node -p "require('./src-tauri/blitterserver-version.json').sha")"
           server_tag="$(node -p "require('./src-tauri/blitterserver-version.json').tag")"
