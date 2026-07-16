@@ -4,27 +4,27 @@ set -euo pipefail
 tag="${1:?usage: name-release-assets.sh <tag>}"
 repo="${GITHUB_REPOSITORY:-BlitterAmp/BlitterAmp}"
 version="${tag#v}"
-release_api="repos/$repo/releases/tags/$tag"
 workdir="$(mktemp -d)"
 manifest="$workdir/latest.json"
 trap 'rm -rf "$workdir"' EXIT
 
 gh release download "$tag" --repo "$repo" --pattern latest.json --dir "$workdir"
 
-asset_id() {
+asset_api_url() {
   local name="$1"
-  gh api "$release_api" | jq -r --arg name "$name" '.assets[] | select(.name == $name) | .id'
+  gh release view "$tag" --repo "$repo" --json assets |
+    jq -r --arg name "$name" '.assets[] | select(.name == $name) | .apiUrl'
 }
 
 rename_asset() {
   local old_name="$1"
   local new_name="$2"
-  local id
-  id="$(asset_id "$old_name")"
+  local api_url
+  api_url="$(asset_api_url "$old_name")"
 
-  if [ -n "$id" ]; then
-    gh api --method PATCH "repos/$repo/releases/assets/$id" -f name="$new_name" >/dev/null
-  elif [ -z "$(asset_id "$new_name")" ]; then
+  if [ -n "$api_url" ]; then
+    gh api --method PATCH "$api_url" -f name="$new_name" >/dev/null
+  elif [ -z "$(asset_api_url "$new_name")" ]; then
     echo "Release asset not found: $old_name" >&2
     exit 1
   fi
