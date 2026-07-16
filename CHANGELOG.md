@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/BlitterAmp/BlitterAmp/compare/v0.7.2...v0.7.3) (2026-07-16)
+
+
+### Bug Fixes
+
+* rename assets in draft releases ([#65](https://github.com/BlitterAmp/BlitterAmp/issues/65)) ([e72f413](https://github.com/BlitterAmp/BlitterAmp/commit/e72f4131b70c1a998236dae2f8fa8fe6513f8768))
+
 ## [0.7.2](https://github.com/BlitterAmp/BlitterAmp/compare/v0.7.1...v0.7.2) (2026-07-16)
 
 
