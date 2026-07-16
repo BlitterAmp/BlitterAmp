@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "blitteramp"
-version = "0.7.1" # x-release-please-version
+version = "0.7.2" # x-release-please-version
 dependencies = [
  "aes-gcm",
  "chrono",
